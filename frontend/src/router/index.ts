@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import BlogView from '../views/BlogView.vue'
 import BlogPostView from '../views/BlogPostView.vue'
 import AboutView from '../views/AboutView.vue'
+import AboutLeadershipView from '../views/AboutLeadershipView.vue'
+import AboutPartnersView from '../views/AboutPartnersView.vue'
 import ContactView from '../views/ContactView.vue'
 
 const router = createRouter({
@@ -28,6 +30,16 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: AboutView
+    },
+    {
+      path: '/about/leadership',
+      name: 'about-leadership',
+      component: AboutLeadershipView
+    },
+    {
+      path: '/about/partners',
+      name: 'about-partners',
+      component: AboutPartnersView
     },
     {
       path: '/contact',

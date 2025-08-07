@@ -1,134 +1,840 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useBlogStore } from '../stores/blog'
+import { ref, onMounted, computed } from 'vue'
+import { ChevronRightIcon, ChevronLeftIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, UsersIcon, BanknotesIcon, GlobeAltIcon } from '@heroicons/vue/24/outline'
+import { isDarkMode } from '../utils/darkMode'
 
-const blogStore = useBlogStore()
-const featuredPosts = ref([])
+// Market stats
+const marketStats = ref([
+  { label: "Total Volume", value: "₵2.4B", change: "+12.5%", positive: true },
+  { label: "Active Traders", value: "1,247", change: "+8.2%", positive: true },
+  { label: "Commodities Listed", value: "15", change: "+2", positive: true },
+  { label: "Market Cap", value: "₵8.9B", change: "+5.1%", positive: true }
+])
 
-onMounted(async () => {
-  await blogStore.fetchPosts()
-  featuredPosts.value = blogStore.posts.slice(0, 3)
+// Live prices - more dynamic
+const commodityPrices = ref([
+  { symbol: "GAPWM2", name: "Maize", price: 1880, change: 0, volume: "2.4M" },
+  { symbol: "GEJWM2", name: "Soybean", price: 4030, change: +125, volume: "1.8M" },
+  { symbol: "GKIYM2", name: "Cocoa", price: 7335, change: -85, volume: "3.1M" },
+  { symbol: "GSAWM2", name: "Sorghum", price: 4745, change: +67, volume: "890K" },
+  { symbol: "GTAYM2", name: "Cassava", price: 5929, change: +45, volume: "1.2M" },
+  { symbol: "GWAWM2", name: "Yam", price: 3823, change: -23, volume: "760K" }
+])
+
+// News section uses hardcoded content in template
+
+// Animated counter
+const animatedValue = ref(0)
+const targetValue = 2400000000 // 2.4B
+
+// Slider functionality
+const currentSlide = ref(0)
+let slideInterval: number
+
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % 3
+}
+
+const prevSlide = () => {
+  currentSlide.value = currentSlide.value === 0 ? 2 : currentSlide.value - 1
+}
+
+const goToSlide = (index: number) => {
+  currentSlide.value = index
+}
+
+const startSlideShow = () => {
+  slideInterval = setInterval(nextSlide, 5000)
+}
+
+const stopSlideShow = () => {
+  if (slideInterval) {
+    clearInterval(slideInterval)
+  }
+}
+
+const formatNumber = (num: number) => {
+  if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B'
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+  return num.toString()
+}
+
+onMounted(() => {
+  // Animate the main counter
+  const duration = 2000
+  const increment = targetValue / (duration / 16)
+  const timer = setInterval(() => {
+    animatedValue.value += increment
+    if (animatedValue.value >= targetValue) {
+      animatedValue.value = targetValue
+      clearInterval(timer)
+    }
+  }, 16)
+  
+  // Start slider
+  startSlideShow()
 })
 </script>
 
+<style scoped>
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+/* 3D Flip Card Styles */
+.perspective {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.group:hover .group-hover\:rotate-y-180 {
+  transform: rotateY(180deg);
+}
+</style>
+
 <template>
-  <div class="space-y-16">
-    <!-- Hero Section -->
-    <section class="text-center py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-      <div class="max-w-4xl mx-auto px-4">
-        <h1 class="text-5xl font-bold mb-6">
-          Welcome to GCX
-        </h1>
-        <p class="text-xl mb-8 text-blue-100">
-          Building modern web experiences with cutting-edge technology
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <router-link
-            to="/blog"
-            class="btn-primary text-lg px-8 py-3"
-          >
-            Read Our Blog
-          </router-link>
-          <router-link
-            to="/about"
-            class="btn-secondary text-lg px-8 py-3"
-          >
-            Learn More
-          </router-link>
-        </div>
-      </div>
-    </section>
+  <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
+    <!-- Modern Hero Section - Full Width Slider -->
+    <section class="relative overflow-hidden">
+      <!-- Slider Container -->
+      <div class="relative h-[80vh]">
+        <!-- Slide 1: Trading Dashboard -->
+        <div 
+          class="absolute inset-0 transition-opacity duration-1000"
+          :class="{ 'opacity-100': currentSlide === 0, 'opacity-0': currentSlide !== 0 }"
+        >
+          <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-800/70 to-slate-900/80"></div>
+          <img src="/trading dashboard.jpg" alt="Trading Dashboard" class="w-full h-full object-cover" />
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full px-6 lg:px-12">
+              <div class="w-full">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                  <div class="text-white">
+                    <div class="inline-flex items-center px-4 py-2 bg-yellow-500/20 rounded-full text-yellow-300 text-sm font-medium mb-6">
+                      <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
+                      Live Trading • Market Open
+                    </div>
+                    
+                    <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+                      Ghana's Premier 
+                      <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                        Commodity Exchange
+                      </span>
+                    </h1>
+                    
+                    <p class="text-xl text-slate-300 mb-8 max-w-lg">
+                      Connecting markets, empowering traders, and driving Ghana's agricultural transformation through innovative trading solutions.
+                    </p>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-12">
+                      <button class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                        Start Trading Today
+                      </button>
+                      <button class="border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all">
+                        View Market Data
+                      </button>
+                    </div>
 
-    <!-- Features Section -->
-    <section class="py-16">
-      <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">What We Do</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="card text-center">
-            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Web Development</h3>
-            <p class="text-gray-600">
-              Modern, responsive websites built with the latest technologies
-            </p>
-          </div>
+                    <!-- Animated Stats -->
+                    <div class="grid grid-cols-2 gap-6">
+                      <div class="text-center lg:text-left">
+                        <div class="text-3xl font-bold text-yellow-400">₵{{ formatNumber(animatedValue) }}</div>
+                        <div class="text-slate-400 text-sm">Total Trading Volume</div>
+                      </div>
+                      <div class="text-center lg:text-left">
+                        <div class="text-3xl font-bold text-green-400">1,247+</div>
+                        <div class="text-slate-400 text-sm">Active Members</div>
+                      </div>
+                    </div>
+                  </div>
 
-          <div class="card text-center">
-            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Mobile Apps</h3>
-            <p class="text-gray-600">
-              Cross-platform mobile applications for iOS and Android
-            </p>
-          </div>
+                  <!-- Right Content - Live Market Dashboard -->
+                  <div class="lg:mt-0 mt-12">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                      <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-white font-bold text-lg">Live Market Overview</h3>
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      </div>
+                      
+                      <!-- Market Stats Grid -->
+                      <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div 
+                          v-for="stat in marketStats" 
+                          :key="stat.label"
+                          class="bg-white/5 rounded-xl p-4 border border-white/10"
+                        >
+                          <div class="text-2xl font-bold text-white mb-1">{{ stat.value }}</div>
+                          <div class="text-slate-300 text-xs mb-2">{{ stat.label }}</div>
+                          <div :class="stat.positive ? 'text-green-400' : 'text-red-400'" class="text-sm font-medium">
+                            {{ stat.change }}
+                          </div>
+                        </div>
+                      </div>
 
-          <div class="card text-center">
-            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Data Analytics</h3>
-            <p class="text-gray-600">
-              Insights and analytics to drive your business forward
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Featured Blog Posts -->
-    <section class="py-16 bg-gray-50">
-      <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Latest from Our Blog</h2>
-        <div v-if="blogStore.loading" class="text-center">
-          <p class="text-gray-600">Loading posts...</p>
-        </div>
-        <div v-else-if="featuredPosts.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div
-            v-for="post in featuredPosts"
-            :key="post.id"
-            class="card hover:shadow-lg transition-shadow duration-200"
-          >
-            <img
-              v-if="post.featured_image"
-              :src="post.featured_image"
-              :alt="post.title"
-              class="w-full h-48 object-cover rounded-t-lg"
-            />
-            <div class="p-6">
-              <h3 class="text-xl font-semibold mb-2">{{ post.title }}</h3>
-              <p class="text-gray-600 mb-4">{{ post.excerpt }}</p>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-500">{{ post.author }}</span>
-                <router-link
-                  :to="`/blog/${post.slug}`"
-                  class="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Read More →
-                </router-link>
+                      <!-- Quick Prices -->
+                      <div class="space-y-2">
+                        <div 
+                          v-for="(commodity, index) in commodityPrices.slice(0, 4)" 
+                          :key="commodity.symbol"
+                          class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
+                        >
+                          <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center text-black text-xs font-bold mr-3">
+                              {{ commodity.symbol.slice(0, 2) }}
+                            </div>
+                            <div>
+                              <div class="text-white font-medium text-sm">{{ commodity.name }}</div>
+                              <div class="text-slate-400 text-xs">{{ commodity.volume }} vol</div>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <div class="text-white font-bold">₵{{ commodity.price.toLocaleString() }}</div>
+                            <div :class="commodity.change > 0 ? 'text-green-400' : commodity.change < 0 ? 'text-red-400' : 'text-slate-400'" class="text-xs">
+                              {{ commodity.change > 0 ? '+' : '' }}{{ commodity.change }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div v-else class="text-center">
-          <p class="text-gray-600">No posts available</p>
+
+        <!-- Slide 2: Farming -->
+        <div 
+          class="absolute inset-0 transition-opacity duration-1000"
+          :class="{ 'opacity-100': currentSlide === 1, 'opacity-0': currentSlide !== 1 }"
+        >
+          <div class="absolute inset-0 bg-gradient-to-r from-green-900/80 via-green-800/70 to-green-900/80"></div>
+          <img src="/crop.jpg" alt="Agricultural Trading" class="w-full h-full object-cover" />
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full px-6 lg:px-12">
+              <div class="w-full">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                  <div class="text-white">
+                    <div class="inline-flex items-center px-4 py-2 bg-green-500/20 rounded-full text-green-300 text-sm font-medium mb-6">
+                      <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                      Agricultural Excellence
+                    </div>
+                    
+                    <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+                      Empowering 
+                      <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
+                        Farmers
+                      </span>
+                    </h1>
+                    
+                    <p class="text-xl text-slate-300 mb-8 max-w-lg">
+                      Supporting Ghana's agricultural sector with transparent pricing, secure trading, and market access for farmers across the country.
+                    </p>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-12">
+                      <button class="bg-green-500 hover:bg-green-400 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                        Join as Farmer
+                      </button>
+                      <button class="border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all">
+                        Learn More
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Right Content - Farming Stats -->
+                  <div class="lg:mt-0 mt-12">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                      <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-white font-bold text-lg">Farmer Benefits</h3>
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      </div>
+                      
+                      <div class="space-y-4">
+                        <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">✓</span>
+                          </div>
+                          <div>
+                            <div class="text-white font-semibold">Transparent Pricing</div>
+                            <div class="text-slate-300 text-sm">Get fair market prices</div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">✓</span>
+                          </div>
+                          <div>
+                            <div class="text-white font-semibold">Secure Payments</div>
+                            <div class="text-slate-300 text-sm">Guaranteed payment system</div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">✓</span>
+                          </div>
+                          <div>
+                            <div class="text-white font-semibold">Market Access</div>
+                            <div class="text-slate-300 text-sm">Connect with buyers nationwide</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="text-center mt-8">
-          <router-link
-            to="/blog"
-            class="btn-primary"
-          >
-            View All Posts
-          </router-link>
+
+        <!-- Slide 3: Trading -->
+        <div 
+          class="absolute inset-0 transition-opacity duration-1000"
+          :class="{ 'opacity-100': currentSlide === 2, 'opacity-0': currentSlide !== 2 }"
+        >
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/70 to-blue-900/80"></div>
+          <img src="/trading.jpg" alt="Trading Platform" class="w-full h-full object-cover" />
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full px-6 lg:px-12">
+              <div class="w-full">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                  <div class="text-white">
+                    <div class="inline-flex items-center px-4 py-2 bg-blue-500/20 rounded-full text-blue-300 text-sm font-medium mb-6">
+                      <span class="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+                      Advanced Trading Platform
+                    </div>
+                    
+                    <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+                      Professional 
+                      <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+                        Trading
+                      </span>
+                    </h1>
+                    
+                    <p class="text-xl text-slate-300 mb-8 max-w-lg">
+                      Access cutting-edge trading technology with real-time data, advanced analytics, and secure execution for professional traders.
+                    </p>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-12">
+                      <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                        Start Trading
+                      </button>
+                      <button class="border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all">
+                        View Platform
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Right Content - Trading Features -->
+                  <div class="lg:mt-0 mt-12">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                      <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-white font-bold text-lg">Platform Features</h3>
+                        <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      </div>
+                      
+                      <div class="space-y-4">
+                        <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">⚡</span>
+                          </div>
+                          <div>
+                            <div class="text-white font-semibold">Real-time Data</div>
+                            <div class="text-slate-300 text-sm">Live market updates</div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">📊</span>
+                          </div>
+                          <div>
+                            <div class="text-white font-semibold">Advanced Analytics</div>
+                            <div class="text-slate-300 text-sm">Professional charts & tools</div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">🔒</span>
+                          </div>
+                          <div>
+                            <div class="text-white font-semibold">Secure Execution</div>
+                            <div class="text-slate-300 text-sm">Bank-grade security</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <button
+          @click="prevSlide"
+          class="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 transition-all backdrop-blur-md"
+        >
+          <ChevronLeftIcon class="h-6 w-6 text-white" />
+        </button>
+        <button
+          @click="nextSlide"
+          class="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-3 transition-all backdrop-blur-md"
+        >
+          <ChevronRightIcon class="h-6 w-6 text-white" />
+        </button>
+
+        <!-- Slide Indicators -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
+          <button
+            v-for="(slide, index) in 3"
+            :key="index"
+            @click="goToSlide(index)"
+            class="w-3 h-3 rounded-full transition-all duration-200"
+            :class="index === currentSlide ? 'bg-yellow-500' : 'bg-white/50 hover:bg-white/75'"
+          ></button>
         </div>
       </div>
     </section>
+
+                   <!-- Animated Market Ticker Section -->
+              <div class="transition-colors duration-300 py-4 overflow-hidden border-b" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
+        <div class="flex items-center justify-between mb-2 px-6">
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2"></div>
+            <span class="font-semibold text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">LIVE MARKET DATA</span>
+          </div>
+          <button class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'">View Full Market →</button>
+        </div>
+        
+        <!-- Ticker Container -->
+        <div class="relative overflow-hidden">
+          <div class="flex animate-scroll">
+            <!-- First set of items -->
+            <div class="flex items-center space-x-8 px-6">
+              <div 
+                v-for="commodity in commodityPrices" 
+                :key="commodity.symbol"
+                class="flex items-center space-x-4 rounded-lg px-4 py-2 border transition-colors"
+                :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:bg-slate-600' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'"
+              >
+                <div class="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center text-black text-xs font-bold">
+                  {{ commodity.symbol.slice(0, 2) }}
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div>
+                    <div class="font-semibold text-sm transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ commodity.name }}</div>
+                    <div class="text-xs transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">{{ commodity.symbol }}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-bold text-sm transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">₵{{ commodity.price.toLocaleString() }}</div>
+                    <div class="flex items-center">
+                      <ArrowTrendingUpIcon v-if="commodity.change > 0" class="w-3 h-3 text-green-500 mr-1" />
+                      <ArrowTrendingDownIcon v-else-if="commodity.change < 0" class="w-3 h-3 text-red-500 mr-1" />
+                      <span :class="commodity.change > 0 ? 'text-green-500' : commodity.change < 0 ? 'text-red-500' : (isDarkMode ? 'text-slate-400' : 'text-slate-500')" class="text-xs font-medium">
+                        {{ commodity.change > 0 ? '+' : '' }}{{ commodity.change }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Duplicate set for seamless loop -->
+            <div class="flex items-center space-x-8 px-6">
+              <div 
+                v-for="commodity in commodityPrices" 
+                :key="`${commodity.symbol}-duplicate`"
+                class="flex items-center space-x-4 rounded-lg px-4 py-2 border transition-colors"
+                :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:bg-slate-600' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'"
+              >
+                <div class="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center text-black text-xs font-bold">
+                  {{ commodity.symbol.slice(0, 2) }}
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div>
+                    <div class="font-semibold text-sm transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ commodity.name }}</div>
+                    <div class="text-xs transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">{{ commodity.symbol }}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-bold text-sm transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">₵{{ commodity.price.toLocaleString() }}</div>
+                    <div class="flex items-center">
+                      <ArrowTrendingUpIcon v-if="commodity.change > 0" class="w-3 h-3 text-green-500 mr-1" />
+                      <ArrowTrendingDownIcon v-else-if="commodity.change < 0" class="w-3 h-3 text-red-500 mr-1" />
+                      <span :class="commodity.change > 0 ? 'text-green-500' : commodity.change < 0 ? 'text-red-500' : (isDarkMode ? 'text-slate-400' : 'text-slate-500')" class="text-xs font-medium">
+                        {{ commodity.change > 0 ? '+' : '' }}{{ commodity.change }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+         <!-- What is GCX Section -->
+     <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-white via-white to-yellow-50'">
+       <div class="max-w-7xl mx-auto px-6">
+         <div class="text-center mb-12">
+           <h2 class="text-4xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Why Join The Ghana Commodity Exchange?</h2>
+           <p class="text-xl mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Connecting Markets, Connecting People, Providing Opportunities</p>
+         </div>
+         
+                   <div class="grid lg:grid-cols-3 gap-8">
+            <!-- What is GCX -->
+            <div class="rounded-2xl p-8 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
+              <div class="w-full h-48 mb-6 rounded-xl overflow-hidden">
+                <img src="/trading dashboard.jpg" alt="Trading Platform" class="w-full h-full object-cover" />
+              </div>
+              <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">What is GCX?</h3>
+              <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                Simply put, GCX is a marketplace or a platform for buying and selling listed commodities. Starting with spot contracts for physical products, GCX will later trade in futures and options contracts for the listed commodities.
+              </p>
+            </div>
+            
+            <!-- Benefits to Members -->
+            <div class="rounded-2xl p-8 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
+              <div class="w-full h-48 mb-6 rounded-xl overflow-hidden">
+                <img src="/crop.jpg" alt="Agricultural Trading" class="w-full h-full object-cover" />
+              </div>
+              <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Benefits to Members</h3>
+              <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                As a member, you gain access to a wide range of market actors (buyers and sellers) thereby creating opportunities for you to increase your revenue stream in a simplified manner, and without risk.
+              </p>
+            </div>
+            
+            <!-- Benefits to Society -->
+            <div class="rounded-2xl p-8 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
+              <div class="w-full h-48 mb-6 rounded-xl overflow-hidden">
+                <img src="/trading.jpg" alt="Trading Platform" class="w-full h-full object-cover" />
+              </div>
+              <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Benefits to Society</h3>
+              <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                Apart from job creation, agricultural economic transformation will occur through the myriad of opportunities for value chain actors to achieve high levels of sustainable and equitable growth, from farmers who receive a premium on quality grains to traders who are guaranteed the right quality, with cash and contract settlement within a few days.
+              </p>
+            </div>
+          </div>
+       </div>
+     </section>
+
+                       <!-- News Section -->
+       <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-slate-50 to-slate-100'">
+         <div class="max-w-7xl mx-auto px-6">
+           <div class="text-center mb-12">
+             <h2 class="text-4xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Latest Updates</h2>
+             <p class="text-xl transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Stay informed with the latest news and developments from GCX</p>
+           </div>
+           
+                       <div class="grid lg:grid-cols-3 gap-8">
+              <!-- News Item 1 - Flip Card -->
+              <div class="group perspective">
+                <div class="relative w-full h-80 transition-transform duration-700 transform-style-preserve-3d group-hover:rotate-y-180">
+                  <!-- Front Side -->
+                  <div class="absolute inset-0 backface-hidden">
+                    <div class="w-full h-full bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-8 flex flex-col justify-center items-center text-center text-white shadow-xl">
+                      <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                        <span class="text-white font-bold text-2xl">📰</span>
+                      </div>
+                      <h3 class="text-xl font-bold mb-4">Partnership</h3>
+                      <p class="text-white/90 text-sm leading-relaxed">
+                        GCX Partners with World Vision for Agricultural Development
+                      </p>
+                      <div class="mt-6 text-white/70 text-xs">
+                        Hover to read more →
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Back Side -->
+                  <div class="absolute inset-0 backface-hidden rotate-y-180">
+                    <div class="w-full h-full rounded-2xl p-8 shadow-xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-red-900' : 'bg-white border-red-100'">
+                      <div class="w-full h-32 mb-4 rounded-xl overflow-hidden">
+                        <img src="/b(1).jpg" alt="Partnership News" class="w-full h-full object-cover" />
+                      </div>
+                      <div class="flex items-start justify-between mb-3">
+                        <span class="bg-red-500 px-2 py-1 rounded text-white text-xs font-medium">Partnership</span>
+                        <span class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">2 hours ago</span>
+                      </div>
+                      <h3 class="font-semibold mb-2 leading-tight text-lg transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">GCX Partners with World Vision for Agricultural Development</h3>
+                      <p class="text-sm mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Landmark partnership to strengthen value chains</p>
+                      <button class="text-sm font-medium flex items-center transition-colors duration-300" :class="isDarkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'">
+                        Read More <ChevronRightIcon class="w-4 h-4 ml-1" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- News Item 2 - Flip Card -->
+              <div class="group perspective">
+                <div class="relative w-full h-80 transition-transform duration-700 transform-style-preserve-3d group-hover:rotate-y-180">
+                  <!-- Front Side -->
+                  <div class="absolute inset-0 backface-hidden">
+                    <div class="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-8 flex flex-col justify-center items-center text-center text-white shadow-xl">
+                      <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                        <span class="text-white font-bold text-2xl">🌍</span>
+                      </div>
+                      <h3 class="text-xl font-bold mb-4">International</h3>
+                      <p class="text-white/90 text-sm leading-relaxed">
+                        Tanzania Delegation Visits GCX for Trade Collaboration
+                      </p>
+                      <div class="mt-6 text-white/70 text-xs">
+                        Hover to read more →
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Back Side -->
+                  <div class="absolute inset-0 backface-hidden rotate-y-180">
+                    <div class="w-full h-full rounded-2xl p-8 shadow-xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-blue-900' : 'bg-white border-blue-100'">
+                      <div class="w-full h-32 mb-4 rounded-xl overflow-hidden">
+                        <img src="/crop.jpg" alt="International News" class="w-full h-full object-cover" />
+                      </div>
+                      <div class="flex items-start justify-between mb-3">
+                        <span class="bg-blue-500 px-2 py-1 rounded text-white text-xs font-medium">International</span>
+                        <span class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">5 hours ago</span>
+                      </div>
+                      <h3 class="font-semibold mb-2 leading-tight text-lg transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Tanzania Delegation Visits GCX for Trade Collaboration</h3>
+                      <p class="text-sm mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Exploring regional commodity trading opportunities</p>
+                      <button class="text-sm font-medium flex items-center transition-colors duration-300" :class="isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'">
+                        Read More <ChevronRightIcon class="w-4 h-4 ml-1" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- News Item 3 - Flip Card -->
+              <div class="group perspective">
+                <div class="relative w-full h-80 transition-transform duration-700 transform-style-preserve-3d group-hover:rotate-y-180">
+                  <!-- Front Side -->
+                  <div class="absolute inset-0 backface-hidden">
+                    <div class="w-full h-full bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-8 flex flex-col justify-center items-center text-center text-white shadow-xl">
+                      <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                        <span class="text-white font-bold text-2xl">📈</span>
+                      </div>
+                      <h3 class="text-xl font-bold mb-4">Markets</h3>
+                      <p class="text-white/90 text-sm leading-relaxed">
+                        New Commodity Futures Launched
+                      </p>
+                      <div class="mt-6 text-white/70 text-xs">
+                        Hover to read more →
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Back Side -->
+                  <div class="absolute inset-0 backface-hidden rotate-y-180">
+                    <div class="w-full h-full rounded-2xl p-8 shadow-xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-green-900' : 'bg-white border-green-100'">
+                      <div class="w-full h-32 mb-4 rounded-xl overflow-hidden">
+                        <img src="/trading.jpg" alt="Markets News" class="w-full h-full object-cover" />
+                      </div>
+                      <div class="flex items-start justify-between mb-3">
+                        <span class="bg-green-500 px-2 py-1 rounded text-white text-xs font-medium">Markets</span>
+                        <span class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">1 day ago</span>
+                      </div>
+                      <h3 class="font-semibold mb-2 leading-tight text-lg transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">New Commodity Futures Launched</h3>
+                      <p class="text-sm mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Expanding market offerings with palm oil futures</p>
+                      <button class="text-sm font-medium flex items-center transition-colors duration-300" :class="isDarkMode ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-700'">
+                        Read More <ChevronRightIcon class="w-4 h-4 ml-1" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+           
+                                  <div class="text-center mt-8">
+             <button class="font-medium text-lg transition-colors duration-300" :class="isDarkMode ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-700'">View All News →</button>
+           </div>
+          </div>
+        </section>
+
+                 <!-- Partners Section -->
+         <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
+           <div class="w-full px-6">
+             <div class="text-center mb-12">
+               <h2 class="text-4xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Our Trusted Partners</h2>
+               <button class="font-medium text-lg mt-4 transition-colors duration-300" :class="isDarkMode ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-700'">Click to see list of partners →</button>
+             </div>
+             
+             <!-- Partners Slider - Two Rows -->
+             <div class="space-y-8">
+               <!-- Top Row -->
+               <div class="relative overflow-hidden">
+                 <div class="flex animate-scroll">
+                   <!-- First set of partners - Top Row -->
+                   <div class="flex items-center space-x-12 px-6">
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-grains-council-ggc.png" alt="Ghana Grains Council" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ipmc.jpg" alt="IPMC" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/africa-cashew-alliance.png" alt="Africa Cashew Alliance" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/6-ciag.jpg" alt="CIAG" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-exim-bank.jpg" alt="Ghana EXIM Bank" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-export-promotion-authority-gepa.png" alt="Ghana Export Promotion Authority" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-standard-authority-gsa.png" alt="Ghana Standard Authority" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/standard-chartered.jpg" alt="Standard Chartered" class="max-w-full max-h-full object-contain" />
+                     </div>
+                   </div>
+                   
+                   <!-- Duplicate set for seamless loop - Top Row -->
+                   <div class="flex items-center space-x-12 px-6">
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-grains-council-ggc.png" alt="Ghana Grains Council" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ipmc.jpg" alt="IPMC" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/africa-cashew-alliance.png" alt="Africa Cashew Alliance" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/6-ciag.jpg" alt="CIAG" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-exim-bank.jpg" alt="Ghana EXIM Bank" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-export-promotion-authority-gepa.png" alt="Ghana Export Promotion Authority" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ghana-standard-authority-gsa.png" alt="Ghana Standard Authority" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/standard-chartered.jpg" alt="Standard Chartered" class="max-w-full max-h-full object-contain" />
+                     </div>
+                   </div>
+                 </div>
+               </div>
+               
+               <!-- Bottom Row -->
+               <div class="relative overflow-hidden">
+                 <div class="flex animate-scroll">
+                   <!-- First set of partners - Bottom Row -->
+                   <div class="flex items-center space-x-12 px-6">
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/fidelity-bank.png" alt="Fidelity Bank" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ecobank.png" alt="Ecobank" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/giz-logo.gif" alt="GIZ" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/agra.png" alt="AGRA" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/1-ukaid.jpg" alt="UKAID" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/unido.png" alt="UNIDO" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/world-food-programme-wfp.jpg" alt="World Food Programme" class="max-w-full max-h-full object-contain" />
+                     </div>
+                   </div>
+                   
+                   <!-- Duplicate set for seamless loop - Bottom Row -->
+                   <div class="flex items-center space-x-12 px-6">
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/fidelity-bank.png" alt="Fidelity Bank" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/ecobank.png" alt="Ecobank" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/giz-logo.gif" alt="GIZ" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/agra.png" alt="AGRA" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/1-ukaid.jpg" alt="UKAID" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/unido.png" alt="UNIDO" class="max-w-full max-h-full object-contain" />
+                     </div>
+                     <div class="flex items-center justify-center w-32 h-20 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
+                       <img src="/Partners/world-food-programme-wfp.jpg" alt="World Food Programme" class="max-w-full max-h-full object-contain" />
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </section>
+
+         <!-- CTA Section -->
+     <section class="py-16 bg-gradient-to-r from-yellow-500 to-yellow-600">
+       <div class="max-w-6xl mx-auto px-6">
+         <div class="text-center mb-12">
+           <h1 class="text-5xl font-bold text-black mb-4">GHANA COMMODITY EXCHANGE</h1>
+           <p class="text-2xl text-black/80 mb-2">Connecting Markets, Connecting People, Providing Opportunities</p>
+         </div>
+         
+         <div class="grid lg:grid-cols-2 gap-8">
+           <!-- Register Section -->
+           <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+             <h2 class="text-3xl font-bold text-black mb-4">Register to become a member</h2>
+             <p class="text-xl text-black/80 mb-6">And be part of a growing network</p>
+             <button class="bg-black hover:bg-slate-800 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+               Become a Member
+             </button>
+           </div>
+           
+           <!-- Download Forms Section -->
+           <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+             <h2 class="text-3xl font-bold text-black mb-4">Download Forms and Other resources</h2>
+             <p class="text-xl text-black/80 mb-6">Get access to much more information</p>
+             <button class="bg-white/20 hover:bg-white/30 text-black font-semibold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+               Contact Sales
+             </button>
+           </div>
+         </div>
+       </div>
+     </section>
   </div>
 </template> 
