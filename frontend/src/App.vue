@@ -12,8 +12,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
-    <Navbar />
+      <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
+          <Navbar />
     <main class="w-full">
       <RouterView />
     </main>

@@ -3,14 +3,12 @@ import { ref, watch } from 'vue'
 // Create a reactive dark mode state
 const isDarkMode = ref(false)
 
-// Initialize dark mode from localStorage
+// Initialize dark mode with light as default (override any stale saved dark)
 const initializeDarkMode = () => {
-  // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
-    const savedDarkMode = localStorage.getItem('darkMode')
-    // Default to light mode if no preference is saved
-    isDarkMode.value = savedDarkMode === 'true'
-    console.log('Initializing dark mode:', isDarkMode.value)
+    // Force default to light on load; user can toggle to dark as needed
+    isDarkMode.value = false
+    localStorage.setItem('darkMode', 'false')
     applyDarkMode()
   }
 }
