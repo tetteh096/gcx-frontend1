@@ -15,53 +15,38 @@ const navigation = [
     href: '/about',
     dropdown: [
       { 
-        title: 'Organization',
+        title: 'About GCX',
         items: [
-          { name: 'About GCX', href: '/about', description: 'Learn about Ghana Commodity Exchange' },
-          { name: 'Mission & Vision', href: '/about', description: 'Our core mission and strategic vision for agricultural development' },
-          { name: 'Strategic Partners', href: '/about/partnership', description: 'Building strong partnerships for market growth' }
+          { name: 'About GCX', href: '/about#about', description: 'Overview of Ghana Commodity Exchange' },
+          { name: 'Mission', href: '/about#who', description: 'Our mission and purpose' },
+          { name: 'Vision & Purpose', href: '/about#vision', description: 'Our vision and strategic goals' }
         ]
       },
       { 
         title: 'Leadership',
         items: [
-          { name: 'Board of Directors', href: '/about', description: 'Meet our distinguished board members' },
-          { name: 'Executive Management', href: '/about', description: 'Our experienced executive team' },
-          { name: 'Functional Heads', href: '/about', description: 'Specialized department leaders' }
+          { name: 'Board of Directors', href: '/about#board', description: 'GCX board members and governance' },
+          { name: 'Executive Management', href: '/about#exec', description: 'Senior leadership team' },
+          { name: 'Functional Heads', href: '/about#func', description: 'Department and function leaders' }
         ]
       },
       { 
         title: 'Partnerships',
         items: [
-          { name: 'Donor Agencies', href: '/about/partnership', description: 'International donor partnerships' },
-          { name: 'Financial Institutions', href: '/about/partnership', description: 'Banking and financial collaborations' },
-          { name: 'Government Agencies', href: '/about/partnership', description: 'Government sector partnerships' },
-          { name: 'NGOs', href: '/about/partnership', description: 'Non-governmental organization networks' },
-          { name: 'Private Agencies', href: '/about/partnership', description: 'Private sector collaborations' }
-        ]
-      },
-      { 
-        title: 'Opportunities',
-        items: [
-          { name: 'Procurement Opportunities', href: '/about/partnership', description: 'Business and procurement opportunities' }
+          { name: 'Strategic Partners', href: '/about/partnership#partners', description: 'Building strong partnerships for market growth' },
+          { name: 'Donor Agencies', href: '/about/partnership#donors', description: 'International donor partnerships' },
+          { name: 'Financial Institutions', href: '/about/partnership#financial', description: 'Banking and financial collaborations' },
+          { name: 'Government Agencies', href: '/about/partnership#government', description: 'Government sector partnerships' },
+          { name: 'NGOs', href: '/about/partnership#ngos', description: 'Non-governmental organization networks' },
+          { name: 'Private Agencies', href: '/about/partnership#private', description: 'Private sector collaborations' },
+          { name: 'Tenders & Procurement', href: '/about/partnership#tenders', description: 'Business opportunities and procurement' }
         ]
       }
     ]
   },
   { 
     name: 'Services', 
-    href: '/services',
-    dropdown: [
-      { 
-        title: 'Core Services',
-        items: [
-          { name: 'Trading Platform', href: '/services', description: 'Advanced electronic trading platform' },
-          { name: 'Commodity Prices', href: '/services', description: 'Real-time commodity pricing and market data' },
-          { name: 'Warehouse Services', href: '/services', description: 'Certified warehouse and storage solutions' },
-          { name: 'Quality Assurance', href: '/services', description: 'Quality testing and certification services' }
-        ]
-      }
-    ]
+    href: '/services'
   },
   { 
     name: 'Membership', 
@@ -70,19 +55,19 @@ const navigation = [
       { 
         title: 'Membership Information',
         items: [
-          { name: 'Membership Types', href: '/membership', description: 'Different membership categories and requirements' },
-          { name: 'Membership Benefits', href: '/membership', description: 'Exclusive benefits for GCX members' },
-          { name: 'Rights & Obligations', href: '/membership', description: 'Member rights and responsibilities' },
-          { name: 'Membership List', href: '/membership', description: 'Current GCX member directory' },
-          { name: 'Brokers', href: '/membership', description: 'Registered broker information' }
+          { name: 'Membership Types', href: '/membership#types', description: 'Different membership categories and requirements' },
+          { name: 'Membership Benefits', href: '/membership#benefits', description: 'Exclusive benefits for GCX members' },
+          { name: 'Rights & Obligations', href: '/membership#rights', description: 'Member rights and responsibilities' },
+          { name: 'Membership List', href: '/membership#list', description: 'Current GCX member directory' },
+          { name: 'Brokers', href: '/membership#brokers', description: 'Registered broker information' }
         ]
       },
       { 
         title: 'Application Process',
         items: [
-          { name: 'Rules & Regulations', href: '/membership/application', description: 'Complete membership rules and guidelines' },
-          { name: 'Application Process', href: '/membership/application', description: 'Step-by-step application guide' },
-          { name: 'Application Forms', href: '/membership/application', description: 'Download membership application forms' }
+          { name: 'Rules & Regulations', href: '/membership/application#rules', description: 'Complete membership rules and guidelines' },
+          { name: 'Application Process', href: '/membership/application#process', description: 'Step-by-step application guide' },
+          { name: 'Application Forms', href: '/membership/application#forms', description: 'Download membership application forms' }
         ]
       }
     ]
@@ -94,10 +79,12 @@ const navigation = [
       { 
         title: 'Market Information',
         items: [
-          { name: 'Live Prices', href: '/market-data', description: 'Real-time commodity price updates' },
-          { name: 'Market Reports', href: '/market-data', description: 'Comprehensive market analysis reports' },
-          { name: 'Trading Statistics', href: '/market-data', description: 'Detailed trading performance data' },
-          { name: 'Price History', href: '/market-data', description: 'Historical price trends and analysis' }
+          { name: 'Live Prices', href: '/market-data#prices', description: 'Real-time commodity price updates' },
+          { name: 'Market Overview', href: '/market-data#overview', description: 'Comprehensive market analysis and statistics' },
+          { name: 'Price Charts', href: '/market-data#charts', description: 'Technical analysis and price charts' },
+          { name: 'Market Reports', href: '/market-data#reports', description: 'Detailed market reports and analysis' },
+          { name: 'Trading Statistics', href: '/market-data#stats', description: 'Trading performance and volume data' },
+          { name: 'Price History', href: '/market-data#history', description: 'Historical price trends and analysis' }
         ]
       }
     ]

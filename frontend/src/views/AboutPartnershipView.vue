@@ -1,981 +1,637 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { isDarkMode } from '../utils/darkMode';
 
+// Router
+const route = useRoute();
+const router = useRouter();
+
+// Active category
+const activeCategory = ref('partners');
+
+// Partnership categories
 const partnershipCategories = [
-  { label: 'Strategic Partners', key: 'partners' },
+  { label: 'Financial Institutions', key: 'partners' },
   { label: 'Donor Agencies', key: 'donors' },
-  { label: 'Financial Institutions', key: 'financial' },
   { label: 'Government Agencies', key: 'government' },
   { label: 'NGOs', key: 'ngos' },
   { label: 'Private Agencies', key: 'private' },
   { label: 'Tenders & Procurement', key: 'tenders' },
 ];
 
-const activeCategory = ref('partners');
+// Financial Institutions data
+const financialInstitutions = [
+  { imageSrc: '/Partners/ghana-exim-bank.jpg', title: 'Ghana Export-Import Bank' },
+  { imageSrc: '/Partners/ghana-export-promotion-authority-gepa.png', title: 'Ghana Export Promotion Authority' },
+  { imageSrc: '/Partners/ghana-standard-authority-gsa.png', title: 'Ghana Standards Authority' },
+  { imageSrc: '/Partners/standard-chartered.jpg', title: 'Standard Chartered' },
+  { imageSrc: '/Partners/fidelity-bank.png', title: 'Fidelity Bank' },
+  { imageSrc: '/Partners/ecobank.png', title: 'Ecobank' },
+  { imageSrc: '/Partners/ghana-grains-council-ggc.png', title: 'Ghana Grains Council' },
+  { imageSrc: '/Partners/ipmc.jpg', title: 'IPMC' },
+  { imageSrc: '/Partners/africa-cashew-alliance.png', title: 'Africa Cashew Alliance' },
+  { imageSrc: '/Partners/6-ciag.jpg', title: 'CIAG' },
+];
+
+// Donor Agencies data
+const donorAgencies = [
+  { imageSrc: '/Donors/1-ukaid.jpg', title: 'UKAID' },
+  { imageSrc: '/Donors/usaid.png', title: 'USAID' },
+  { imageSrc: '/Donors/agra.png', title: 'AGRA' },
+  { imageSrc: '/Donors/ifc.png', title: 'IFC' },
+  { imageSrc: '/Donors/giz-logo.gif', title: 'GIZ' },
+  { imageSrc: '/Donors/snv.png', title: 'SNV' },
+  { imageSrc: '/Donors/undp_100.png', title: 'UNDP' },
+  { imageSrc: '/Donors/unido.png', title: 'UNIDO' },
+  { imageSrc: '/Donors/ifad-a-edit.png', title: 'IFAD' },
+  { imageSrc: '/Donors/world-food-programme-wfp.jpg', title: 'World Food Programme' },
+];
+
+// Donor category cards
+const donorCategoryCards = [
+  {
+    title: 'International Development',
+    description: 'Strategic partnerships with major international development agencies providing funding and technical expertise.',
+    tags: ['Funding', 'Technical Support'],
+    iconPath: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    iconBgClass: 'from-blue-500 to-blue-600',
+    tagClasses: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200'
+  },
+  {
+    title: 'Agricultural Development',
+    description: 'Collaboration with specialized agricultural development organizations to enhance farming practices and market access.',
+    tags: ['Capacity Building', 'Market Access'],
+    iconPath: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z',
+    iconBgClass: 'from-green-500 to-green-600',
+    tagClasses: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+  },
+  {
+    title: 'UN Agencies',
+    description: 'Partnerships with United Nations agencies supporting sustainable development goals and humanitarian assistance.',
+    tags: ['SDG Support', 'Humanitarian Aid'],
+    iconPath: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
+    iconBgClass: 'from-yellow-500 to-yellow-600',
+    tagClasses: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
+  }
+];
+
+// Government Agencies data
+const governmentAgencies = [
+  { imageSrc: '/government/youth-in-agriculture-programme-yiap.png', title: 'Youth in Agriculture Programme' },
+  { imageSrc: '/government/ghana-incentive-based-risk-sharing-system-for-agricultural-lending-girsal.png', title: 'Ghana Incentive-Based Risk-Sharing System for Agricultural Lending' },
+  { imageSrc: '/government/ghana-investment-promotion-centregipc.png', title: 'Ghana Investment Promotion Centre' },
+  { imageSrc: '/government/ghana-export-promotion-authority-gepa.png', title: 'Ghana Export Promotion Authority' },
+  { imageSrc: '/government/ghana-exim-bank.jpg', title: 'Ghana Export-Import Bank' },
+  { imageSrc: '/government/ministry-of-finance-and-economic-planning-100.png', title: 'Ministry of Finance and Economic Planning' },
+  { imageSrc: '/government/ministry-of-trade-and-industry-moti-100.png', title: 'Ministry of Trade and Industry' },
+];
+
+// NGOs data
+const ngos = [
+  { imageSrc: '/NGO/ghana-made.png', title: 'Ghana Made' },
+  { imageSrc: '/NGO/pef.png', title: 'PEF' },
+  { imageSrc: '/NGO/aflasafe2.png', title: 'Aflasafe' },
+  { imageSrc: '/NGO/socodevi.jpeg', title: 'Socodevi' },
+  { imageSrc: '/NGO/ghana-national-chamber-of-commerce-and-industry.jpg', title: 'Ghana National Chamber of Commerce and Industry' },
+  { imageSrc: '/NGO/6-ciag.jpg', title: 'CIAG' },
+  { imageSrc: '/NGO/africa-cashew-alliance.png', title: 'Africa Cashew Alliance' },
+  { imageSrc: '/NGO/ghana-rice-inter-professional-body-grib.png', title: 'Ghana Rice Inter-Professional Body' },
+  { imageSrc: '/NGO/peasant-farmers-association-of-ghana-pfag.jpg', title: 'Peasant Farmers Association of Ghana' },
+  { imageSrc: '/NGO/the-john-a-kufuor-foundation.jpg', title: 'The John A. Kufuor Foundation' },
+  { imageSrc: '/NGO/iita.png', title: 'IITA' },
+];
+
+// Private Agencies data
+const privateAgencies = [
+  { imageSrc: '/Private/dmt-collateral.png', title: 'DMT Collateral' },
+  { imageSrc: '/Private/intervalle-geneve.png', title: 'Intervalle Geneve' },
+  { imageSrc: '/Private/wienco.jpg', title: 'Wienco' },
+  { imageSrc: '/Private/tatf.png', title: 'TATF' },
+  { imageSrc: '/Private/dess-inc.png', title: 'DESS Inc' },
+  { imageSrc: '/Private/ipmc.jpg', title: 'IPMC' },
+  { imageSrc: '/Private/ghana-grains-council-ggc.png', title: 'Ghana Grains Council' },
+];
+
+// Tender items data - actual procurement opportunities
+const tenderItems = [
+  { 
+    id: 1, 
+    title: 'IT Infrastructure Development', 
+    tenderId: 'GCX-IT-2024-001', 
+    status: 'Open', 
+    category: 'Information Technology', 
+    deadline: '2024-03-31', 
+    budget: 'GH₵ 2,500,000', 
+    description: 'Development of comprehensive IT infrastructure including trading platform upgrades, data management systems, and cybersecurity enhancements.' 
+  },
+  { 
+    id: 2, 
+    title: 'Market Research & Analytics Services', 
+    tenderId: 'GCX-RESEARCH-2024-002', 
+    status: 'Closing Soon', 
+    category: 'Research & Analytics', 
+    deadline: '2024-02-15', 
+    budget: 'GH₵ 800,000', 
+    description: 'Comprehensive market research services for agricultural commodities, price trend analysis, and market intelligence reports.' 
+  },
+  { 
+    id: 3, 
+    title: 'Warehouse Management System', 
+    tenderId: 'GCX-WAREHOUSE-2024-003', 
+    status: 'Open', 
+    category: 'Logistics & Storage', 
+    deadline: '2024-04-30', 
+    budget: 'GH₵ 1,200,000', 
+    description: 'Implementation of warehouse management system for commodity storage facilities across multiple locations in Ghana.' 
+  },
+  { 
+    id: 4, 
+    title: 'Legal Advisory Services', 
+    tenderId: 'GCX-LEGAL-2024-004', 
+    status: 'Open', 
+    category: 'Legal Services', 
+    deadline: '2024-05-31', 
+    budget: 'GH₵ 600,000', 
+    description: 'Legal advisory services for regulatory compliance, contract management, and dispute resolution in commodity trading.' 
+  },
+  { 
+    id: 5, 
+    title: 'Training & Capacity Building', 
+    tenderId: 'GCX-TRAINING-2024-005', 
+    status: 'Closing Soon', 
+    category: 'Education & Training', 
+    deadline: '2024-02-28', 
+    budget: 'GH₵ 400,000', 
+    description: 'Training programs for traders, farmers, and stakeholders on commodity exchange operations and best practices.' 
+  },
+  { 
+    id: 6, 
+    title: 'Financial Audit Services', 
+    tenderId: 'GCX-AUDIT-2024-006', 
+    status: 'Open', 
+    category: 'Financial Services', 
+    deadline: '2024-06-30', 
+    budget: 'GH₵ 350,000', 
+    description: 'Annual financial audit services including internal controls assessment and compliance reporting.' 
+  },
+];
+
+// Methods
+const updateActiveCategory = (category: string) => {
+  activeCategory.value = category;
+  router.replace({ hash: `#${category}` });
+};
+
+// Hash-based navigation
+const setActiveFromHash = () => {
+  if (route.hash) {
+    const hash = route.hash.substring(1);
+    if (partnershipCategories.some(cat => cat.key === hash)) {
+      activeCategory.value = hash;
+    }
+  }
+};
+
+// Lifecycle
+onMounted(() => {
+  setActiveFromHash();
+});
+
+// Watch for route hash changes
+watch(() => route.hash, () => {
+  setActiveFromHash();
+});
 </script>
 
 <template>
-  <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-white'">
+  <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
     <!-- Hero Section -->
-    <section class="relative py-12 lg:py-16 transition-colors duration-300 overflow-hidden bg-white dark:bg-slate-900">
-      <!-- Background Image -->
-      <div class="absolute inset-0">
-        <img 
-          src="/trading.jpg" 
-          alt="GCX Trading Platform" 
-          class="w-full h-full object-cover opacity-60 dark:opacity-30"
-        />
-        <div class="absolute inset-0 bg-gradient-to-r from-white/70 via-white/60 to-white/70 dark:from-slate-900/85 dark:via-slate-800/80 dark:to-slate-900/85 backdrop-blur-sm"></div>
+    <section class="relative py-20 lg:py-32 transition-colors duration-300 overflow-hidden" :class="isDarkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-yellow-50 via-white to-yellow-50'">
+      <!-- Background Elements -->
+      <div class="absolute inset-0 opacity-30">
+        <div class="absolute top-10 left-10 w-72 h-72 bg-yellow-200 dark:bg-yellow-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 animate-pulse"></div>
+        <div class="absolute top-0 right-10 w-72 h-72 bg-yellow-300 dark:bg-yellow-500 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-yellow-400 dark:bg-yellow-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 animate-pulse delay-500"></div>
       </div>
       
-      <div class="relative max-w-[1600px] mx-auto px-4 text-center">
-        <div class="mb-6">
-          <span class="inline-block px-3 py-1 transition-colors duration-300 rounded-full text-sm font-semibold shadow-lg" :class="isDarkMode ? 'bg-yellow-900/80 text-yellow-200' : 'bg-yellow-100/90 text-yellow-800'">
-            GCX Partnership Network
-          </span>
-        </div>
-        
-        <h1 class="text-3xl lg:text-4xl font-extrabold mb-4 tracking-tight">
-          <span class="block bg-gradient-to-r from-yellow-700 via-yellow-600 to-yellow-700 bg-clip-text text-transparent">
-            Strategic Partnerships
-          </span>
-          <span class="block text-2xl lg:text-3xl mt-2" :class="isDarkMode ? 'text-slate-200' : 'text-slate-800'">
-            Driving Growth
-          </span>
-        </h1>
-        
-        <p class="text-lg lg:text-xl font-medium max-w-4xl mx-auto leading-relaxed mb-8" :class="isDarkMode ? 'text-slate-200' : 'text-slate-700'">
-          Driving Growth Building sustainable agricultural commodity trading through strategic collaborations with leading institutions, 
-          government agencies, and development partners across West Africa and beyond.
-        </p>
-        
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button class="px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-all duration-300 shadow-lg hover:shadow-xl">
-            Partner With Us
-          </button>
-          <button class="px-6 py-3 border-2 border-yellow-600 font-semibold rounded-lg transition-all duration-300 shadow-lg" :class="isDarkMode ? 'text-yellow-400 hover:bg-yellow-900/20 bg-slate-900/50' : 'text-yellow-700 hover:bg-yellow-50 bg-white/90'">
-            View Opportunities
-          </button>
+      <div class="relative max-w-[1600px] mx-auto px-4">
+        <div class="text-center max-w-4xl mx-auto">
+          <!-- Badge -->
+          <div class="mb-6">
+            <span class="inline-block px-4 py-2 transition-colors duration-300 rounded-full text-sm font-semibold shadow-lg" :class="isDarkMode ? 'bg-yellow-900/80 text-yellow-200' : 'bg-yellow-100/90 text-yellow-800'">
+              Strategic Partnerships
+            </span>
+          </div>
+          
+          <!-- Main Heading -->
+          <h1 class="text-4xl lg:text-6xl font-bold mb-6 transition-colors duration-300 drop-shadow-lg" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            <span class="block bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-700 bg-clip-text text-transparent">
+              Partnerships
+            </span>
+          </h1>
+          
+          <!-- Description -->
+          <p class="text-lg lg:text-xl font-bold transition-colors duration-300 leading-relaxed mb-8 drop-shadow-lg" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+            Building strong collaborative relationships with financial institutions, donor agencies, government bodies, and private sector organizations to drive sustainable agricultural development and market growth in Ghana.
+          </p>
         </div>
       </div>
     </section>
-
-    <div class="max-w-[1600px] mx-auto px-4 py-16">
-      <!-- Partnership Categories Navigation -->
-      <div class="mb-16">
-        <div class="border-b transition-colors duration-300" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
-          <nav class="flex justify-center">
-            <div class="flex space-x-1 md:space-x-6 overflow-x-auto">
-              <button
-                v-for="category in partnershipCategories"
-                :key="category.key"
-                @click="activeCategory = category.key"
-                :class="[
-                  'relative py-3 md:py-4 px-3 md:px-4 font-medium text-sm whitespace-nowrap transition-all duration-300 focus:outline-none rounded-t-md',
-                  activeCategory === category.key
-                    ? 'text-yellow-700 dark:text-yellow-400 border-b-2 border-yellow-600 dark:border-yellow-400 bg-white dark:bg-slate-800'
-                    : (isDarkMode ? 'text-slate-300 hover:text-yellow-400 hover:border-b-2 hover:border-yellow-600' : 'text-slate-600 hover:text-yellow-700 hover:border-b-2 hover:border-yellow-300')
-                ]"
-              >
-                {{ category.label }}
-                <span
-                  v-if="activeCategory === category.key"
-                  class="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full"
-                ></span>
-              </button>
-            </div>
-          </nav>
+    
+    <!-- Partnership Tabs -->
+    <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-20 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap gap-2 py-4 overflow-x-auto">
+          <button
+            v-for="category in partnershipCategories"
+            :key="category.key"
+            @click="updateActiveCategory(category.key)"
+            :class="[
+              'px-6 py-3 rounded-full font-medium transition-all duration-300 whitespace-nowrap',
+              activeCategory === category.key
+                ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/25'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            ]"
+          >
+            {{ category.label }}
+          </button>
         </div>
       </div>
-
-      <!-- Partnership Content -->
-      <div class="transition-all duration-300">
-        <!-- Strategic Partners -->
-        <div v-if="activeCategory === 'partners'">
-          <section class="py-12">
-            <div class="text-center mb-10 md:mb-16">
-              <h2 class="text-3xl md:text-4xl font-extrabold mb-4 md:mb-6" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Strategic Partners</h2>
-              <p class="text-lg md:text-xl max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                Our strategic partnerships form the backbone of our operations, enabling us to deliver comprehensive solutions and drive innovation in agricultural commodity trading.
+    </div>
+    
+    <!-- Partnership Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+      <!-- Financial Institutions Section -->
+      <div v-if="activeCategory === 'partners'" class="py-12">
+        <section class="py-12">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Financial Institutions
+            </h2>
+            <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+              Strategic partnerships with major financial institutions providing funding, risk management, and financial services to support agricultural development and market growth.
+            </p>
+          </div>
+          
+          <!-- Partnership Cards Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+            <div 
+              v-for="item in financialInstitutions"
+              :key="item.title"
+              class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
+                             :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+            >
+              <div class="flex flex-col items-center text-center">
+                <div class="w-24 h-24 mb-4 flex items-center justify-center">
+                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
+                </div>
+                <h4 
+                  class="text-sm font-semibold transition-colors duration-300"
+                  :class="isDarkMode ? 'text-white' : 'text-slate-900'"
+                >
+                  {{ item.title }}
+                </h4>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      
+      <!-- Donor Agencies Section -->
+      <div v-if="activeCategory === 'donors'" class="py-12">
+        <section class="py-12">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Donor Agencies
+            </h2>
+            <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+              Collaborative partnerships with international donor agencies providing funding, technical expertise, and capacity building support for sustainable development initiatives.
+            </p>
+          </div>
+          
+          <!-- Partnership Cards Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+            <div 
+              v-for="item in donorAgencies"
+              :key="item.title"
+              class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
+              :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+            >
+              <div class="flex flex-col items-center text-center">
+                <div class="w-24 h-24 mb-4 flex items-center justify-center">
+                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
+                </div>
+                <h4 
+                  class="text-sm font-semibold transition-colors duration-300"
+                  :class="isDarkMode ? 'text-white' : 'text-slate-900'"
+                >
+                  {{ item.title }}
+                </h4>
+              </div>
+            </div>
+          </div>
+          
+          
+          <!-- Category Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div 
+              v-for="card in donorCategoryCards"
+              :key="card.title"
+              class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border"
+              :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'"
+            >
+              <div class="w-20 h-20 bg-gradient-to-br rounded-2xl mx-auto mb-6 flex items-center justify-center"
+                   :class="card.iconBgClass">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="card.iconPath" />
+                </svg>
+              </div>
+              <h3 
+                class="text-xl font-bold transition-colors duration-300 mb-4 text-center"
+                :class="isDarkMode ? 'text-white' : 'text-slate-900'"
+              >
+                {{ card.title }}
+              </h3>
+              <p 
+                class="transition-colors duration-300 text-center mb-4"
+                :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'"
+              >
+                {{ card.description }}
               </p>
-            </div>
-            
-            <!-- Partner Logos Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 mb-12 md:mb-16">
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-md border hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/fbn.png" alt="FBN" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">FBN</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-md border hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/2-summit_vision_logo.png" alt="Summit Vision" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Summit Vision</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-md border hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/1-success-4-people.jpg" alt="Success 4 People" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Success 4 People</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-md border hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/swiss-confederration-a-edit.jpeg" alt="Swiss Confederation" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Swiss Confederation</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/15-uba.png" alt="UBA" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">UBA</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/13-umb.jpg" alt="UMB" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">UMB</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/standard-chartered.jpg" alt="Standard Chartered" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Standard Chartered</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/zenith-logo.png" alt="Zenith Bank" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Zenith Bank</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/ecobank.png" alt="Ecobank" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ecobank</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/adb.jpg" alt="ADB" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">ADB</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/ghana-commercial-bank.png" alt="Ghana Commercial Bank" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana Commercial Bank</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/arb-apex-bank-ltd-a-edit.jpeg" alt="ARB Apex Bank" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">ARB Apex Bank</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/fidelity-bank.png" alt="Fidelity Bank" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Fidelity Bank</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/stra.partners/3-nsoatereman-rural-bank.jpg" alt="Nsoatereman Rural Bank" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Nsoatereman Rural Bank</h4>
-                </div>
+              <div class="flex flex-wrap gap-2 justify-center">
+                <span 
+                  v-for="tag in card.tags" 
+                  :key="tag"
+                  class="px-3 py-1 text-xs rounded-full"
+                  :class="card.tagClasses"
+                >
+                  {{ tag }}
+                </span>
               </div>
             </div>
-            
-            <!-- Partnership Categories -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
-                <div class="w-20 h-20 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
+          </div>
+        </section>
+      </div>
+      
+      <!-- Government Agencies Section -->
+      <div v-if="activeCategory === 'government'" class="py-12">
+        <section class="py-12">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Government Agencies
+            </h2>
+            <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+              Collaborative partnerships with government institutions to support policy development and regulatory compliance.
+            </p>
+          </div>
+          
+          <!-- Partnership Cards Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+            <div 
+              v-for="item in governmentAgencies"
+              :key="item.title"
+              class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
+                             :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+            >
+              <div class="flex flex-col items-center text-center">
+                <div class="w-24 h-24 mb-4 flex items-center justify-center">
+                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
                 </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Financial Institutions</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Strategic partnerships with leading banks and financial institutions providing trade financing and risk management solutions.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Trade Finance</span>
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Risk Management</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
-                <div class="w-20 h-20 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Development Partners</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Collaboration with international development agencies and organizations to advance agricultural development.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Capacity Building</span>
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Technical Support</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
-                <div class="w-20 h-20 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Rural Banking</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Partnerships with rural banks and financial institutions to support agricultural financing at the grassroots level.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Rural Finance</span>
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Agricultural Credit</span>
-                </div>
+                <h4 
+                  class="text-sm font-semibold transition-colors duration-300"
+                  :class="isDarkMode ? 'text-white' : 'text-slate-900'"
+                >
+                  {{ item.title }}
+                </h4>
               </div>
             </div>
-          </section>
-        </div>
-
-        <!-- Donor Agencies -->
-        <div v-if="activeCategory === 'donors'">
-          <section class="py-12">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Donor Agencies</h2>
-              <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                Working with international development agencies to advance agricultural development and poverty reduction across West Africa.
-              </p>
-            </div>
-            
-            <!-- Donor Logos Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/1-ukaid.jpg" alt="UKAID" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">UKAID</h4>
+          </div>
+        </section>
+      </div>
+      
+      <!-- NGOs Section -->
+      <div v-if="activeCategory === 'ngos'" class="py-12">
+        <section class="py-12">
+                     <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Non-Governmental Organizations
+            </h2>
+            <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+              Partnerships with NGOs focused on community development, capacity building, and sustainable agricultural practices.
+            </p>
+          </div>
+          
+          <!-- Partnership Cards Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+            <div 
+              v-for="item in ngos"
+              :key="item.title"
+              class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
+              :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+            >
+              <div class="flex flex-col items-center text-center">
+                <div class="w-24 h-24 mb-4 flex items-center justify-center">
+                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
                 </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/usaid.png" alt="USAID" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">USAID</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/agra.png" alt="AGRA" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">AGRA</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/ifc.png" alt="IFC" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">IFC</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/giz-logo.gif" alt="GIZ" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">GIZ</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/snv.png" alt="SNV" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">SNV</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/undp_100.png" alt="UNDP" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">UNDP</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/unido.png" alt="UNIDO" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">UNIDO</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/ifad-a-edit.png" alt="IFAD" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">IFAD</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Donors/world-food-programme-wfp.jpg" alt="World Food Programme" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">World Food Programme</h4>
-                </div>
+                <h4 
+                  class="text-sm font-semibold transition-colors duration-300"
+                  :class="isDarkMode ? 'text-white' : 'text-slate-900'"
+                >
+                  {{ item.title }}
+                </h4>
               </div>
             </div>
-            
-            <!-- Donor Categories -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+          </div>
+        </section>
+      </div>
+      
+      <!-- Private Agencies Section -->
+      <div v-if="activeCategory === 'private'" class="py-12">
+        <section class="py-12">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Private Agencies
+            </h2>
+            <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+              Collaborations with private sector organizations to drive innovation, investment, and market development.
+            </p>
+          </div>
+          
+          <!-- Partnership Cards Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+            <div 
+              v-for="item in privateAgencies"
+              :key="item.title"
+              class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
+              :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+            >
+              <div class="flex flex-col items-center text-center">
+                <div class="w-24 h-24 mb-4 flex items-center justify-center">
+                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
                 </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">International Development</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Strategic partnerships with major international development agencies providing funding and technical expertise.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">Funding</span>
-                  <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">Technical Support</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Agricultural Development</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Collaboration with specialized agricultural development organizations to enhance farming practices and market access.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">Capacity Building</span>
-                  <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">Market Access</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">UN Agencies</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Partnerships with United Nations agencies supporting sustainable development goals and humanitarian assistance.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">SDG Support</span>
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Humanitarian Aid</span>
-                </div>
+                <h4 
+                  class="text-sm font-semibold transition-colors duration-300"
+                  :class="isDarkMode ? 'text-white' : 'text-slate-900'"
+                >
+                  {{ item.title }}
+                </h4>
               </div>
             </div>
-          </section>
-        </div>
-
-        <!-- Financial Institutions -->
-        <div v-if="activeCategory === 'financial'">
-          <section class="py-12">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Financial Institutions</h2>
-              <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                Strategic alliances with leading financial institutions to provide comprehensive financial services and risk management solutions.
-              </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div class="transition-colors duration-300 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-center border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
+          </div>
+        </section>
+      </div>
+      
+      <!-- Tenders & Procurement Section -->
+      <div v-if="activeCategory === 'tenders'" class="py-12">
+        <section class="py-12">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Tenders & Procurement
+            </h2>
+            <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+              Current procurement opportunities and tenders. Submit your proposals to provide goods and services supporting our operations and development initiatives.
+            </p>
+          </div>
+          
+          <!-- Procurement Opportunities Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+            <div 
+              v-for="tender in tenderItems"
+              :key="tender.id"
+              class="transition-colors duration-300 rounded-2xl p-8 shadow-lg border hover:shadow-xl transition-all duration-300"
+              :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+            >
+              <!-- Tender Header -->
+              <div class="flex items-start justify-between mb-6">
+                <div class="flex-1">
+                  <h3 class="text-xl font-bold mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+                    {{ tender.title }}
+                  </h3>
+                  <p class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                    Tender ID: {{ tender.tenderId }}
+                  </p>
                 </div>
-                <h4 class="text-lg font-bold transition-colors duration-300 mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Commercial Banks</h4>
-                <p class="transition-colors duration-300 text-sm mb-3" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Partnership with major commercial banks for trade financing and working capital solutions.
-                </p>
-                <div class="flex flex-wrap gap-1 justify-center">
-                  <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Trade Finance</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-center border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <h4 class="text-lg font-bold transition-colors duration-300 mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Insurance Companies</h4>
-                <p class="transition-colors duration-300 text-sm mb-3" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Risk management partnerships providing agricultural insurance and trade credit protection.
-                </p>
-                <div class="flex flex-wrap gap-1 justify-center">
-                  <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Risk Management</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-center border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                </div>
-                <h4 class="text-lg font-bold transition-colors duration-300 mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Investment Firms</h4>
-                <p class="transition-colors duration-300 text-sm mb-3" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Strategic investment partnerships supporting expansion and technological advancement.
-                </p>
-                <div class="flex flex-wrap gap-1 justify-center">
-                  <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Investment</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- Government Agencies -->
-        <div v-if="activeCategory === 'government'">
-          <section class="py-12">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Government Agencies</h2>
-              <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                Collaborative partnerships with government institutions to support policy development and regulatory compliance.
-              </p>
-            </div>
-            
-            <!-- Government Agency Logos Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/government/youth-in-agriculture-programme-yiap.png" alt="Youth in Agriculture Programme" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Youth in Agriculture Programme</h4>
+                <div class="ml-4">
+                  <span 
+                    class="px-3 py-1 text-xs font-semibold rounded-full"
+                    :class="tender.status === 'Open' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 
+                           tender.status === 'Closing Soon' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
+                           'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'"
+                  >
+                    {{ tender.status }}
+                  </span>
                 </div>
               </div>
               
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/government/ghana-incentive-based-risk-sharing-system-for-agricultural-lending-girsal.png" alt="GIRSAL" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana Incentive-Based Risk-Sharing System for Agricultural Lending</h4>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/government/ghana-investment-promotion-centregipc.png" alt="Ghana Investment Promotion Centre" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana Investment Promotion Centre</h4>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/government/ghana-export-promotion-authority-gepa.png" alt="Ghana Export Promotion Authority" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana Export Promotion Authority</h4>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/government/ghana-exim-bank.jpg" alt="Ghana EXIM Bank" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana EXIM Bank</h4>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/government/ministry-of-finance-and-economic-planning-100.png" alt="Ministry of Finance and Economic Planning" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ministry of Finance and Economic Planning</h4>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/government/ministry-of-trade-and-industry-moti-100.png" alt="Ministry of Trade and Industry" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ministry of Trade and Industry</h4>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Category Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <!-- Tender Details -->
+              <div class="space-y-4 mb-6">
+                <div class="flex items-center text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
+                  <span class="font-medium">Category:</span>
+                  <span class="ml-2">{{ tender.category }}</span>
                 </div>
-                <h3 class="text-2xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Policy Development</h3>
-                <p class="transition-colors duration-300 text-center mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Working closely with government ministries to align operations with national development policies and support government initiatives.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">Policy Alignment</span>
-                  <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">National Development</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                
+                <div class="flex items-center text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
+                  <span class="font-medium">Deadline:</span>
+                  <span class="ml-2">{{ tender.deadline }}</span>
                 </div>
-                <h3 class="text-2xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Regulatory Compliance</h3>
-                <p class="transition-colors duration-300 text-center mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Ensuring full compliance with financial market regulations and developing appropriate regulatory frameworks for commodity exchange operations.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">Regulatory Compliance</span>
-                  <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">Market Oversight</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                
+                <div class="flex items-center text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
+                  <span class="font-medium">Budget:</span>
+                  <span class="ml-2">{{ tender.budget }}</span>
                 </div>
-                <h3 class="text-2xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Economic Development</h3>
-                <p class="transition-colors duration-300 text-center mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Supporting economic growth through strategic partnerships with investment promotion and export development agencies.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Investment Promotion</span>
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Export Development</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- NGOs -->
-        <div v-if="activeCategory === 'ngos'">
-          <section class="py-12">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Non-Governmental Organizations</h2>
-              <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                Collaborating with NGOs to drive sustainable development and support grassroots agricultural initiatives.
-              </p>
-            </div>
-            
-            <!-- NGO Logos Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/ghana-made.png" alt="Ghana Made" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana Made</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/pef.png" alt="PEF" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">PEF</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/aflasafe2.png" alt="Aflasafe" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Aflasafe</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/socodevi.jpeg" alt="Socodevi" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Socodevi</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/ghana-national-chamber-of-commerce-and-industry.jpg" alt="Ghana National Chamber of Commerce and Industry" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana National Chamber</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/6-ciag.jpg" alt="CIAG" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">CIAG</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/africa-cashew-alliance.png" alt="Africa Cashew Alliance" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Africa Cashew Alliance</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/ghana-rice-inter-professional-body-grib.png" alt="Ghana Rice Inter-Professional Body" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana Rice Inter-Professional</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/peasant-farmers-association-of-ghana-pfag.jpg" alt="Peasant Farmers Association of Ghana" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Peasant Farmers Association</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/the-john-a-kufuor-foundation.jpg" alt="The John A. Kufuor Foundation" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">John A. Kufuor Foundation</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/NGO/iita.png" alt="IITA" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">IITA</h4>
-                </div>
-              </div>
-            </div>
-            
-            <!-- NGO Categories -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                
+                <div class="flex items-start text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                  <svg class="w-4 h-4 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Rural Development</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Partnering with organizations focused on rural development, farmer education, and sustainable agricultural practices to create lasting impact in farming communities.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">Rural Development</span>
-                  <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">Education</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Women's Empowerment</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Supporting initiatives that empower women farmers and traders, promoting gender equality and inclusive economic growth in agricultural value chains.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">Women Empowerment</span>
-                  <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">Inclusion</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Industry Associations</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Collaborating with industry associations and professional bodies to strengthen sector representation and advocacy for agricultural development.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Industry Advocacy</span>
-                  <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">Sector Development</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- Private Agencies -->
-        <div v-if="activeCategory === 'private'">
-          <section class="py-12">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Private Agencies</h2>
-              <p class="text-xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                Strategic alliances with private sector organizations driving innovation and market efficiency.
-              </p>
-            </div>
-            
-            <!-- Private Agency Logos Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Private/dmt-collateral.png" alt="DMT Collateral" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">DMT Collateral</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Private/intervalle-geneve.png" alt="Intervalle Geneve" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Intervalle Geneve</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Private/wienco.jpg" alt="Wienco" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Wienco</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Private/tatf.png" alt="TATF" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">TATF</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Private/dess-inc.png" alt="DESS Inc" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">DESS Inc</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Private/ipmc.jpg" alt="IPMC" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">IPMC</h4>
-                </div>
-              </div>
-              <div class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'">
-                <div class="flex flex-col items-center text-center">
-                  <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                    <img src="/Private/ghana-grains-council-ggc.png" alt="Ghana Grains Council" class="max-w-full max-h-full object-contain" />
-                  </div>
-                  <h4 class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Ghana Grains Council</h4>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Private Agency Categories -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Agtech Companies</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Innovation partnerships with agricultural technology firms developing solutions for modern farming and digital agriculture.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 text-xs rounded-full">Innovation</span>
-                  <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 text-xs rounded-full">Technology</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Logistics Providers</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Strategic partnerships with logistics companies ensuring efficient commodity transportation and warehousing solutions.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 text-xs rounded-full">Logistics</span>
-                  <span class="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 text-xs rounded-full">Transportation</span>
-                </div>
-              </div>
-              
-              <div class="transition-colors duration-300 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 2v10a2 2 0 002 2h6a2 2 0 002-2V6M7 6h10M10 9v6m4-6v6" />
-                  </svg>
-                </div>
-                <h3 class="text-xl font-bold transition-colors duration-300 mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Processing Companies</h3>
-                <p class="transition-colors duration-300 text-center mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  Collaboration with agricultural processing companies to enhance value chain integration and market linkages.
-                </p>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span class="px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-200 text-xs rounded-full">Processing</span>
-                  <span class="px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-200 text-xs rounded-full">Value Chain</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- Tenders & Procurement -->
-        <div v-if="activeCategory === 'tenders'">
-          <section class="py-12">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold mb-6 text-gray-900 dark:text-white">Tenders & Procurement Opportunities</h2>
-              <p class="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-                Current procurement opportunities and tender announcements for partners and service providers.
-              </p>
-            </div>
-            
-            <div class="space-y-8">
-              <!-- Current Tenders -->
-              <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-700">
-                <h3 class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-6">Current Open Tenders</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-                    <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3">IT Infrastructure Upgrade</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4">Seeking technology partners for platform modernization and security enhancement.</p>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-blue-600 dark:text-blue-400 font-semibold">Deadline: March 30, 2024</span>
-                      <button class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-                    <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Warehouse Management Services</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4">Procurement of comprehensive warehouse management and logistics services.</p>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-green-600 dark:text-green-400 font-semibold">Deadline: April 15, 2024</span>
-                      <button class="px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors">
-                        View Details
-                      </button>
-                    </div>
+                  <div class="flex-1">
+                    <span class="font-medium">Description:</span>
+                    <p class="mt-1">{{ tender.description }}</p>
                   </div>
                 </div>
               </div>
               
-              <!-- Upcoming Opportunities -->
-              <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-8 border border-green-200 dark:border-green-700">
-                <h3 class="text-2xl font-bold text-green-800 dark:text-green-300 mb-6">Upcoming Procurement Opportunities</h3>
-                <div class="space-y-4">
-                  <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                      <div>
-                        <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Agricultural Extension Services</h4>
-                        <p class="text-gray-600 dark:text-gray-300">Professional services for farmer training and agricultural extension programs.</p>
-                      </div>
-                      <div class="text-center lg:text-right">
-                        <span class="text-sm text-yellow-600 dark:text-yellow-400 font-semibold block">Expected: May 2024</span>
-                        <button class="mt-2 px-4 py-2 border-2 border-yellow-500 text-yellow-600 dark:text-yellow-400 text-sm rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors">
-                          Register Interest
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                      <div>
-                        <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Market Research & Analysis</h4>
-                        <p class="text-gray-600 dark:text-gray-300">Comprehensive market research services for agricultural commodity markets across West Africa.</p>
-                      </div>
-                      <div class="text-center lg:text-right">
-                        <span class="text-sm text-purple-600 dark:text-purple-400 font-semibold block">Expected: June 2024</span>
-                        <button class="mt-2 px-4 py-2 border-2 border-purple-500 text-purple-600 dark:text-purple-400 text-sm rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
-                          Register Interest
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Partnership Call -->
-              <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-2xl p-8 border border-yellow-200 dark:border-yellow-700 text-center">
-                <h3 class="text-2xl font-bold text-yellow-800 dark:text-yellow-300 mb-4">Partnership Opportunities</h3>
-                <p class="text-gray-700 dark:text-gray-300 mb-6 max-w-3xl mx-auto">
-                  We are continuously seeking strategic partners to enhance our services and expand our impact. If you're interested in collaborating with GCX, we'd love to hear from you.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button class="px-8 py-3 bg-yellow-500 text-white font-semibold rounded-xl hover:bg-yellow-600 transition-all duration-300 shadow-lg hover:shadow-xl">
-                    Submit Partnership Proposal
-                  </button>
-                  <button class="px-8 py-3 border-2 border-yellow-500 text-yellow-600 dark:text-yellow-400 font-semibold rounded-xl hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-300">
-                    Download Partnership Guidelines
-                  </button>
-                </div>
+              <!-- Action Buttons -->
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button 
+                  class="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-colors duration-300 text-sm"
+                >
+                  Download Tender Document
+                </button>
+                <button 
+                  class="flex-1 px-4 py-2 border border-yellow-500 text-yellow-600 dark:text-yellow-400 font-semibold rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors duration-300 text-sm"
+                >
+                  Submit Proposal
+                </button>
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+          
+          <!-- Procurement Guidelines -->
+          <div class="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-8 border border-yellow-200 dark:border-yellow-700">
+            <h3 class="text-2xl font-bold mb-4 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Procurement Guidelines
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-yellow-300' : 'text-yellow-700'">
+                  How to Submit Proposals
+                </h4>
+                <ul class="space-y-2 text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Download the complete tender document
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Review all requirements and specifications
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Prepare your proposal according to guidelines
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Submit before the deadline via our portal
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-yellow-300' : 'text-yellow-700'">
+                  Important Information
+                </h4>
+                <ul class="space-y-2 text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Late submissions will not be considered
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    All documents must be in English
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Financial proposals must be in GHS
+                  </li>
+                  <li class="flex items-start">
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Contact procurement@ghana-commodity-exchange.com for queries
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </div>

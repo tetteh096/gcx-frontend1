@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { isDarkMode } from '../utils/darkMode';
 import AboutGCX from '../components/AboutUs/AboutGCX.vue';
 import VisionPurpose from '../components/AboutUs/VisionPurpose.vue';
 import BoardDirectors from '../components/AboutUs/BoardDirectors.vue';
 import ExecutiveManagement from '../components/AboutUs/ExecutiveManagement.vue';
 import FunctionalHeads from '../components/AboutUs/FunctionalHeads.vue';
+
+const route = useRoute()
+const router = useRouter()
 
 const tabs = [
   { label: 'About GCX', key: 'about' },
@@ -15,7 +19,28 @@ const tabs = [
   { label: 'Executive Management', key: 'exec' },
   { label: 'Functional Heads', key: 'func' },
 ];
+
 const activeTab = ref('about');
+
+const setActiveFromHash = () => {
+  const hash = (route.hash || '').replace('#', '')
+  if (tabs.some(tab => tab.key === hash)) {
+    activeTab.value = hash
+  } else {
+    activeTab.value = 'about'
+  }
+}
+
+const go = async (key: string) => {
+  activeTab.value = key
+  router.replace({ hash: `#${key}` })
+  await nextTick()
+  const el = document.getElementById(`tab-${key}`)
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+onMounted(() => setActiveFromHash())
+watch(() => route.hash, setActiveFromHash)
 </script>
 
 <template>
@@ -81,7 +106,7 @@ const activeTab = ref('about');
           <button
             v-for="tab in tabs"
             :key="tab.key"
-            @click="activeTab = tab.key"
+            @click="go(tab.key)"
             class="px-6 py-3 text-sm font-medium rounded-full transition-all duration-300"
             :class="activeTab === tab.key 
               ? (isDarkMode ? 'bg-yellow-500 text-black shadow-lg' : 'bg-yellow-500 text-white shadow-lg')
@@ -97,10 +122,12 @@ const activeTab = ref('about');
     <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
       <div class="max-w-[1600px] mx-auto px-4">
         <!-- About GCX Tab -->
-        <AboutGCX v-if="activeTab === 'about'" />
+        <div id="tab-about" :class="activeTab === 'about' ? 'block' : 'hidden'">
+          <AboutGCX />
+        </div>
 
         <!-- Who We Are Tab -->
-        <div v-if="activeTab === 'who'" class="space-y-16">
+        <div id="tab-who" :class="activeTab === 'who' ? 'block' : 'hidden'" class="space-y-16">
           <div class="text-center mb-16">
             <h2 class="text-6xl font-bold mb-8 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Mission</h2>
             <div class="w-24 h-1 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full mx-auto mb-8"></div>
@@ -155,16 +182,24 @@ const activeTab = ref('about');
         </div>
 
         <!-- Vision & Purpose Tab -->
-        <VisionPurpose v-if="activeTab === 'vision'" />
+        <div id="tab-vision" :class="activeTab === 'vision' ? 'block' : 'hidden'">
+          <VisionPurpose />
+        </div>
 
         <!-- Board of Directors Tab -->
-        <BoardDirectors v-if="activeTab === 'board'" />
+        <div id="tab-board" :class="activeTab === 'board' ? 'block' : 'hidden'">
+          <BoardDirectors />
+        </div>
 
         <!-- Executive Management Tab -->
-        <ExecutiveManagement v-if="activeTab === 'exec'" />
+        <div id="tab-exec" :class="activeTab === 'exec' ? 'block' : 'hidden'">
+          <ExecutiveManagement />
+        </div>
 
         <!-- Functional Heads Tab -->
-        <FunctionalHeads v-if="activeTab === 'func'" />
+        <div id="tab-func" :class="activeTab === 'func' ? 'block' : 'hidden'">
+          <FunctionalHeads />
+        </div>
       </div>
     </section>
   </div>
