@@ -12,6 +12,8 @@ import MembershipApplicationView from '../views/MembershipApplicationView.vue'
 import MarketDataView from '../views/MarketDataView.vue'
 import ResourcesView from '../views/ResourcesView.vue'
 import MediaView from '../views/MediaView.vue'
+import LoginView from '../views/LoginView.vue'
+import CMSView from '../views/CMSView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,7 +29,7 @@ const router = createRouter({
       component: BlogView
     },
     {
-      path: '/blog/:id',
+      path: '/blog/:slug',
       name: 'blog-post',
       component: BlogPostView,
       props: true
@@ -81,8 +83,36 @@ const router = createRouter({
       path: '/media',
       name: 'media',
       component: MediaView
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView
+    },
+    {
+      path: '/cms',
+      name: 'cms',
+      component: CMSView,
+      meta: { requiresAuth: true }
     }
   ]
+})
+
+// Navigation guard for protected routes
+router.beforeEach(async (to, from, next) => {
+  const { useAuth } = await import('../composables/useAuth')
+  const { initializeAuth, isAuthenticated } = useAuth()
+  
+  // Initialize auth if not already done
+  if (!isAuthenticated.value && localStorage.getItem('auth_token')) {
+    await initializeAuth()
+  }
+  
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router 

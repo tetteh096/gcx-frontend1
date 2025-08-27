@@ -1,23 +1,31 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useBlogStore } from '../stores/blog'
+import { ref, computed, onMounted } from 'vue'
+import { isDarkMode } from '../utils/darkMode'
+import BlogHero from '../components/Blog/BlogHero.vue'
+import RecentPosts from '../components/Blog/RecentPosts.vue'
+import BlogFilters from '../components/Blog/BlogFilters.vue'
+import BlogPostsGrid from '../components/Blog/BlogPostsGrid.vue'
+import { useBlog } from '../composables/useBlog'
 
-const blogStore = useBlogStore()
+const { posts, fetchPublicPosts, isLoading } = useBlog()
+
+// Blog posts from API - no more mock data!
+const blogPosts = ref([])
+
 const searchQuery = ref('')
 const selectedTag = ref('')
+const currentPage = ref(1)
+const postsPerPage = 6
 
-onMounted(async () => {
-  await blogStore.fetchPosts()
-})
-
+// Filter posts based on search and tags
 const filteredPosts = computed(() => {
-  let posts = blogStore.posts
+  let posts = blogPosts.value
 
   if (searchQuery.value) {
     posts = posts.filter(post =>
       post.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       post.excerpt.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.value.toLowerCase())
+      post.author.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
   }
 
@@ -28,9 +36,10 @@ const filteredPosts = computed(() => {
   return posts
 })
 
+// Get all unique tags
 const allTags = computed(() => {
   const tags = new Set<string>()
-  blogStore.posts.forEach(post => {
+  blogPosts.value.forEach(post => {
     post.tags.forEach(tag => tags.add(tag))
   })
   return Array.from(tags)
@@ -39,112 +48,168 @@ const allTags = computed(() => {
 const clearFilters = () => {
   searchQuery.value = ''
   selectedTag.value = ''
+  currentPage.value = 1
 }
+
+// Manual refresh function for debugging
+const refreshPosts = async () => {
+  console.log('🔄 Manual refresh triggered...')
+  blogPosts.value = []
+  await loadPosts()
+}
+
+// Load posts function
+const loadPosts = async () => {
+  try {
+    console.log('🔄 Fetching blog posts from API...')
+    const result = await fetchPublicPosts()
+    
+    console.log('📊 API call result:', result)
+    console.log('📝 Posts received:', posts.value)
+    console.log('📊 Posts count:', posts.value?.length || 0)
+    
+    if (posts.value && posts.value.length > 0) {
+      // Transform API posts to match frontend structure
+      const transformedPosts = posts.value.map(post => {
+        // Handle null/undefined tags
+        let postTags = []
+        if (post.tags) {
+          if (typeof post.tags === 'string') {
+            try {
+              postTags = JSON.parse(post.tags)
+            } catch {
+              postTags = post.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+            }
+          } else if (Array.isArray(post.tags)) {
+            postTags = post.tags
+          }
+        }
+        
+        // Generate excerpt if not provided
+        let excerpt = post.excerpt
+        if (!excerpt && post.content) {
+          excerpt = post.content.replace(/<[^>]*>/g, ' ').trim().substring(0, 160)
+          if (excerpt.length === 160) excerpt += '...'
+        }
+        
+        // Handle featured image
+        const featuredImage = post.featured_image || '/trading.jpg'
+        
+        // Handle date formatting
+        let postDate
+        try {
+          const dateToUse = post.published_at || post.created_at
+          postDate = new Date(dateToUse).toISOString().split('T')[0]
+        } catch {
+          postDate = new Date().toISOString().split('T')[0]
+        }
+        
+        return {
+          id: post.id,
+          title: post.title || 'Untitled Post',
+          excerpt: excerpt || 'No excerpt available',
+          author: post.author || 'GCX Team',
+          date: postDate,
+          image: featuredImage,
+          tags: postTags,
+          featured: false, // You can add featured logic later
+          slug: post.slug || post.id.toString()
+        }
+      })
+      
+      console.log(`✅ Loaded ${transformedPosts.length} blog posts from API`)
+      console.log('🎯 Transformed posts:', transformedPosts)
+      blogPosts.value = transformedPosts
+    } else {
+      console.log('⚠️ No published posts found - posts.value is:', posts.value)
+      blogPosts.value = []
+    }
+  } catch (error) {
+    console.error('❌ Failed to fetch posts from API:', error)
+    blogPosts.value = []
+  }
+}
+
+// Load blog posts on component mount
+onMounted(loadPosts)
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4">
-    <!-- Header -->
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold mb-4">Our Blog</h1>
-      <p class="text-xl text-gray-600">
-        Insights, tutorials, and updates from our team
-      </p>
-    </div>
+  <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
+    <!-- Hero Section with Subscription -->
+    <BlogHero />
+    
+    <!-- Recent Blog Posts -->
+    <RecentPosts :posts="filteredPosts" />
+    
+    <!-- All Blog Posts -->
+    <section class="py-24 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
+      <div class="max-w-[1600px] mx-auto px-4">
+        <!-- Search and Filters -->
+        <BlogFilters
+          v-model:search-query="searchQuery"
+          v-model:selected-tag="selectedTag"
+          :all-tags="allTags"
+          @clear-filters="clearFilters"
+        />
 
-    <!-- Search and Filters -->
-    <div class="mb-8">
-      <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div class="flex-1 max-w-md">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search posts..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-        </div>
-        <div class="flex gap-2">
-          <select
-            v-model="selectedTag"
-            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        <div class="flex justify-between items-center mb-12">
+          <h2 class="text-3xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          All Blog Posts
+        </h2>
+          <button 
+            @click="refreshPosts"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
-            <option value="">All Tags</option>
-            <option v-for="tag in allTags" :key="tag" :value="tag">
-              {{ tag }}
-            </option>
-          </select>
-          <button
-            @click="clearFilters"
-            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
-          >
-            Clear
+            🔄 Refresh Posts
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="blogStore.loading" class="text-center py-12">
-      <p class="text-gray-600">Loading posts...</p>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="blogStore.error" class="text-center py-12">
-      <p class="text-red-600">{{ blogStore.error }}</p>
-    </div>
-
-    <!-- Posts Grid -->
-    <div v-else-if="filteredPosts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <article
-        v-for="post in filteredPosts"
-        :key="post.id"
-        class="card hover:shadow-lg transition-shadow duration-200"
-      >
-        <img
-          v-if="post.featured_image"
-          :src="post.featured_image"
-          :alt="post.title"
-          class="w-full h-48 object-cover rounded-lg mb-4"
+        
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-12">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          <p class="mt-4 text-gray-600">Loading blog posts...</p>
+        </div>
+        
+        <!-- Empty State -->
+        <div v-else-if="!isLoading && blogPosts.length === 0" class="text-center py-12">
+          <div class="text-6xl mb-4">📝</div>
+          <h3 class="text-xl font-semibold mb-2" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+            No Blog Posts Yet
+          </h3>
+          <p class="text-gray-600">
+            Create your first blog post in the CMS to see it here!
+          </p>
+        </div>
+        
+        <!-- Posts Grid with Pagination -->
+        <BlogPostsGrid
+          v-else
+          :posts="filteredPosts"
+          v-model:current-page="currentPage"
+          :posts-per-page="postsPerPage"
         />
-        <div v-else class="w-full h-48 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-          <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-sm text-gray-500">{{ post.author }}</span>
-          <span class="text-gray-300">•</span>
-          <span class="text-sm text-gray-500">{{ new Date(post.published_at).toLocaleDateString() }}</span>
-        </div>
-        
-        <h2 class="text-xl font-semibold mb-2">{{ post.title }}</h2>
-        <p class="text-gray-600 mb-4">{{ post.excerpt }}</p>
-        
-        <div class="flex flex-wrap gap-2 mb-4">
-          <span
-            v-for="tag in post.tags"
-            :key="tag"
-            class="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full"
-          >
-            {{ tag }}
-          </span>
-        </div>
-        
-        <router-link
-          :to="`/blog/${post.slug}`"
-          class="text-primary-600 hover:text-primary-700 font-medium"
-        >
-          Read More →
-        </router-link>
-      </article>
-    </div>
-
-    <!-- No Results -->
-    <div v-else class="text-center py-12">
-      <p class="text-gray-600">
-        {{ searchQuery || selectedTag ? 'No posts found matching your criteria.' : 'No posts available yet.' }}
-      </p>
-    </div>
+      </div>
+    </section>
   </div>
-</template> 
+</template>
+
+<style scoped>
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #eab308;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ca8a04;
+}
+</style> 

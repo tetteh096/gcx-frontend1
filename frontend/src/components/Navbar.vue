@@ -94,20 +94,29 @@ const navigation = [
     href: '/resources',
     dropdown: [
       { 
-        title: 'Educational Materials',
+        title: 'Publications',
         items: [
-          { name: 'Trading Guides', href: '/resources', description: 'Comprehensive trading tutorials and guides' },
-          { name: 'Market Analysis', href: '/resources', description: 'In-depth market research and analysis' },
-          { name: 'Best Practices', href: '/resources', description: 'Industry best practices and standards' },
-          { name: 'Training Materials', href: '/resources', description: 'Educational resources for traders' }
+          { name: 'Research Papers', href: '/resources#research', description: 'Academic and industry research publications' },
+          { name: 'Annual Reports', href: '/resources#annual', description: 'GCX annual performance reports' },
+          { name: 'Policy Documents', href: '/resources#policy', description: 'Regulatory and policy information' }
         ]
       },
       { 
-        title: 'Publications',
+        title: 'Careers',
         items: [
-          { name: 'Research Papers', href: '/resources', description: 'Academic and industry research publications' },
-          { name: 'Annual Reports', href: '/resources', description: 'GCX annual performance reports' },
-          { name: 'Policy Documents', href: '/resources', description: 'Regulatory and policy information' }
+          { name: 'Job Openings', href: '/resources#openings', description: 'Current job opportunities at GCX' },
+          { name: 'Internship', href: '/resources#internship', description: 'Internship and training programs' },
+          { name: 'Job Functional Areas', href: '/resources#functional', description: 'Explore different career paths' }
+        ]
+      },
+      { 
+        title: 'Commodities',
+        items: [
+          { name: 'Maize', href: '/resources#maize', description: 'Maize trading information and specifications' },
+          { name: 'Soya Bean', href: '/resources#soybean', description: 'Soya bean market data and details' },
+          { name: 'Sorghum', href: '/resources#sorghum', description: 'Sorghum commodity information' },
+          { name: 'Sesame', href: '/resources#sesame', description: 'Sesame trading specifications' },
+          { name: 'Rice', href: '/resources#rice', description: 'Rice commodity market data' }
         ]
       }
     ]
@@ -117,19 +126,24 @@ const navigation = [
     href: '/media',
     dropdown: [
       { 
-        title: 'News & Updates',
+        title: 'Blog & Insights',
         items: [
-          { name: 'Latest News', href: '/media', description: 'Recent news and announcements' },
-          { name: 'Press Releases', href: '/media', description: 'Official press releases and statements' },
-          { name: 'Media Coverage', href: '/media', description: 'GCX in the news and media' }
+          { name: 'Latest Posts', href: '/blog', description: 'Most recent blog articles and insights' },
+          { name: 'Featured Stories', href: '/blog', description: 'Highlighted blog posts and success stories' },
+          { name: 'Industry Insights', href: '/blog', description: 'Expert analysis and market perspectives' }
         ]
       },
       { 
-        title: 'Multimedia',
+        title: 'Videos',
         items: [
-          { name: 'Photo Gallery', href: '/media', description: 'Event photos and visual content' },
-          { name: 'Videos', href: '/media', description: 'Video content and presentations' },
-          { name: 'Webinars', href: '/media', description: 'Educational webinars and events' }
+          { name: 'Video Content', href: '/media#videos', description: 'Video content and presentations' },
+          { name: 'Webinars', href: '/media#webinars', description: 'Educational webinars and events' }
+        ]
+      },
+      { 
+        title: 'Right To Information',
+        items: [
+          { name: 'GCX RTI Portal', href: 'https://gcx.com.gh/gcxrti/', description: 'Access GCX Right to Information portal', external: true, target: '_blank' }
         ]
       }
     ]
@@ -206,8 +220,12 @@ const navigateToApplication = () => {
               @mouseenter="item.dropdown ? (clearDropdownTimeout(), toggleDropdown(item.name)) : null"
               @mouseleave="closeDropdown"
             >
-              <router-link
-                :to="item.href"
+              <component
+                :is="(item as any).external ? 'a' : 'router-link'"
+                :to="!(item as any).external ? item.href : undefined"
+                :href="(item as any).external ? item.href : undefined"
+                :target="(item as any).external ? '_blank' : undefined"
+                :rel="(item as any).external ? 'noopener noreferrer' : undefined"
                 class="px-6 py-3 text-sm font-medium rounded-full transition-all flex items-center"
                                  :class="$route.path === item.href 
                    ? (isDarkMode ? 'bg-slate-700 text-white' : 'bg-white shadow-sm text-slate-900')
@@ -215,7 +233,7 @@ const navigateToApplication = () => {
               >
                 {{ item.name }}
                 <ChevronDownIcon v-if="item.dropdown" class="w-4 h-4 ml-1" />
-              </router-link>
+              </component>
               
               <!-- Large Dropdown Menu -->
               <div
@@ -233,27 +251,52 @@ const navigateToApplication = () => {
                         {{ section.title }}
                       </h4>
                       <div class="space-y-3">
-                        <router-link
-                          v-for="dropdownItem in section.items"
-                          :key="dropdownItem.name"
-                          :to="dropdownItem.href"
-                          class="group block p-3 rounded-xl transition-all duration-200"
-                          :class="isDarkMode ? 'hover:bg-slate-800 hover:border-slate-600' : 'hover:bg-slate-50 hover:border-slate-200'"
-                        >
-                          <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                              <h5 class="font-medium text-sm mb-1 transition-colors" :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-slate-900 group-hover:text-slate-700'">
-                                {{ dropdownItem.name }}
-                              </h5>
-                              <p class="text-xs leading-relaxed" :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-slate-600 group-hover:text-slate-500'">
-                                {{ dropdownItem.description }}
-                              </p>
+                        <template v-for="dropdownItem in section.items" :key="dropdownItem.name">
+                          <router-link
+                            v-if="!(dropdownItem as any).external"
+                            :to="dropdownItem.href"
+                            class="group block p-3 rounded-xl transition-all duration-200"
+                            :class="isDarkMode ? 'hover:bg-slate-800 hover:border-slate-600' : 'hover:bg-slate-50 hover:border-slate-200'"
+                          >
+                            <div class="flex items-start justify-between">
+                              <div class="flex-1">
+                                <h5 class="font-medium text-sm mb-1 transition-colors" :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-slate-900 group-hover:text-slate-700'">
+                                  {{ dropdownItem.name }}
+                                </h5>
+                                <p class="text-xs leading-relaxed" :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-slate-600 group-hover:text-slate-500'">
+                                  {{ dropdownItem.description }}
+                                </p>
+                              </div>
+                              <svg class="w-4 h-4 transition-colors" :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-slate-400 group-hover:text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                              </svg>
                             </div>
-                            <svg class="w-4 h-4 transition-colors" :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-slate-400 group-hover:text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                          </div>
-                        </router-link>
+                          </router-link>
+                          
+                          <a
+                            v-else
+                            :href="dropdownItem.href"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="group block p-3 rounded-xl transition-all duration-200"
+                            :class="isDarkMode ? 'hover:bg-slate-800 hover:border-slate-600' : 'hover:bg-slate-50 hover:border-slate-200'"
+                          >
+                            <div class="flex items-start justify-between">
+                              <div class="flex-1">
+                                <h5 class="font-medium text-sm mb-1 transition-colors" :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-slate-900 group-hover:text-slate-700'">
+                                  {{ dropdownItem.name }}
+                                  <span class="ml-1 text-xs text-yellow-500">↗</span>
+                                </h5>
+                                <p class="text-xs leading-relaxed" :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-slate-600 group-hover:text-slate-500'">
+                                  {{ dropdownItem.description }}
+                                </p>
+                              </div>
+                              <svg class="w-4 h-4 transition-colors" :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-slate-400 group-hover:text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                              </svg>
+                            </div>
+                          </a>
+                        </template>
                       </div>
                     </div>
                   </div>
@@ -265,27 +308,52 @@ const navigateToApplication = () => {
                         {{ section.title }}
                       </h4>
                       <div class="space-y-3">
-                        <router-link
-                          v-for="dropdownItem in section.items"
-                          :key="dropdownItem.name"
-                          :to="dropdownItem.href"
-                          class="group block p-3 rounded-xl transition-all duration-200"
-                          :class="isDarkMode ? 'hover:bg-slate-800 hover:border-slate-600' : 'hover:bg-slate-50 hover:border-slate-200'"
-                        >
-                          <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                              <h5 class="font-medium text-sm mb-1 transition-colors" :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-slate-900 group-hover:text-slate-700'">
-                                {{ dropdownItem.name }}
-                              </h5>
-                              <p class="text-xs leading-relaxed" :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-slate-600 group-hover:text-slate-500'">
-                                {{ dropdownItem.description }}
-                              </p>
+                        <template v-for="dropdownItem in section.items" :key="dropdownItem.name">
+                          <router-link
+                            v-if="!(dropdownItem as any).external"
+                            :to="dropdownItem.href"
+                            class="group block p-3 rounded-xl transition-all duration-200"
+                            :class="isDarkMode ? 'hover:bg-slate-800 hover:border-slate-600' : 'hover:bg-slate-50 hover:border-slate-200'"
+                          >
+                            <div class="flex items-start justify-between">
+                              <div class="flex-1">
+                                <h5 class="font-medium text-sm mb-1 transition-colors" :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-slate-900 group-hover:text-slate-700'">
+                                  {{ dropdownItem.name }}
+                                </h5>
+                                <p class="text-xs leading-relaxed" :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-slate-600 group-hover:text-slate-500'">
+                                  {{ dropdownItem.description }}
+                                </p>
+                              </div>
+                              <svg class="w-4 h-4 transition-colors" :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-slate-400 group-hover:text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                              </svg>
                             </div>
-                            <svg class="w-4 h-4 transition-colors" :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-slate-400 group-hover:text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                          </div>
-                        </router-link>
+                          </router-link>
+                          
+                          <a
+                            v-else
+                            :href="dropdownItem.href"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="group block p-3 rounded-xl transition-all duration-200"
+                            :class="isDarkMode ? 'hover:bg-slate-800 hover:border-slate-600' : 'hover:bg-slate-50 hover:border-slate-200'"
+                          >
+                            <div class="flex items-start justify-between">
+                              <div class="flex-1">
+                                <h5 class="font-medium text-sm mb-1 transition-colors" :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-slate-900 group-hover:text-slate-700'">
+                                  {{ dropdownItem.name }}
+                                  <span class="ml-1 text-xs text-yellow-500">↗</span>
+                                </h5>
+                                <p class="text-xs leading-relaxed" :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-slate-600 group-hover:text-slate-500'">
+                                  {{ dropdownItem.description }}
+                                </p>
+                              </div>
+                              <svg class="w-4 h-4 transition-colors" :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-slate-400 group-hover:text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                              </svg>
+                            </div>
+                          </a>
+                        </template>
                       </div>
                     </div>
                   </div>
@@ -389,8 +457,12 @@ const navigateToApplication = () => {
           <!-- Mobile Navigation -->
           <div class="px-2">
             <div v-for="item in navigation" :key="item.name">
-              <router-link
-                :to="item.href"
+              <component
+                :is="(item as any).external ? 'a' : 'router-link'"
+                :to="!(item as any).external ? item.href : undefined"
+                :href="(item as any).external ? item.href : undefined"
+                :target="(item as any).external ? '_blank' : undefined"
+                :rel="(item as any).external ? 'noopener noreferrer' : undefined"
                 @click="closeMenu"
                 class="block px-4 py-3 text-base font-medium rounded-xl transition-colors"
                 :class="$route.path === item.href 
@@ -398,7 +470,7 @@ const navigateToApplication = () => {
                   : (isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')"
               >
                 {{ item.name }}
-              </router-link>
+              </component>
               
               <!-- Mobile Dropdown -->
               <div v-if="item.dropdown" class="mt-2 ml-4 space-y-1">

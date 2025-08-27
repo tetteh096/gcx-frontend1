@@ -1,134 +1,392 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { useBlogStore } from '../stores/blog'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { isDarkMode } from '../utils/darkMode'
+import { useBlog } from '../composables/useBlog'
 
 const route = useRoute()
-const blogStore = useBlogStore()
+const router = useRouter()
 
-const postId = computed(() => route.params.id as string)
+const { posts, fetchPublicPosts, isLoading } = useBlog()
+const currentPost = ref(null)
+const allPosts = ref([])
 
-onMounted(async () => {
-  if (postId.value) {
-    await blogStore.fetchPost(postId.value)
+// Load all posts and find current post
+const loadPosts = async () => {
+  try {
+    console.log('🔄 Loading blog post...', route.params.id)
+    await fetchPublicPosts()
+    
+    if (posts.value && posts.value.length > 0) {
+      // Transform API posts
+      allPosts.value = posts.value.map(post => {
+        // Handle tags
+        let postTags = []
+        if (post.tags) {
+          if (typeof post.tags === 'string') {
+            try {
+              postTags = JSON.parse(post.tags)
+            } catch {
+              postTags = post.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+            }
+          } else if (Array.isArray(post.tags)) {
+            postTags = post.tags
+          }
+        }
+        
+        // Handle date
+        let postDate
+        try {
+          const dateToUse = post.published_at || post.created_at
+          postDate = new Date(dateToUse).toISOString().split('T')[0]
+        } catch {
+          postDate = new Date().toISOString().split('T')[0]
+        }
+        
+        return {
+          id: post.id,
+          title: post.title || 'Untitled Post',
+          excerpt: post.excerpt || post.content?.replace(/<[^>]*>/g, ' ').trim().substring(0, 160) + '...' || 'No excerpt available',
+          content: post.content || '<p>No content available</p>',
+          author: post.author || 'GCX Team',
+          date: postDate,
+          image: post.featured_image || '/trading.jpg',
+          tags: postTags,
+          featured: false,
+          readTime: Math.ceil((post.content?.replace(/<[^>]*>/g, ' ').trim().split(' ').length || 0) / 200) + ' min read',
+          slug: post.slug || post.id.toString()
+        }
+      })
+      
+      // Find current post by slug or ID
+      const param = route.params.slug as string
+      currentPost.value = allPosts.value.find(post => 
+        post.slug === param || post.id.toString() === param
+      )
+      
+      console.log('📝 Current post found:', currentPost.value)
+      
+      if (!currentPost.value) {
+        console.warn('❌ Post not found, redirecting to blog')
+        router.push('/blog')
+      }
+    }
+  } catch (error) {
+    console.error('❌ Failed to load blog post:', error)
+    router.push('/blog')
   }
+}
+
+const relatedPosts = computed(() => {
+  if (!currentPost.value) return []
+  return allPosts.value
+    .filter(post => post.id !== currentPost.value.id)
+    .slice(0, 3)
 })
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+const recentPosts = computed(() => {
+  return allPosts.value.slice(0, 5)
+})
+
+const categories = computed(() => {
+  const allTags = allPosts.value.flatMap(post => post.tags)
+  return [...new Set(allTags)]
+})
+
+const archives = computed(() => {
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  return months.slice(0, 6).map((month, index) => ({
+    month,
+    year: 2025,
+    count: Math.floor(Math.random() * 5) + 1
+  }))
+})
+
+onMounted(loadPosts)
+
+const goBack = () => {
+  router.push('/blog')
+}
+
+const sharePost = () => {
+  if (navigator.share) {
+    navigator.share({
+      title: currentPost.value?.title,
+      text: currentPost.value?.excerpt,
+      url: window.location.href
+    })
+  } else {
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(window.location.href)
+    alert('Link copied to clipboard!')
+  }
 }
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4">
-    <!-- Loading State -->
-    <div v-if="blogStore.loading" class="text-center py-12">
-      <p class="text-gray-600">Loading post...</p>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="blogStore.error" class="text-center py-12">
-      <p class="text-red-600">{{ blogStore.error }}</p>
-      <router-link to="/blog" class="text-primary-600 hover:text-primary-700 mt-4 inline-block">
-        ← Back to Blog
-      </router-link>
-    </div>
-
-    <!-- Post Content -->
-    <article v-else-if="blogStore.currentPost" class="py-8">
-      <!-- Back Button -->
-      <router-link
-        to="/blog"
-        class="inline-flex items-center text-primary-600 hover:text-primary-700 mb-8"
-      >
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to Blog
-      </router-link>
-
-      <!-- Featured Image -->
-      <div v-if="blogStore.currentPost.featured_image" class="mb-8">
-        <img
-          :src="blogStore.currentPost.featured_image"
-          :alt="blogStore.currentPost.title"
-          class="w-full h-64 md:h-96 object-cover rounded-lg"
-        />
+  <div v-if="currentPost" class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
+    <!-- Hero Section -->
+    <section class="relative py-14 lg:py-20 overflow-hidden">
+      <div class="absolute inset-0">
+        <img :src="currentPost.image" :alt="currentPost.title" class="w-full h-full object-cover" />
+        <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/70' : 'bg-white/80'"></div>
       </div>
-
-      <!-- Post Header -->
-      <header class="mb-8">
-        <h1 class="text-4xl font-bold mb-4">{{ blogStore.currentPost.title }}</h1>
-        
-        <div class="flex items-center gap-4 text-gray-600 mb-4">
-          <span>By {{ blogStore.currentPost.author }}</span>
-          <span>•</span>
-          <span>{{ formatDate(blogStore.currentPost.published_at) }}</span>
-        </div>
-
-        <!-- Tags -->
-        <div class="flex flex-wrap gap-2">
-          <span
-            v-for="tag in blogStore.currentPost.tags"
-            :key="tag"
-            class="px-3 py-1 bg-primary-100 text-primary-700 text-sm rounded-full"
+      <div class="relative max-w-[1600px] mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <!-- Back Button -->
+          <button
+            @click="goBack"
+            class="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-lg transition-all duration-200"
+            :class="isDarkMode ? 'bg-slate-800/80 text-white hover:bg-slate-700' : 'bg-white/90 text-slate-900 hover:bg-white'"
           >
-            {{ tag }}
-          </span>
-        </div>
-      </header>
-
-      <!-- Post Content -->
-      <div class="prose prose-lg max-w-none">
-        <div v-html="blogStore.currentPost.content"></div>
-      </div>
-
-      <!-- Share Section -->
-      <div class="mt-12 pt-8 border-t border-gray-200">
-        <h3 class="text-lg font-semibold mb-4">Share this post</h3>
-        <div class="flex gap-4">
-          <a
-            href="#"
-            class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
-            Twitter
-          </a>
-          <a
-            href="#"
-            class="flex items-center gap-2 px-4 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors duration-200"
+            Back to Blog
+          </button>
+          
+          <!-- Post Meta -->
+          <div class="mb-6">
+            <div class="flex flex-wrap items-center gap-4 mb-4">
+              <span class="text-sm font-semibold" :class="isDarkMode ? 'text-yellow-400' : 'text-yellow-600'">
+                {{ currentPost.author }}
+              </span>
+              <span class="text-slate-400">•</span>
+              <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                {{ new Date(currentPost.date).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                }) }}
+              </span>
+              <span class="text-slate-400">•</span>
+              <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                {{ currentPost.readTime }}
+              </span>
+            </div>
+            
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span
+                v-for="tag in currentPost.tags"
+                :key="tag"
+                class="px-3 py-1 rounded-full text-sm font-medium"
+                :class="isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'"
+              >
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Title -->
+          <h1 class="text-4xl lg:text-5xl font-bold mb-6" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            {{ currentPost.title }}
+          </h1>
+          
+          <!-- Excerpt -->
+          <p class="text-xl mb-8" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+            {{ currentPost.excerpt }}
+          </p>
+          
+          <!-- Share Button -->
+          <button
+            @click="sharePost"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
           >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
             </svg>
-            Facebook
-          </a>
-          <a
-            href="#"
-            class="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
-          >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-            </svg>
-            LinkedIn
-          </a>
+            Share Post
+          </button>
         </div>
       </div>
-    </article>
+    </section>
 
-    <!-- Post Not Found -->
-    <div v-else class="text-center py-12">
-      <h2 class="text-2xl font-bold mb-4">Post Not Found</h2>
-      <p class="text-gray-600 mb-8">The post you're looking for doesn't exist.</p>
-      <router-link to="/blog" class="btn-primary">
-        Back to Blog
-      </router-link>
-    </div>
+    <!-- Main Content with Sidebar -->
+    <section class="py-24 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
+      <div class="max-w-[1600px] mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-12">
+          <!-- Main Content -->
+          <div class="lg:col-span-3">
+            <!-- Article Content -->
+            <article class="prose prose-lg max-w-none" :class="isDarkMode ? 'prose-invert' : ''">
+              <div v-html="currentPost.content" class="text-lg leading-relaxed"></div>
+            </article>
+            
+            <!-- Author Bio -->
+            <div class="mt-16 p-8 rounded-xl border" :class="isDarkMode ? 'border-slate-700 bg-slate-700/50' : 'border-slate-200 bg-slate-50'">
+              <div class="flex items-start gap-4">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white text-xl font-bold">
+                  {{ currentPost.author.charAt(0) }}
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+                    {{ currentPost.author }}
+                  </h3>
+                  <p class="text-base" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                    Expert contributor to GCX insights and analysis. Specializing in agricultural markets, trading technology, and sustainable development.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Sidebar -->
+          <div class="lg:col-span-1">
+            <div class="sticky top-24 space-y-6">
+              <!-- Search Bar -->
+              <div class="bg-black rounded-lg p-4">
+                <div class="relative">
+                  <input
+                    type="text"
+                    placeholder="Search for..."
+                    class="w-full px-4 py-3 text-sm border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all bg-white text-black placeholder-gray-500"
+                  />
+                  <button class="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-black text-white text-xs rounded transition-colors hover:bg-gray-800">
+                    Search
+                  </button>
+                </div>
+              </div>
+
+              <!-- Recent Posts -->
+              <div class="bg-black rounded-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold text-center py-3 px-4">
+                  LATEST NEWS
+                </div>
+                <div class="p-4 space-y-3">
+                  <router-link
+                    v-for="post in recentPosts"
+                    :key="post.id"
+                    :to="`/blog/${post.id}`"
+                    class="block text-sm text-white transition-colors hover:text-yellow-400 leading-relaxed"
+                  >
+                    {{ post.title }}
+                  </router-link>
+                </div>
+              </div>
+
+              <!-- Categories -->
+              <div class="bg-black rounded-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold text-center py-3 px-4">
+                  CATEGORIES
+                </div>
+                <div class="p-4 space-y-2">
+                  <div
+                    v-for="category in categories"
+                    :key="category"
+                    class="text-sm text-white cursor-pointer transition-colors hover:text-yellow-400"
+                  >
+                    {{ category }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Archives -->
+              <div class="bg-black rounded-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold text-center py-3 px-4">
+                  ARCHIVES
+                </div>
+                <div class="p-4 space-y-2">
+                  <div
+                    v-for="archive in archives"
+                    :key="`${archive.month}-${archive.year}`"
+                    class="text-sm text-white cursor-pointer transition-colors hover:text-yellow-400"
+                  >
+                    {{ archive.month }} {{ archive.year }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Apply Now Button -->
+              <div class="text-center">
+                <button class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                  Apply Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Related Posts -->
+    <section class="py-24 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
+      <div class="max-w-[1600px] mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-3xl font-bold mb-12 text-center" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            Related Posts
+          </h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <router-link
+              v-for="post in relatedPosts"
+              :key="post.id"
+              :to="`/blog/${post.id}`"
+              class="group block transition-all duration-300 hover:shadow-xl rounded-xl overflow-hidden"
+              :class="isDarkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-white hover:bg-slate-50'"
+            >
+              <img
+                :src="post.image"
+                :alt="post.title"
+                class="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div class="p-6">
+                <div class="mb-4">
+                  <span class="text-sm font-semibold" :class="isDarkMode ? 'text-yellow-400' : 'text-yellow-600'">
+                    {{ post.author }} • {{ new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}
+                  </span>
+                </div>
+                <h3 class="text-xl font-bold mb-3 group-hover:text-yellow-500 transition-colors" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+                  {{ post.title }}
+                </h3>
+                <p class="mb-4" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                  {{ post.excerpt }}
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="tag in post.tags"
+                    :key="tag"
+                    class="px-2 py-1 rounded-full text-xs font-medium"
+                    :class="isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
-</template> 
+</template>
+
+<style scoped>
+.prose {
+  color: inherit;
+}
+
+.prose h2 {
+  color: inherit;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose p {
+  color: inherit;
+  margin-bottom: 1.5rem;
+}
+
+.prose ul {
+  color: inherit;
+}
+
+.prose li {
+  color: inherit;
+}
+
+.prose strong {
+  color: inherit;
+  font-weight: 600;
+}
+</style> 
