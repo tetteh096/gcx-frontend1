@@ -8,9 +8,9 @@ import {
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
-import PriceTable from '@/components/index/PriceTable';
-import ProfessionalChart from '@/components/index/ProfessionalChart';
-import MarketSummary from '@/components/index/MarketSummary';
+import PriceTable from '@/components/market-data/PriceTable';
+import ProfessionalChart from '@/components/market-data/ProfessionalChart';
+import MarketSummary from '@/components/market-data/MarketSummary';
 
 // Comprehensive GCX Commodity Spot Price Data
 const gcxPriceData = [

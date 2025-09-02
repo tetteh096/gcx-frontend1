@@ -45,18 +45,36 @@ A professional market data platform for Ghana Commodity Exchange (GCX) members a
 src/
 ├── app/                    # Next.js App Router
 │   ├── dashboard/         # Main dashboard page
-│   ├── pricing/          # Subscription plans
-│   ├── layout.tsx        # Root layout with navbar
-│   └── page.tsx          # Landing page
+│   ├── market-data/       # Market data pages
+│   │   ├── prices/        # Live commodity prices
+│   │   ├── history/       # Historical data
+│   │   ├── overview/      # Market overview
+│   │   └── page.tsx       # Main market data page
+│   ├── trading/           # Trading pages
+│   │   ├── portfolio/     # Trading portfolio
+│   │   └── orders/        # Order management
+│   ├── index/             # GCX Index pages
+│   │   └── regional-comparison/ # Regional comparisons
+│   ├── alerts/            # Alerts and notifications
+│   ├── pricing/           # Subscription plans
+│   ├── auth/              # Authentication pages
+│   ├── layout.tsx         # Root layout with navbar
+│   └── page.tsx           # Landing page
 ├── components/            # Reusable components
-│   ├── layout/           # Layout components
-│   │   └── Navbar.tsx    # Navigation component
-│   └── market-data/      # Market data components
-│       ├── LivePrices.tsx        # Real-time price table
-│       ├── MarketOverview.tsx    # Market metrics cards
-│       ├── PriceChart.tsx        # Historical price charts
-│       └── TradingViewWidget.tsx # Advanced charting
-└── types/                # TypeScript type definitions
+│   ├── layout/            # Layout components
+│   │   ├── Sidebar.tsx    # Main navigation sidebar
+│   │   ├── Navbar.tsx     # Top navigation
+│   │   └── LandingNavbar.tsx # Landing page navbar
+│   ├── auth/              # Authentication components
+│   ├── market-data/       # Market data components
+│   │   ├── PriceTable.tsx         # Professional price table
+│   │   ├── ProfessionalChart.tsx  # Advanced charting
+│   │   ├── MarketSummary.tsx      # Market metrics cards
+│   │   ├── TradingChart.tsx       # Trading charts
+│   │   ├── MarketPerformanceChart.tsx # Performance charts
+│   │   └── RegionalVolumeChart.tsx # Regional volume charts
+│   └── ui/                # UI components
+└── types/                 # TypeScript type definitions
 ```
 
 ## 🚀 Getting Started
@@ -96,29 +114,29 @@ npm start
 
 ## 📊 Market Data Components
 
-### LivePrices
-- Real-time commodity price updates
-- Price change indicators (up/down)
+### PriceTable
+- Professional commodity price table
+- Real-time price updates with bid/ask spreads
 - Volume and timestamp information
-- Auto-refresh every 5 seconds
+- Regional and grade information display
 
-### MarketOverview
+### ProfessionalChart
+- Advanced charting with multiple chart types
+- Line, area, and bar chart support
+- Customizable series and colors
+- Professional tooltips and legends
+
+### MarketSummary
 - Key market metrics dashboard
 - Trading volume, market cap, active traders
 - Change indicators with visual feedback
 - Responsive grid layout
 
-### PriceChart
-- Interactive historical price charts
-- Multiple time ranges (1M, 3M, 6M, 1Y, ALL)
-- Commodity selector (Maize, Soybeans, Rice, Sorghum)
-- Price change calculations and visualizations
-
-### TradingViewWidget
-- Professional trading charts
-- Technical analysis tools
-- Multiple timeframes
-- Customizable indicators
+### TradingChart
+- Interactive trading charts
+- Real-time data visualization
+- Multiple timeframes and indicators
+- Professional trading interface
 
 ## 🔐 Authentication & Subscriptions
 

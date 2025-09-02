@@ -146,45 +146,45 @@ export default function OrdersPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-800" />;
+        return <Clock className="w-4 h-4 text-yellow-700" />;
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-800" />;
+        return <CheckCircle className="w-4 h-4 text-green-700" />;
       case 'cancelled':
-        return <XCircle className="w-4 h-4 text-red-800" />;
+        return <XCircle className="w-4 h-4 text-red-700" />;
       case 'partially_filled':
-        return <AlertCircle className="w-4 h-4 text-blue-800" />;
+        return <AlertCircle className="w-4 h-4 text-blue-700" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-800" />;
+        return <Clock className="w-4 h-4 text-gray-700" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'badge-pending';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'completed':
-        return 'badge-completed';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'cancelled':
-        return 'badge-cancelled';
+        return 'bg-red-100 text-red-800 border-red-200';
       case 'partially_filled':
-        return 'badge-partially-filled';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
-        return 'badge-pending';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getTypeIcon = (type: string) => {
     return type === 'buy' ? (
-      <ArrowDownRight className="w-4 h-4" />
+      <ArrowDownRight className="w-4 h-4 text-green-700" />
     ) : (
-      <ArrowUpRight className="w-4 h-4" />
+      <ArrowUpRight className="w-4 h-4 text-red-700" />
     );
   };
 
   const getTypeColor = (type: string) => {
     return type === 'buy' 
-      ? 'badge-buy'
-      : 'badge-sell';
+      ? 'bg-green-100 text-green-800 border-green-200'
+      : 'bg-red-100 text-red-800 border-red-200';
   };
 
   const filteredOrders = orders.filter(order => {
@@ -402,9 +402,9 @@ export default function OrdersPage() {
                           </div>
                         </td>
                         <td className="py-4 px-6">
-                          <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm ${getTypeColor(order.type)}`}>
+                          <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium border ${getTypeColor(order.type)}`}>
                             {getTypeIcon(order.type)}
-                            <span className="uppercase">{order.type}</span>
+                            <span className="uppercase font-semibold">{order.type}</span>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1 capitalize">
                             {order.orderType}
@@ -438,9 +438,9 @@ export default function OrdersPage() {
                           </div>
                         </td>
                         <td className="py-4 px-6 text-center">
-                          <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm ${getStatusColor(order.status)}`}>
+                          <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium border ${getStatusColor(order.status)}`}>
                             {getStatusIcon(order.status)}
-                            <span className="capitalize">{order.status.replace('_', ' ')}</span>
+                            <span className="capitalize font-semibold">{order.status.replace('_', ' ')}</span>
                           </div>
                         </td>
                         <td className="py-4 px-6 text-right">

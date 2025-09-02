@@ -4,18 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, User, LogOut, Bell, Search, Crown, BarChart3 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useSession, signOut } from 'next-auth/react';
 import { SimpleThemeToggle } from '@/components/ui/ThemeToggle';
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
 
+  const handleLogout = async () => {
+    await signOut({ redirect: true, callbackUrl: '/' });
+  };
+
   return (
-    <nav className="bg-card text-card-foreground shadow-lg border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-card/95 transition-colors duration-300">
+    <nav className="text-card-foreground shadow-lg border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-card/95 transition-colors duration-300">
       <div className="w-full px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo Section - Left */}
@@ -71,15 +75,17 @@ export default function Navbar() {
             {/* Theme Toggle */}
             <SimpleThemeToggle />
             
-            {/* Enhanced Notifications */}
-            <button className="relative p-3 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 group">
-              <Bell className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-              <span className="absolute top-2 right-2 block h-3 w-3 rounded-full bg-red-500 ring-2 ring-card animate-pulse"></span>
-              <span className="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-100 dark:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
-            </button>
+            {/* Enhanced Notifications - Only show when authenticated */}
+            {session && (
+              <button className="relative p-3 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 group">
+                <Bell className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                <span className="absolute top-2 right-2 block h-3 w-3 rounded-full bg-red-500 ring-2 ring-card animate-pulse"></span>
+                <span className="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-100 dark:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+              </button>
+            )}
             
             {/* Enhanced User Profile */}
-            {isAuthenticated ? (
+            {session ? (
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -89,7 +95,7 @@ export default function Navbar() {
                     <User className="w-5 h-5 text-white" />
                   </div>
                   <div className="hidden sm:block text-left">
-                    <span className="text-sm font-semibold text-card-foreground block">{user?.name || 'User'}</span>
+                    <span className="text-sm font-semibold text-card-foreground block">{session.user?.name || 'User'}</span>
                     <div className="flex items-center space-x-1">
                       <Crown className="w-3 h-3 text-yellow-500 dark:text-yellow-400" />
                       <span className="text-xs text-muted-foreground font-medium">Premium</span>
@@ -107,7 +113,7 @@ export default function Navbar() {
                           <User className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-card-foreground truncate">{user?.name || 'User'}</p>
+                          <p className="text-sm font-semibold text-card-foreground truncate">{session.user?.name || 'User'}</p>
                           <div className="flex items-center space-x-2 mt-1">
                             <Crown className="w-3 h-3 text-yellow-500" />
                             <p className="text-xs text-muted-foreground font-medium">Premium Member</p>
@@ -162,7 +168,7 @@ export default function Navbar() {
                     <div className="border-t border-border pt-2 px-6 pb-3">
                       <button 
                         onClick={() => {
-                          logout();
+                          handleLogout();
                           setUserMenuOpen(false);
                         }}
                         className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 rounded-xl transition-all duration-200 border border-red-200 dark:border-red-700 hover:border-red-300 dark:hover:border-red-600"
@@ -222,7 +228,7 @@ export default function Navbar() {
           </div>
           
           {/* Mobile Menu Items */}
-          {isAuthenticated ? (
+          {session ? (
             <div className="space-y-3">
               <Link
                 href="/profile"
@@ -250,7 +256,7 @@ export default function Navbar() {
               </Link>
               <button 
                 onClick={() => {
-                  logout();
+                  handleLogout();
                   setMobileMenuOpen(false);
                 }}
                 className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200"

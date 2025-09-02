@@ -14,27 +14,14 @@ import {
   ChevronRight, 
   ChevronDown,
   Home, 
-  Users, 
-  Calendar, 
   PieChart, 
-  Globe, 
   Database,
   User,
   LogOut,
   Crown,
-  Zap,
-  Shield,
-  Activity,
   Briefcase,
-  BarChart,
-  Layers,
-  BookOpen,
-  MessageSquare,
-  Wrench,
-  Search,
-  Target,
-  AlertTriangle,
-  MapPin
+  MapPin,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -81,7 +68,6 @@ const navigation: NavItem[] = [
       { name: 'Live Prices', href: '/market-data/prices', icon: TrendingUp, description: 'Current commodity prices' },
       { name: 'Historical Data', href: '/market-data/history', icon: Database, description: 'Past market performance' },
       { name: 'Market Overview', href: '/market-data/overview', icon: PieChart, description: 'Market summary and trends' },
-      { name: 'Commodity Analysis', href: '/market-data/analysis', icon: Activity, description: 'Detailed commodity insights' },
     ],
   },
   {
@@ -104,57 +90,24 @@ const navigation: NavItem[] = [
     children: [
       { name: 'GCX Index', href: '/index', icon: BarChart3, description: 'GCX commodity basket index' },
       { name: 'Regional Comparison', href: '/index/regional-comparison', icon: MapPin, description: 'Compare prices across regions' },
-      { name: 'Open Market Prices', href: '/index/open-market', icon: Globe, description: 'External market benchmarks' },
     ],
   },
   {
-    name: 'News & Reports',
-    href: '/news',
-    icon: FileText,
-    description: 'Market insights and research',
-    category: 'info',
-    children: [
-      { name: 'Market News', href: '/news/market', icon: Globe, description: 'Latest market updates' },
-      { name: 'Research Reports', href: '/news/research', icon: BookOpen, description: 'In-depth analysis' },
-      { name: 'Economic Calendar', href: '/news/calendar', icon: Calendar, description: 'Upcoming events' },
-      { name: 'GCX Updates', href: '/news/gcx', icon: Bell, description: 'Exchange announcements' },
-    ],
-  },
-  {
-    name: 'Community',
-    href: '/community',
-    icon: Users,
-    description: 'Connect with traders',
-    category: 'social',
-    children: [
-      { name: 'Forums', href: '/community/forums', icon: MessageSquare, description: 'Discussion boards' },
-      { name: 'Events', href: '/community/events', icon: Calendar, description: 'Trading events' },
-      { name: 'Networking', href: '/community/networking', icon: Users, description: 'Professional connections' },
-      { name: 'Expert Insights', href: '/community/insights', icon: Crown, premium: true, description: 'Expert analysis' },
-    ],
-  },
-  {
-    name: 'Alerts & Notifications',
+    name: 'Alerts',
     href: '/alerts',
     icon: Bell,
-    badge: '3',
-    premium: true,
-    description: 'Price and market alerts',
-    category: 'premium'
+    children: [
+      { name: 'Dashboard', href: '/alerts', icon: Bell },
+      { name: 'Manage Rules', href: '/alerts/rules', icon: Settings },
+      { name: 'History', href: '/alerts/history', icon: Clock },
+    ],
   },
   {
-    name: 'API & Tools',
-    href: '/api',
-    icon: Zap,
-    description: 'Developer resources',
-    category: 'developer',
-    children: [
-      { name: 'API Documentation', href: '/api/docs', icon: FileText, description: 'API reference' },
-      { name: 'Data Export', href: '/api/export', icon: Database, description: 'Data download tools' },
-      { name: 'Webhooks', href: '/api/webhooks', icon: Zap, description: 'Real-time notifications' },
-      { name: 'SDK Downloads', href: '/api/sdk', icon: Wrench, description: 'Development kits' },
-    ],
-    premium: true,
+    name: 'Pricing',
+    href: '/pricing',
+    icon: Crown,
+    description: 'Subscription plans',
+    category: 'premium'
   },
 ];
 
@@ -188,9 +141,9 @@ const Sidebar: React.FC = () => {
       <div>
         <div
           className={`
-            group relative flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer
-            ${isItemActive 
-              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg transform scale-[1.02]' 
+            group relative flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer min-h-[3rem]
+            ${isItemActive && item.name !== 'Alerts'
+              ? 'bg-primary text-primary-foreground shadow-sm' 
               : 'text-card-foreground hover:bg-muted/50 hover:text-primary hover:transform hover:scale-[1.01]'
             }
             ${level > 0 ? 'ml-4' : ''}
@@ -203,8 +156,8 @@ const Sidebar: React.FC = () => {
           >
             <div className={`
               p-2 rounded-lg transition-all duration-200
-              ${isItemActive 
-                ? 'bg-white/20 dark:bg-white/10 text-white dark:text-white' 
+              ${isItemActive && item.name !== 'Alerts'
+                ? 'bg-primary-foreground/20 text-primary-foreground' 
                 : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
               }
             `}>
@@ -213,12 +166,12 @@ const Sidebar: React.FC = () => {
             
             {!isCollapsed && (
               <div className="flex-1 ml-3 min-w-0">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium block truncate">{item.name}</span>
+                    <span className="text-sm font-medium block truncate leading-tight">{item.name}</span>
                     {item.description && (
-                      <span className={`text-xs block truncate mt-0.5 ${
-                        isItemActive ? 'text-white/80 dark:text-white/70' : 'text-muted-foreground'
+                      <span className={`text-xs block truncate leading-tight ${
+                        isItemActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
                       }`}>
                         {item.description}
                       </span>
@@ -227,7 +180,11 @@ const Sidebar: React.FC = () => {
                   
                   <div className="flex items-center space-x-2 ml-2">
                     {item.badge && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        isItemActive 
+                          ? 'bg-primary-foreground/20 text-primary-foreground' 
+                          : 'bg-red-500 text-white'
+                      }`}>
                         {item.badge}
                       </span>
                     )}

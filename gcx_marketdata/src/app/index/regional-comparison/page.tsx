@@ -9,9 +9,9 @@ import {
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
-import PriceTable from '@/components/index/PriceTable';
-import ProfessionalChart from '@/components/index/ProfessionalChart';
-import MarketSummary from '@/components/index/MarketSummary';
+import PriceTable from '@/components/market-data/PriceTable';
+import ProfessionalChart from '@/components/market-data/ProfessionalChart';
+import MarketSummary from '@/components/market-data/MarketSummary';
 
 
 
@@ -159,7 +159,7 @@ export default function RegionalComparisonPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50/30 to-pink-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-gray-50">
         <div className="flex">
           <Sidebar />
           
@@ -208,45 +208,7 @@ export default function RegionalComparisonPage() {
                     </button>
                   </div>
                   
-                  {/* Floating Stats */}
-                  <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                      <div className="flex items-center space-x-3">
-                        <Target className="w-6 h-6 text-blue-300" />
-                        <div>
-                          <div className="text-2xl font-bold text-white">{availableRegions.length}</div>
-                          <div className="text-white/80 text-sm">Active Regions</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                      <div className="flex items-center space-x-3">
-                        <Activity className="w-6 h-6 text-purple-300" />
-                        <div>
-                          <div className="text-2xl font-bold text-white">{arbitrage ? `${arbitrage.profitPercent}%` : '0%'}</div>
-                          <div className="text-white/80 text-sm">Price Spread</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                      <div className="flex items-center space-x-3">
-                        <DollarSign className="w-6 h-6 text-green-300" />
-                        <div>
-                          <div className="text-2xl font-bold text-white">{arbitrage ? `GHS ${Math.round(arbitrage.profit)}` : 'GHS 0'}</div>
-                          <div className="text-white/80 text-sm">Best Arbitrage</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="w-6 h-6 text-yellow-300" />
-                        <div>
-                          <div className="text-2xl font-bold text-white">Live</div>
-                          <div className="text-white/80 text-sm">Market Status</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
               </div>
 
@@ -257,7 +219,7 @@ export default function RegionalComparisonPage() {
 
               {/* Enhanced Commodity & Date Selection */}
               <div className="mb-8">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6">
                     <h2 className="text-2xl font-bold text-white mb-2">
                       Market Intelligence Dashboard
@@ -269,16 +231,16 @@ export default function RegionalComparisonPage() {
                   <div className="p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       <div className="space-y-4">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                          <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded-full p-2">
-                            <Filter className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                          <div className="bg-indigo-100 rounded-full p-2">
+                            <Filter className="w-5 h-5 text-indigo-600" />
                           </div>
                           <span>Commodity Selection</span>
                         </h3>
                         <select 
                           value={selectedCommodity}
                           onChange={(e) => setSelectedCommodity(e.target.value as CommodityType)}
-                          className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-300"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 transition-all duration-300"
                         >
                           <option value="Maize">🌽 Maize - White Grade 1</option>
                           <option value="Soya Bean">🫘 Soya Bean - Grade 1</option>
@@ -286,16 +248,16 @@ export default function RegionalComparisonPage() {
                         </select>
                       </div>
                       <div className="space-y-4">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                          <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-2">
-                            <Activity className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                          <div className="bg-purple-100 rounded-full p-2">
+                            <Activity className="w-5 h-5 text-purple-600" />
                           </div>
                           <span>Time Period</span>
                         </h3>
                         <select 
                           value={selectedDateRange}
                           onChange={(e) => setSelectedDateRange(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-300"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-gray-900 transition-all duration-300"
                         >
                           {dateRanges.map(range => (
                             <option key={range.value} value={range.value}>
@@ -307,11 +269,11 @@ export default function RegionalComparisonPage() {
                    </div>
                    
                    <div className="mt-4 text-center">
-                     <div className="text-sm text-gray-600 dark:text-gray-400">Currently Analyzing</div>
-                     <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                     <div className="text-sm text-gray-600">Currently Analyzing</div>
+                     <div className="text-2xl font-bold text-gray-900">
                        {selectedCommodity} across {availableRegions.length} regions
                      </div>
-                     <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                     <div className="text-sm text-gray-500 mt-1">
                        Data for {dateRanges.find(r => r.value === selectedDateRange)?.label.toLowerCase()}
                      </div>
                    </div>
@@ -320,26 +282,26 @@ export default function RegionalComparisonPage() {
 
               {/* Arbitrage Opportunity Alert */}
               <div className="mb-6">
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-700 rounded-xl shadow-lg p-6">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl shadow-lg p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <Target className="w-8 h-8 text-green-600 dark:text-green-400" />
+                      <Target className="w-8 h-8 text-green-600" />
                       <div>
-                        <h3 className="text-xl font-bold text-green-900 dark:text-green-100">
+                        <h3 className="text-xl font-bold text-green-900">
                           Best Arbitrage Opportunity
                         </h3>
-                        <p className="text-green-700 dark:text-green-300 mt-1">
+                        <p className="text-green-700 mt-1">
                           Buy {selectedCommodity} in <strong>Greater Accra</strong> at GHS 1,880, 
                           sell in <strong>Northern</strong> at GHS 4,645
                         </p>
                         <div className="flex items-center space-x-4 mt-3">
-                          <div className="bg-green-100 dark:bg-green-900/30 px-4 py-2 rounded-lg border border-green-200 dark:border-green-700">
-                            <span className="text-green-800 dark:text-green-300 font-bold">
+                          <div className="bg-green-100 px-4 py-2 rounded-lg border border-green-200">
+                            <span className="text-green-800 font-bold">
                               Potential Profit: GHS 2,765
                             </span>
                           </div>
-                          <div className="bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-700">
-                            <span className="text-blue-800 dark:text-blue-300 font-bold">
+                          <div className="bg-blue-100 px-4 py-2 rounded-lg border border-blue-200">
+                            <span className="text-blue-800 font-bold">
                               147% margin
                             </span>
                           </div>
@@ -377,12 +339,12 @@ export default function RegionalComparisonPage() {
               {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Regional Price Comparison Chart */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-900">
                       {selectedCommodity} Prices Across Regions
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-gray-600">
                       Compare {selectedCommodity} prices across {availableRegions.length} trading regions for {dateRanges.find(r => r.value === selectedDateRange)?.label.toLowerCase()}
                     </p>
                   </div>
@@ -399,16 +361,16 @@ export default function RegionalComparisonPage() {
                        valueFormatter={(value) => `GHS ${value?.toLocaleString()}`}
                      />
                    ) : (
-                     <div className="p-6 flex items-center justify-center h-[350px] text-gray-500 dark:text-gray-400">
+                     <div className="p-6 flex items-center justify-center h-[350px] text-gray-500">
                        No data available for {selectedCommodity}
                      </div>
                    )}
                 </div>
 
                 {/* Price Spread Analysis */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-900">
                       Regional Price Analysis
                     </h3>
                   </div>
@@ -426,14 +388,14 @@ export default function RegionalComparisonPage() {
                           const spread = ((highest.price - lowest.price) / lowest.price * 100).toFixed(1);
                           
                           return (
-                            <div key="current" className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div key="current" className="border border-gray-200 rounded-lg p-4">
                               <div className="flex items-center justify-between mb-3">
-                                <h4 className="font-bold text-gray-900 dark:text-gray-100">{selectedCommodity}</h4>
-                                <div className="px-3 py-1 rounded-lg text-sm font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                <h4 className="font-bold text-gray-900">{selectedCommodity}</h4>
+                                <div className="px-3 py-1 rounded-lg text-sm font-bold bg-blue-100 text-blue-800">
                                   {spread}% spread
                                 </div>
                               </div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                              <div className="text-sm text-gray-600 space-y-1">
                                 <div><strong>Highest:</strong> {highest.region} (GHS {highest.price.toLocaleString()})</div>
                                 <div><strong>Lowest:</strong> {lowest.region} (GHS {lowest.price.toLocaleString()})</div>
                               </div>
@@ -444,48 +406,49 @@ export default function RegionalComparisonPage() {
                   </div>
                 </div>
               </div>
+              </div>
 
               {/* Regional Trading Insights */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900">
                     Regional Trading Insights
                   </h3>
                 </div>
                 
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-600">
-                      <MapPin className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                      <div className="font-bold text-blue-900 dark:text-blue-100">
+                    <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <MapPin className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                      <div className="font-bold text-blue-900">
                         {arbitrage ? arbitrage.buyRegion : 'Best Region'}
                       </div>
-                      <div className="text-sm text-blue-700 dark:text-blue-300">Best for Buying</div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                      <div className="text-sm text-blue-700">Best for Buying</div>
+                      <div className="text-xs text-blue-600 mt-1">
                         {arbitrage ? `GHS ${arbitrage.buyPrice.toLocaleString()}` : 'Lowest prices'}
                       </div>
                     </div>
                     
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-600">
-                      <Target className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
-                      <div className="font-bold text-green-900 dark:text-green-100">
+                    <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
+                      <Target className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                      <div className="font-bold text-green-900">
                         {arbitrage ? arbitrage.sellRegion : 'Best Region'}
                       </div>
-                      <div className="text-sm text-green-700 dark:text-green-300">Best for Selling</div>
-                      <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      <div className="text-sm text-green-700">Best for Selling</div>
+                      <div className="text-xs text-green-600 mt-1">
                         {arbitrage ? `GHS ${arbitrage.sellPrice.toLocaleString()}` : 'Highest prices'}
                       </div>
                     </div>
                     
-                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-600">
-                      <Activity className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
-                      <div className="font-bold text-purple-900 dark:text-purple-100">
+                    <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-200">
+                      <Activity className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                      <div className="font-bold text-purple-900">
                         {availableRegions.length} Active Regions
                       </div>
-                      <div className="text-sm text-purple-700 dark:text-purple-300">Trading Network</div>
-                                               <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                           {availableRegions.reduce((sum: number, item: RegionalPriceItem) => sum + (Math.floor(Math.random() * 2000) + 500), 0).toLocaleString()} tons volume
-                         </div>
+                      <div className="text-sm text-purple-700">Trading Network</div>
+                      <div className="text-xs text-purple-600 mt-1">
+                        {availableRegions.reduce((sum: number, item: RegionalPriceItem) => sum + (Math.floor(Math.random() * 2000) + 500), 0).toLocaleString()} tons volume
+                      </div>
                     </div>
                   </div>
                 </div>

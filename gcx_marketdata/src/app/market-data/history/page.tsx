@@ -7,11 +7,13 @@ import {
   MapPin, Activity, Volume2, DollarSign, RefreshCw, Radio,
   ArrowUpDown, Eye, Target, Bell, Zap, Clock, BarChart3,
   PieChart, Globe, Info, AlertTriangle, TrendingUpIcon, TrendingDownIcon,
-  Download, FileText, Database, Calendar as CalendarIcon, BarChart as BarChartIcon
+  Download, FileText, Database, Calendar as CalendarIcon, BarChart as BarChartIcon,
+  Crown, CreditCard, Mail, Clock as ClockIcon
 } from 'lucide-react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
+import SliderPanel from '@/components/ui/SliderPanel';
 
 // Historical GCX Commodity Data
 const historicalData = {
@@ -151,11 +153,30 @@ export default function HistoricalDataPage() {
   const { isCollapsed } = useSidebar();
   const [selectedCommodity, setSelectedCommodity] = useState('Maize');
   const [selectedTimeframe, setSelectedTimeframe] = useState('daily');
-  const [selectedPeriod, setSelectedPeriod] = useState('1M');
+  const [selectedPeriod, setSelectedPeriod] = useState('2Y');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showVolume, setShowVolume] = useState(true);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  
+  // Define date restrictions
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const threeYearsAgo = new Date(today);
+  threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+  
+  const exchangeStartDate = new Date('2018-01-01'); // GCX exchange started in 2018
+  const [isSpecialRequestOpen, setIsSpecialRequestOpen] = useState(false);
+  const [specialRequestData, setSpecialRequestData] = useState({
+    commodities: ['Maize'],
+    startDate: '',
+    endDate: '',
+    timeframe: 'daily',
+    email: '',
+    purpose: ''
+  });
 
   const commodity = historicalData[selectedCommodity as keyof typeof historicalData];
   const commodities = Object.keys(historicalData);
@@ -188,7 +209,137 @@ export default function HistoricalDataPage() {
     setIsRefreshing(false);
   };
 
+  const handleSpecialRequest = () => {
+    setSpecialRequestData({
+      commodities: [selectedCommodity],
+      startDate: '',
+      endDate: '',
+      timeframe: selectedTimeframe,
+      email: '',
+      purpose: ''
+    });
+    setIsSpecialRequestOpen(true);
+  };
+
+  const handleCommodityChange = (commodity: string, checked: boolean) => {
+    if (checked) {
+      setSpecialRequestData(prev => ({
+        ...prev,
+        commodities: [...prev.commodities, commodity]
+      }));
+    } else {
+      setSpecialRequestData(prev => ({
+        ...prev,
+        commodities: prev.commodities.filter(c => c !== commodity)
+      }));
+    }
+  };
+
+  const handleSelectAllCommodities = () => {
+    if (specialRequestData.commodities.length === commodities.length) {
+      setSpecialRequestData(prev => ({ ...prev, commodities: [] }));
+    } else {
+      setSpecialRequestData(prev => ({ ...prev, commodities: [...commodities] }));
+    }
+  };
+
+  const validateDateRange = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return { isValid: false, message: 'Please select both start and end dates' };
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Check if end date is not beyond yesterday
+    if (end > yesterday) {
+      return { isValid: false, message: 'End date cannot be beyond yesterday' };
+    }
+    
+    // Check if start date is not after end date
+    if (start > end) {
+      return { isValid: false, message: 'Start date cannot be after end date' };
+    }
+    
+    // Calculate the difference in years
+    const diffInMs = end.getTime() - start.getTime();
+    const diffInYears = diffInMs / (1000 * 60 * 60 * 24 * 365.25);
+    
+    if (diffInYears > 3) {
+      return { 
+        isValid: false, 
+        message: 'Date range exceeds 3 years. Please use our Special Request service for extended historical data (3-5 years) at GH₵200.' 
+      };
+    }
+    
+    if (diffInYears > 2) {
+      return { 
+        isValid: false, 
+        message: 'Date range exceeds 2 years. For data beyond 2 years, please use our Special Request service (3-5 years) at GH₵200.' 
+      };
+    }
+    
+    return { isValid: true, message: '' };
+  };
+
+  const handleSpecialRequestSubmit = async () => {
+    // Validate date range
+    const validation = validateDateRange(specialRequestData.startDate, specialRequestData.endDate);
+    
+    if (!validation.isValid) {
+      alert(validation.message);
+      return;
+    }
+    
+    // Simulate API call for special request
+    console.log('Special request submitted:', specialRequestData);
+    
+    // Here you would integrate with Paystack payment
+    // For now, we'll just show a success message
+    alert('Special request submitted! You will be redirected to payment.');
+    setIsSpecialRequestOpen(false);
+  };
+
+  const handlePeriodChange = (period: string) => {
+    if (period === 'SPECIAL') {
+      handleSpecialRequest();
+    } else {
+      setSelectedPeriod(period);
+      
+      // If user selects a period that might exceed 2 years, show warning
+      if (period === 'ALL') {
+        alert('Selecting "All Time" may exceed 2 years. For extended historical data (3-5 years), please use our Special Request service at GH₵200.');
+      }
+    }
+  };
+
   const exportData = (format: 'csv' | 'json' | 'excel') => {
+    // Validate date range before export
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Check if dates are within allowed range
+      if (start < exchangeStartDate || end < exchangeStartDate) {
+        alert('GCX exchange data is only available from 2018 onwards. Please select dates from 2018 or later.');
+        return;
+      }
+      
+      if (start < threeYearsAgo || end < threeYearsAgo) {
+        alert('Data before 3 years requires our Special Request service. Please use the Special Request option for historical data beyond 3 years.');
+        return;
+      }
+      
+      const diffInMs = start.getTime() - end.getTime();
+      const diffInYears = diffInMs / (1000 * 60 * 60 * 24 * 365.25);
+      
+      if (diffInYears > 2) {
+        alert('Date range exceeds 2 years. For extended historical data (3-5 years), please use our Special Request service at GH₵200.');
+        return;
+      }
+    }
+    
     // Get the filtered data based on current selections
     const exportData = currentData.map((item: any) => ({
       commodity: selectedCommodity,
@@ -254,6 +405,31 @@ export default function HistoricalDataPage() {
   };
 
   const exportAllCommodities = (format: 'csv' | 'json' | 'excel') => {
+    // Validate date range before export
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Check if dates are within allowed range
+      if (start < exchangeStartDate || end < exchangeStartDate) {
+        alert('GCX exchange data is only available from 2018 onwards. Please select dates from 2018 or later.');
+        return;
+      }
+      
+      if (start < threeYearsAgo || end < threeYearsAgo) {
+        alert('Data before 3 years requires our Special Request service. Please use the Special Request option for historical data beyond 3 years.');
+        return;
+      }
+      
+      const diffInMs = start.getTime() - end.getTime();
+      const diffInYears = diffInMs / (1000 * 60 * 60 * 24 * 365.25);
+      
+      if (diffInYears > 2) {
+        alert('Date range exceeds 2 years. For extended historical data (3-5 years), please use our Special Request service at GH₵200.');
+        return;
+      }
+    }
+    
     // Collect data from all commodities
     const allData: any[] = [];
     
@@ -400,7 +576,7 @@ export default function HistoricalDataPage() {
                     <Text className="text-muted-foreground">Period:</Text>
                     <select
                       value={selectedPeriod}
-                      onChange={(e) => setSelectedPeriod(e.target.value)}
+                      onChange={(e) => handlePeriodChange(e.target.value)}
                       className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary bg-card text-card-foreground"
                     >
                       <option value="1W">1 Week</option>
@@ -408,7 +584,8 @@ export default function HistoricalDataPage() {
                       <option value="3M">3 Months</option>
                       <option value="6M">6 Months</option>
                       <option value="1Y">1 Year</option>
-                      <option value="ALL">All Time</option>
+                      <option value="2Y">2 Years</option>
+                      <option value="SPECIAL" className="text-yellow-600 font-semibold">🌟 Special Request (3-5 Years)</option>
                     </select>
                   </div>
 
@@ -428,7 +605,50 @@ export default function HistoricalDataPage() {
                     <input
                       type="date"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => {
+                        const selectedDate = new Date(e.target.value);
+                        
+                        // Check if start date is beyond yesterday
+                        if (selectedDate > yesterday) {
+                          alert('Start date cannot be beyond yesterday');
+                          return;
+                        }
+                        
+                        // Check if start date is before 3 years ago (requires special service)
+                        if (selectedDate < threeYearsAgo) {
+                          alert('Data before 3 years requires our Special Request service. Please use the Special Request option for historical data beyond 3 years.');
+                          return;
+                        }
+                        
+                        // Check if start date is before exchange started (2018)
+                        if (selectedDate < exchangeStartDate) {
+                          alert('GCX exchange data is only available from 2018 onwards. Please select a date from 2018 or later.');
+                          return;
+                        }
+                        
+                        setStartDate(e.target.value);
+                        
+                        // If end date is already set, validate the range
+                        if (endDate) {
+                          const end = new Date(endDate);
+                          // Check if start date is after end date (start should be more recent)
+                          if (selectedDate < end) {
+                            alert('Start date should be more recent than end date');
+                            return;
+                          }
+                          
+                          const diffInMs = selectedDate.getTime() - end.getTime();
+                          const diffInYears = diffInMs / (1000 * 60 * 60 * 24 * 365.25);
+                          
+                          if (diffInYears > 2) {
+                            alert('Date range exceeds 2 years. For extended historical data (3-5 years), please use our Special Request service at GH₵200.');
+                            setStartDate('');
+                            return;
+                          }
+                        }
+                      }}
+                      max={yesterday.toISOString().split('T')[0]}
+                      min={exchangeStartDate.toISOString().split('T')[0]}
                       className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary bg-card text-card-foreground"
                     />
                   </div>
@@ -438,10 +658,79 @@ export default function HistoricalDataPage() {
                     <input
                       type="date"
                       value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      onChange={(e) => {
+                        const selectedDate = new Date(e.target.value);
+                        
+                        if (selectedDate > yesterday) {
+                          alert('End date cannot be beyond yesterday');
+                          return;
+                        }
+                        
+                        // Check if end date is before exchange started (2018)
+                        if (selectedDate < exchangeStartDate) {
+                          alert('GCX exchange data is only available from 2018 onwards. Please select a date from 2018 or later.');
+                          return;
+                        }
+                        
+                        // Check if end date is after start date (end should be older/in the past)
+                        if (startDate) {
+                          const start = new Date(startDate);
+                          if (selectedDate > start) {
+                            alert('End date should be older than start date (further in the past)');
+                            return;
+                          }
+                        }
+                        
+                        // Check if date range exceeds 2 years
+                        if (startDate) {
+                          const start = new Date(startDate);
+                          const diffInMs = start.getTime() - selectedDate.getTime();
+                          const diffInYears = diffInMs / (1000 * 60 * 60 * 24 * 365.25);
+                          
+                          if (diffInYears > 2) {
+                            alert('Date range exceeds 2 years. For extended historical data (3-5 years), please use our Special Request service at GH₵200.');
+                            setEndDate('');
+                            return;
+                          }
+                        }
+                        
+                        setEndDate(e.target.value);
+                      }}
+                      max={yesterday.toISOString().split('T')[0]}
+                      min={exchangeStartDate.toISOString().split('T')[0]}
                       className="px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary bg-card text-card-foreground"
                     />
                   </div>
+                  
+
+                  
+                  {/* Date Range Validation Display */}
+                  {startDate && endDate && (
+                    <div className="flex items-center space-x-2">
+                      <Text className="text-muted-foreground">Selected Range:</Text>
+                      {(() => {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        const diffInMs = start.getTime() - end.getTime();
+                        const diffInYears = diffInMs / (1000 * 60 * 60 * 24 * 365.25);
+                        const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+                        
+                        if (diffInYears > 2) {
+                          return (
+                            <span className="text-red-600 text-sm font-medium">
+                              {diffInDays} days ({diffInYears.toFixed(1)} years) - Exceeds 2-year limit
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span className="text-green-600 text-sm font-medium">
+                              {diffInDays} days ({diffInYears.toFixed(1)} years) - Within limit
+                            </span>
+                          );
+                        }
+                      })()}
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>
@@ -765,6 +1054,219 @@ export default function HistoricalDataPage() {
           </div>
         </div>
       </div>
+
+      {/* Special Request Slider Panel */}
+      <SliderPanel
+        isOpen={isSpecialRequestOpen}
+        onClose={() => setIsSpecialRequestOpen(false)}
+        title="Special Data Request"
+        size="lg"
+      >
+        <div className="p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Crown className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Premium Data Request</h3>
+                <p className="text-gray-600">Request historical data for 3-5 years</p>
+              </div>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard className="w-5 h-5 text-yellow-600" />
+                <span className="font-semibold text-yellow-800">Fixed Price: GH₵200</span>
+              </div>
+              <p className="text-sm text-yellow-700">
+                Data will be delivered via email within 24 business hours after payment confirmation.
+              </p>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={(e) => { e.preventDefault(); handleSpecialRequestSubmit(); }} className="space-y-6">
+            {/* Commodity Selection */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Commodities
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSelectAllCommodities}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  {specialRequestData.commodities.length === commodities.length ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                {commodities.map((commodity) => (
+                  <label key={commodity} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={specialRequestData.commodities.includes(commodity)}
+                      onChange={(e) => handleCommodityChange(commodity, e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-900">{commodity}</span>
+                  </label>
+                ))}
+              </div>
+              {specialRequestData.commodities.length === 0 && (
+                <p className="text-sm text-red-600 mt-1">Please select at least one commodity</p>
+              )}
+            </div>
+
+            {/* Timeframe Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Data Frequency
+              </label>
+              <select
+                value={specialRequestData.timeframe}
+                onChange={(e) => setSpecialRequestData({ ...specialRequestData, timeframe: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+
+            {/* Date Range */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={specialRequestData.startDate}
+                  onChange={(e) => {
+                    const selectedDate = new Date(e.target.value);
+                    
+                    if (selectedDate > yesterday) {
+                      alert('Start date cannot be beyond yesterday');
+                      return;
+                    }
+                    
+                    if (selectedDate < exchangeStartDate) {
+                      alert('GCX exchange data is only available from 2018 onwards. Please select a date from 2018 or later.');
+                      return;
+                    }
+                    
+                    setSpecialRequestData({ ...specialRequestData, startDate: e.target.value });
+                  }}
+                  min={exchangeStartDate.toISOString().split('T')[0]}
+                  max={yesterday.toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={specialRequestData.endDate}
+                  onChange={(e) => {
+                    const selectedDate = new Date(e.target.value);
+                    
+                    if (selectedDate > yesterday) {
+                      alert('End date cannot be beyond yesterday');
+                      return;
+                    }
+                    
+                    if (selectedDate < exchangeStartDate) {
+                      alert('GCX exchange data is only available from 2018 onwards. Please select a date from 2018 or later.');
+                      return;
+                    }
+                    
+                    setSpecialRequestData({ ...specialRequestData, endDate: e.target.value });
+                  }}
+                  min={exchangeStartDate.toISOString().split('T')[0]}
+                  max={yesterday.toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={specialRequestData.email}
+                onChange={(e) => setSpecialRequestData({ ...specialRequestData, email: e.target.value })}
+                placeholder="your.email@example.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            {/* Purpose */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Purpose of Data (Optional)
+              </label>
+              <textarea
+                value={specialRequestData.purpose}
+                onChange={(e) => setSpecialRequestData({ ...specialRequestData, purpose: e.target.value })}
+                placeholder="Briefly describe how you plan to use this data..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Payment Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+                <span className="font-semibold text-blue-800">Payment Information</span>
+              </div>
+              <p className="text-sm text-blue-700 mb-2">
+                You will be redirected to complete payment via:
+              </p>
+              <div className="flex items-center gap-4 text-sm text-blue-600">
+                <span>Credit/Debit Card</span>
+                <span>Mobile Money</span>
+                <span>Bank Transfer</span>
+              </div>
+            </div>
+
+            {/* Delivery Info */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Mail className="w-5 h-5 text-green-600" />
+                <span className="font-semibold text-green-800">Delivery Information</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-green-700">
+                <ClockIcon className="w-4 h-4" />
+                <span>Data delivered within 24 business hours</span>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <CreditCard className="w-5 h-5" />
+                Proceed to Payment (GH₵200)
+              </button>
+            </div>
+          </form>
+        </div>
+      </SliderPanel>
     </ProtectedRoute>
   );
 }

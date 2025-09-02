@@ -167,7 +167,10 @@ export default function PortfolioPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+             <div className="min-h-screen" style={{
+         background: 'var(--background)',
+         backgroundImage: 'linear-gradient(to bottom right, var(--background), rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1))'
+       }}>
         <div className="flex">
           <Sidebar />
           
@@ -175,7 +178,7 @@ export default function PortfolioPage() {
             <div className="w-full px-6 lg:px-8 py-8">
             {/* Enhanced Header with Professional Gradient */}
             <div className="mb-8">
-              <div className="relative bg-gradient-to-r from-slate-600 via-blue-600 to-indigo-600 rounded-2xl p-8 text-white overflow-hidden shadow-2xl">
+                             <div className="relative bg-gradient-to-r from-slate-600 via-blue-600 to-indigo-600 rounded-2xl p-8 text-white overflow-hidden shadow-2xl">/ 
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-20">
                   <div className="absolute inset-0" style={{
@@ -186,79 +189,41 @@ export default function PortfolioPage() {
                 <div className="relative flex items-center justify-between">
                   <div>
                     <div className="flex items-center space-x-4 mb-3">
-                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-                        <Briefcase className="w-8 h-8 text-white" />
-                      </div>
+                                             <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                         <Briefcase className="w-8 h-8 text-white" />
+                       </div>
                       <div>
-                        <h1 className="text-4xl font-bold text-white drop-shadow-sm">
-                          Trading Portfolio
-                        </h1>
-                        <p className="text-xl text-white/90 mt-1">
-                          Advanced Position Management • Real-time Performance Tracking
-                        </p>
+                                                 <h1 className="text-4xl font-bold text-white drop-shadow-sm">
+                           Trading Portfolio
+                         </h1>
+                         <p className="text-xl text-white/90 mt-1">
+                           Advanced Position Management • Real-time Performance Tracking
+                         </p>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
-                      <span className="text-white/80 text-sm">Show P&L:</span>
-                      <button
-                        onClick={() => setShowProfitLoss(!showProfitLoss)}
-                        className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
-                      >
-                        {showProfitLoss ? <Eye className="w-4 h-4 text-white" /> : <EyeOff className="w-4 h-4 text-white" />}
-                      </button>
-                    </div>
-                    <button
-                      onClick={handleRefresh}
-                      disabled={isRefreshing}
-                      className="flex items-center space-x-2 px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-300 disabled:opacity-50 border border-white/20"
-                    >
-                      <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      <span className="font-medium">Refresh Portfolio</span>
-                    </button>
+                                         <div className="flex items-center space-x-2 bg-white/40 dark:bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/50 dark:border-white/20">
+                       <span className="text-slate-700 dark:text-white/80 text-sm">Show P&L:</span>
+                       <button
+                         onClick={() => setShowProfitLoss(!showProfitLoss)}
+                         className="p-2 rounded-lg bg-white/40 hover:bg-white/60 dark:bg-white/20 dark:hover:bg-white/30 transition-colors"
+                       >
+                         {showProfitLoss ? <Eye className="w-4 h-4 text-slate-800 dark:text-white" /> : <EyeOff className="w-4 h-4 text-slate-800 dark:text-white" />}
+                       </button>
+                     </div>
+                                         <button
+                       onClick={handleRefresh}
+                       disabled={isRefreshing}
+                       className="flex items-center space-x-2 px-6 py-3 bg-white/40 dark:bg-white/20 backdrop-blur-sm text-slate-800 dark:text-white rounded-xl hover:bg-white/60 dark:hover:bg-white/30 transition-all duration-300 disabled:opacity-50 border border-white/50 dark:border-white/20"
+                     >
+                       <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                       <span className="font-medium">Refresh Portfolio</span>
+                     </button>
                   </div>
                 </div>
                 
-                {/* Floating Portfolio Stats */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                    <div className="flex items-center space-x-3">
-                      <TrendingUp className="w-6 h-6 text-green-300" />
-                      <div>
-                        <div className="text-2xl font-bold text-white">GHS {portfolioData.totalValue.toLocaleString()}</div>
-                        <div className="text-white/80 text-sm">Total Value</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                    <div className="flex items-center space-x-3">
-                      <DollarSign className="w-6 h-6 text-blue-300" />
-                      <div>
-                        <div className="text-2xl font-bold text-white">GHS {portfolioData.totalProfit.toLocaleString()}</div>
-                        <div className="text-white/80 text-sm">Total P&L</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                    <div className="flex items-center space-x-3">
-                      <Percent className="w-6 h-6 text-purple-300" />
-                      <div>
-                        <div className="text-2xl font-bold text-white">{((portfolioData.totalProfit / portfolioData.totalInvested) * 100).toFixed(1)}%</div>
-                        <div className="text-white/80 text-sm">Total Return</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                    <div className="flex items-center space-x-3">
-                      <Package className="w-6 h-6 text-yellow-300" />
-                      <div>
-                        <div className="text-2xl font-bold text-white">{positions.length}</div>
-                        <div className="text-white/80 text-sm">Active Positions</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                
               </div>
             </div>
 
@@ -309,37 +274,37 @@ export default function PortfolioPage() {
               </div>
 
               {/* Cash Available */}
-              <div className="bg-card rounded-xl shadow-lg border border-border p-6">
+              <div className="bg-white dark:bg-card rounded-xl shadow-lg border border-gray-200/60 dark:border-border p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
                     <Activity className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-foreground">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-foreground">
                       {formatCurrency(portfolioData.cash)}
                     </div>
-                    <div className="text-sm text-muted-foreground">Available Cash</div>
+                    <div className="text-sm text-gray-600 dark:text-muted-foreground">Available Cash</div>
                   </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-gray-600 dark:text-muted-foreground">
                   {((portfolioData.cash / portfolioData.totalValue) * 100).toFixed(1)}% of portfolio
                 </div>
               </div>
 
               {/* Active Positions */}
-              <div className="bg-card rounded-xl shadow-lg border border-border p-6">
+              <div className="bg-white dark:bg-card rounded-xl shadow-lg border border-gray-200/60 dark:border-border p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
                     <Target className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-foreground">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-foreground">
                       {positions.length}
                     </div>
-                    <div className="text-sm text-muted-foreground">Active Positions</div>
+                    <div className="text-sm text-gray-600 dark:text-muted-foreground">Active Positions</div>
                   </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-gray-600 dark:text-muted-foreground">
                   Across {new Set(positions.map(p => p.region)).size} regions
                 </div>
               </div>
@@ -348,7 +313,7 @@ export default function PortfolioPage() {
             {/* Portfolio Allocation and Positions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
               {/* Portfolio Allocation Chart */}
-              <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+              <div className="bg-white dark:bg-card rounded-xl shadow-lg border border-gray-200/60 dark:border-border overflow-hidden">
                 <div className="bg-gradient-to-r from-muted to-muted/50 px-6 py-4 border-b border-border">
                   <h3 className="text-lg font-bold text-foreground">Portfolio Allocation</h3>
                   <p className="text-sm text-muted-foreground">Asset distribution by value</p>
@@ -380,7 +345,7 @@ export default function PortfolioPage() {
               </div>
 
               {/* Current Positions */}
-              <div className="lg:col-span-2 bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+              <div className="lg:col-span-2 bg-white dark:bg-card rounded-xl shadow-lg border border-gray-200/60 dark:border-border overflow-hidden">
                 <div className="bg-gradient-to-r from-muted to-muted/50 px-6 py-4 border-b border-border">
                   <div className="flex items-center justify-between">
                     <div>
@@ -449,8 +414,10 @@ export default function PortfolioPage() {
                             )}
                           </td>
                           <td className="py-4 px-6 text-center">
-                            <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-lg text-xs ${
-                              position.status === 'active' ? 'badge-active' : 'badge-completed'
+                            <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-lg text-xs font-medium border ${
+                              position.status === 'active' 
+                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                : 'bg-blue-100 text-blue-800 border-blue-200'
                             }`}>
                               <div className={`w-2 h-2 rounded-full ${
                                 position.status === 'active' ? 'bg-green-500' : 'bg-blue-500'
@@ -467,7 +434,7 @@ export default function PortfolioPage() {
             </div>
 
             {/* Recent Transactions */}
-            <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+            <div className="bg-white dark:bg-card rounded-xl shadow-lg border border-gray-200/60 dark:border-border overflow-hidden">
               <div className="bg-gradient-to-r from-muted to-muted/50 px-6 py-4 border-b border-border">
                 <div className="flex items-center justify-between">
                   <div>
@@ -511,10 +478,10 @@ export default function PortfolioPage() {
                           </div>
                         </td>
                         <td className="py-4 px-6">
-                          <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-lg text-xs ${
+                          <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-lg text-xs font-medium border ${
                             transaction.type === 'buy' 
-                              ? 'badge-buy'
-                              : 'badge-sell'
+                              ? 'bg-green-100 text-green-800 border-green-200'
+                              : 'bg-red-100 text-red-800 border-red-200'
                           }`}>
                             {transaction.type === 'buy' ? (
                               <ArrowDownRight className="w-3 h-3" />
@@ -546,7 +513,7 @@ export default function PortfolioPage() {
                           </div>
                         </td>
                         <td className="py-4 px-6 text-center">
-                          <div className="inline-flex items-center space-x-1 px-3 py-1 badge-completed rounded-lg text-xs">
+                          <div className="inline-flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-800 border-green-200 rounded-lg text-xs font-medium border">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                             <span>Completed</span>
                           </div>

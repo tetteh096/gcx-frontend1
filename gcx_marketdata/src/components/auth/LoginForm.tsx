@@ -2,14 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
+import { signIn, getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { LoginCredentials } from '@/types/auth';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { AlertCircle } from 'lucide-react';
 
 const LoginForm: React.FC = () => {
-  const { login, isLoading } = useAuth();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<LoginCredentials>({
     email: '',
     password: '',
@@ -49,10 +51,29 @@ const LoginForm: React.FC = () => {
     
     if (!validateForm()) return;
 
+    setIsLoading(true);
+    setApiError('');
+
     try {
-      await login(formData);
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setApiError('Invalid email or password. Please try again.');
+      } else if (result?.ok) {
+        // Get the updated session
+        const session = await getSession();
+        if (session) {
+          router.push('/dashboard');
+        }
+      }
     } catch (error: any) {
-      setApiError(error.response?.data?.error || 'Login failed. Please try again.');
+      setApiError('Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Title, Text, Metric, Badge, AreaChart, BarChart, DonutChart, LineChart } from '@tremor/react';
+import { Card, Title, Text, Metric, Badge } from '@tremor/react';
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { 
   TrendingUp, TrendingDown, Filter, Search, Calendar, 
   MapPin, Activity, Volume2, DollarSign, RefreshCw, Radio,
   ArrowUpDown, Eye, Target, Bell, Zap, Clock, BarChart3,
-  PieChart, Globe, Info, AlertTriangle, TrendingUpIcon, TrendingDownIcon,
+  PieChart as PieChartIcon, Globe, Info, AlertTriangle, TrendingUpIcon, TrendingDownIcon,
   Users, Building2, Truck, Factory, Leaf, Wheat, Coffee, Grain, Download
 } from 'lucide-react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -26,10 +27,8 @@ const marketData = {
     volatilityIndex: 2.8
   },
   sectorPerformance: [
-    { sector: 'Grains', change: 2.4, volume: 6800, value: 24500000, commodities: ['Maize', 'Rice', 'Sorghum'] },
-    { sector: 'Oilseeds', change: 1.8, volume: 3200, value: 12500000, commodities: ['Soya Bean', 'Groundnut'] },
-    { sector: 'Cash Crops', change: 0.9, volume: 1500, value: 5600000, commodities: ['Cocoa', 'Coffee'] },
-    { sector: 'Livestock', change: -0.5, volume: 1000, value: 3000000, commodities: ['Poultry', 'Cattle'] }
+    { sector: 'Grains', change: 2.4, volume: 6800, value: 24500000, commodities: ['Maize', 'Milled Rice', 'Sorghum'] },
+    { sector: 'Oilseeds', change: 1.8, volume: 3200, value: 12500000, commodities: ['Soya Bean', 'Sesame'] }
   ],
   topMovers: [
     { symbol: 'GAPWM2', commodity: 'Maize', change: 3.2, volume: 2500, price: 1880 },
@@ -45,12 +44,12 @@ const marketData = {
     { region: 'Northern', volume: 1300, change: 0.9, commodities: 4 }
   ],
   marketTrends: [
-    { period: '09:00', grains: 2450, oilseeds: 12500, cashCrops: 5600, livestock: 3000 },
-    { period: '10:00', grains: 2480, oilseeds: 12600, cashCrops: 5620, livestock: 3010 },
-    { period: '11:00', grains: 2510, oilseeds: 12700, cashCrops: 5640, livestock: 3020 },
-    { period: '12:00', grains: 2540, oilseeds: 12800, cashCrops: 5660, livestock: 3030 },
-    { period: '13:00', grains: 2570, oilseeds: 12900, cashCrops: 5680, livestock: 3040 },
-    { period: '14:00', grains: 2600, oilseeds: 13000, cashCrops: 5700, livestock: 3050 }
+    { period: '09:00', grains: 2450, oilseeds: 8200 },
+    { period: '10:00', grains: 2480, oilseeds: 8350 },
+    { period: '11:00', grains: 2510, oilseeds: 8400 },
+    { period: '12:00', grains: 2540, oilseeds: 8450 },
+    { period: '13:00', grains: 2570, oilseeds: 8500 },
+    { period: '14:00', grains: 2600, oilseeds: 8600 }
   ],
   news: [
     { title: 'Strong Harvest Season Boosts Maize Supply', impact: 'positive', category: 'Supply', time: '2 hours ago' },
@@ -199,22 +198,50 @@ export default function MarketOverviewPage() {
               <Card>
                 <Title className="text-gray-900 font-bold mb-4">Sector Performance</Title>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <DonutChart
-                      data={marketData.sectorPerformance}
-                      category="value"
-                      index="sector"
-                      valueFormatter={(value) => formatCurrency(value)}
-                      colors={["blue", "green", "yellow", "red"]}
-                      className="h-64"
-                    />
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={marketData.sectorPerformance}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={120}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {marketData.sectorPerformance.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index === 0 ? '#00D4AA' : '#FF6B6B'} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value, name, props) => [
+                            formatCurrency(Number(value)), 
+                            props.payload.sector
+                          ]}
+                          contentStyle={{
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            color: '#374151',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            fontSize: '14px'
+                          }}
+                        />
+                        <Legend 
+                          wrapperStyle={{ color: '#666', fontSize: '14px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
                   <div className="space-y-4">
                     {marketData.sectorPerformance.map((sector, index) => (
                       <div key={index} className="p-4 bg-gray-50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-3">
-                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <div className={`w-3 h-3 rounded-full ${
+                              index === 0 ? 'bg-teal-400' : 'bg-red-400'
+                            }`}></div>
                             <h4 className="font-semibold text-gray-900">{sector.sector}</h4>
                           </div>
                           <div className={`text-sm font-bold ${getChangeColor(sector.change)}`}>
@@ -246,14 +273,80 @@ export default function MarketOverviewPage() {
             <div className="mb-6">
               <Card>
                 <Title className="text-gray-900 font-bold mb-4">Market Trends - Today</Title>
-                <LineChart
-                  data={marketData.marketTrends}
-                  index="period"
-                  categories={["grains", "oilseeds", "cashCrops", "livestock"]}
-                  colors={["blue", "green", "yellow", "red"]}
-                  valueFormatter={(value) => formatCurrency(value)}
-                  className="h-80"
-                />
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={marketData.marketTrends}
+                      margin={{
+                        top: 20,
+                        right: 30,
+                        left: 20,
+                        bottom: 20,
+                      }}
+                    >
+                      <defs>
+                        <linearGradient id="grainsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00D4AA" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#00D4AA" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <linearGradient id="oilseedsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#FF6B6B" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#FF6B6B" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" opacity={0.3} />
+                      <XAxis 
+                        dataKey="period" 
+                        stroke="#888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: '#888' }}
+                      />
+                      <YAxis 
+                        stroke="#888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: '#888' }}
+                        tickFormatter={(value) => formatCurrency(value)}
+                      />
+                      <Tooltip 
+                        formatter={(value, name) => [formatCurrency(Number(value)), name === 'grains' ? 'Grains' : 'Oilseeds']}
+                        labelFormatter={(label) => `Time: ${label}`}
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          color: '#374151',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                          fontSize: '14px'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{ color: '#888', fontSize: '14px' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="grains" 
+                        stroke="#00D4AA" 
+                        strokeWidth={4}
+                        dot={{ fill: '#00D4AA', strokeWidth: 2, r: 5 }}
+                        activeDot={{ r: 8, stroke: '#00D4AA', strokeWidth: 3, fill: '#fff' }}
+                        name="Grains"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="oilseeds" 
+                        stroke="#FF6B6B" 
+                        strokeWidth={4}
+                        dot={{ fill: '#FF6B6B', strokeWidth: 2, r: 5 }}
+                        activeDot={{ r: 8, stroke: '#FF6B6B', strokeWidth: 3, fill: '#fff' }}
+                        name="Oilseeds"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </Card>
             </div>
 
