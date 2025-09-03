@@ -271,3 +271,4 @@ export const getAlertSummary = (alerts: Alert[]) => {
   };
 };
 
+

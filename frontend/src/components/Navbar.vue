@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Bars3Icon, XMarkIcon, MagnifyingGlassIcon, ChevronDownIcon, SunIcon, MoonIcon } from '@heroicons/vue/24/outline'
 import { isDarkMode, toggleDarkMode } from '../utils/darkMode'
+import { useTickerVisibility } from '../composables/useTickerVisibility'
 
 const router = useRouter()
 const isMenuOpen = ref(false)
 const searchQuery = ref('')
+const { isTickerVisible } = useTickerVisibility()
+
+// Dynamic navbar positioning based on ticker visibility
+const navbarTop = computed(() => {
+  return isTickerVisible.value ? 'top-12' : 'top-0'
+})
 
 const navigation = [
   { name: 'Home', href: '/' },
@@ -199,7 +206,13 @@ const navigateToApplication = () => {
 
 <template>
     <!-- Modern Glassmorphism Navbar -->
-  <nav class="fixed top-0 left-0 right-0 z-40 backdrop-blur-md transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900/90' : 'bg-white/90'">
+  <nav 
+    class="fixed left-0 right-0 z-40 backdrop-blur-md transition-all duration-500 ease-in-out" 
+    :class="[
+      navbarTop,
+      isDarkMode ? 'bg-slate-900/90' : 'bg-white/90'
+    ]"
+  >
     <!-- Main navbar content -->
     <div class="w-full px-6">
       <div class="flex justify-between items-center h-20">

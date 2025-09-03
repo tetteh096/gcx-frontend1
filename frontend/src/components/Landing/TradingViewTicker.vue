@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { isDarkMode } from '../../utils/darkMode'
+import { useTickerVisibility } from '../../composables/useTickerVisibility'
 
 // Real GCX commodity data with custom avatars
 const commodities = ref([
@@ -57,6 +58,7 @@ const commodities = ref([
 ])
 
 const isPaused = ref(false)
+const { isTickerVisible: isVisible } = useTickerVisibility()
 
 // Pause scrolling on hover
 const pauseScrolling = () => {
@@ -93,7 +95,13 @@ const formatPrice = (price: number) => {
 </script>
 
 <template>
-  <div class="fixed bottom-0 left-0 right-0 z-50 transition-all duration-300" :class="isDarkMode ? 'bg-slate-900 border-t border-slate-700' : 'bg-white border-t border-slate-200'">
+  <div 
+    class="fixed left-0 right-0 z-50 transition-all duration-500 ease-in-out" 
+    :class="[
+      isVisible ? 'top-0' : '-top-20',
+      isDarkMode ? 'bg-slate-900 border-b border-slate-700' : 'bg-white border-b border-slate-200'
+    ]"
+  >
     <!-- Custom Commodity Ticker -->
     <div class="relative overflow-hidden">
       <!-- Ticker Container -->

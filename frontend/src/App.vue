@@ -3,6 +3,8 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { initializeDarkMode } from './utils/darkMode'
 import Navbar from './components/Navbar.vue'
+import TradingViewTicker from './components/Landing/TradingViewTicker.vue'
+
 import { RouterView } from 'vue-router'
 
 const route = useRoute()
@@ -13,6 +15,8 @@ const hideNavbar = computed(() => {
   return hideOnRoutes.includes(route.path)
 })
 
+// No padding needed - hero section handles its own positioning
+
 onMounted(() => {
   initializeDarkMode()
 })
@@ -20,11 +24,14 @@ onMounted(() => {
 
 <template>
   <div id="app" class="min-h-screen transition-colors duration-300">
+    <!-- TradingView Ticker - Always visible at top -->
+    <TradingViewTicker />
+    
     <!-- Only show Navbar for main website pages -->
     <Navbar v-if="!hideNavbar" />
     
     <!-- Main content area -->
-    <main :class="hideNavbar ? '' : 'pt-0'">
+    <main>
       <RouterView />
     </main>
   </div>

@@ -1,131 +1,66 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { isDarkMode } from '../../utils/darkMode'
 
-const router = useRouter()
-
-const navigateToPartners = () => {
-  router.push('/about/partnership')
-}
+// Simple partners list - just a few key partners
+const partners = [
+  { name: 'Ghana EXIM Bank', logo: '/Partners/ghana-exim-bank.jpg' },
+  { name: 'Standard Chartered', logo: '/Partners/standard-chartered.jpg' },
+  { name: 'Ghana Export Promotion Authority', logo: '/Partners/ghana-export-promotion-authority-gepa.png' },
+  { name: 'GIZ', logo: '/Partners/giz-logo.gif' },
+  { name: 'AGRA', logo: '/Partners/agra.png' },
+  { name: 'Ghana Grains Council', logo: '/Partners/ghana-grains-council-ggc.png' }
+]
 </script>
 
 <template>
-  <section class="py-8 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
-    <div class="w-full px-6">
+  <section class="py-12 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-gray-100'">
+    <div class="max-w-6xl mx-auto px-6">
+      <!-- Section Header -->
       <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Our Trusted Partners</h2>
-        <p class="text-lg mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Working together to transform Ghana's agricultural trading landscape</p>
-        <button 
-          @click="navigateToPartners"
-          class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg text-sm"
-        >
-          View All Partners →
-        </button>
+        <h2 class="text-2xl lg:text-3xl font-bold mb-2" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
+          Our <span class="text-green-600">Trusted Partners</span>
+        </h2>
+        <p class="text-base" :class="isDarkMode ? 'text-slate-300' : 'text-gray-600'">
+          Working together to transform Ghana's agricultural sector
+        </p>
       </div>
-      
-      <!-- Partners Slider - Single Row -->
-      <div class="relative overflow-hidden">
+
+      <!-- Partners Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
         <div 
-          class="flex animate-scroll hover:pause-animation"
-          @mouseenter="(event) => (event.target as HTMLElement)?.classList.add('pause-animation')"
-          @mouseleave="(event) => (event.target as HTMLElement)?.classList.remove('pause-animation')"
+          v-for="partner in partners" 
+          :key="partner.name"
+          class="flex items-center justify-center p-4 rounded-lg border transition-all duration-300 hover:shadow-lg hover:scale-105"
+          :class="isDarkMode ? 'border-slate-600 hover:border-green-500 bg-slate-700' : 'border-gray-200 hover:border-green-500 bg-gray-50'"
         >
-          <!-- First set of partners -->
-          <div class="flex items-center space-x-8 px-6">
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-grains-council-ggc.png" alt="Ghana Grains Council" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ipmc.jpg" alt="IPMC" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/africa-cashew-alliance.png" alt="Africa Cashew Alliance" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/6-ciag.jpg" alt="CIAG" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-exim-bank.jpg" alt="Ghana EXIM Bank" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-export-promotion-authority-gepa.png" alt="Ghana Export Promotion Authority" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-standard-authority-gsa.png" alt="Ghana Standard Authority" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/standard-chartered.jpg" alt="Standard Chartered" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/fidelity-bank.png" alt="Fidelity Bank" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ecobank.png" alt="Ecobank" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/giz-logo.gif" alt="GIZ" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/agra.png" alt="AGRA" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/1-ukaid.jpg" alt="UKAID" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/unido.png" alt="UNIDO" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border transition-all duration-300 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/world-food-programme-wfp.jpg" alt="World Food Programme" class="max-w-full max-h-full object-contain" />
-            </div>
-          </div>
-          
-          <!-- Duplicate set for seamless loop -->
-          <div class="flex items-center space-x-8 px-6">
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-grains-council-ggc.png" alt="Ghana Grains Council" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ipmc.jpg" alt="IPMC" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/africa-cashew-alliance.png" alt="Africa Cashew Alliance" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/6-ciag.jpg" alt="CIAG" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-exim-bank.jpg" alt="Ghana EXIM Bank" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-export-promotion-authority-gepa.png" alt="Ghana Export Promotion Authority" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ghana-standard-authority-gsa.png" alt="Ghana Standard Authority" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/standard-chartered.jpg" alt="Standard Chartered" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/fidelity-bank.png" alt="Fidelity Bank" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/ecobank.png" alt="Ecobank" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/giz-logo.gif" alt="GIZ" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/agra.png" alt="AGRA" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/1-ukaid.jpg" alt="UKAID" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/unido.png" alt="UNIDO" class="max-w-full max-h-full object-contain" />
-            </div>
-            <div class="flex items-center justify-center w-28 h-16 rounded-lg shadow-sm border hover:shadow-md transition-shadow" :class="isDarkMode ? 'bg-slate-700 border-slate-600 hover:shadow-md hover:shadow-slate-900/50' : 'bg-white border-slate-200 hover:shadow-md'">
-              <img src="/Partners/world-food-programme-wfp.jpg" alt="World Food Programme" class="max-w-full max-h-full object-contain" />
-            </div>
+          <img 
+            :src="partner.logo" 
+            :alt="partner.name" 
+            class="max-w-full max-h-10 object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+          />
+        </div>
+      </div>
+
+      <!-- Call to Action Section -->
+      <div class="text-center mt-12">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-8 text-white">
+          <h3 class="text-2xl font-bold mb-4">Become Our Partner</h3>
+          <p class="text-green-100 mb-6 max-w-2xl mx-auto">
+            Join our network of trusted partners and help us build a stronger agricultural ecosystem in Ghana
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              @click="() => $router.push('/about/partnership')"
+              class="bg-white text-green-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+            >
+              View All Partners
+            </button>
+            <button 
+              @click="() => $router.push('/contact')"
+              class="border-2 border-white text-white hover:bg-white hover:text-green-600 font-semibold py-3 px-8 rounded-xl transition-all"
+            >
+              Partner With Us
+            </button>
           </div>
         </div>
       </div>
@@ -134,20 +69,12 @@ const navigateToPartners = () => {
 </template>
 
 <style scoped>
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+/* Hover effects for partner logos */
+.partner-logo {
+  transition: all 0.3s ease;
 }
 
-.animate-scroll {
-  animation: scroll 30s linear infinite;
-}
-
-.pause-animation {
-  animation-play-state: paused;
+.partner-logo:hover {
+  transform: scale(1.05);
 }
 </style>

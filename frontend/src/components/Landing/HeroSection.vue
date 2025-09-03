@@ -1,7 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { isDarkMode } from '../../utils/darkMode'
+import { useTickerVisibility } from '../../composables/useTickerVisibility'
+
+// Ticker visibility
+const { isTickerVisible } = useTickerVisibility()
+
+// Dynamic hero height based on ticker visibility
+const heroHeight = computed(() => {
+  return isTickerVisible.value ? 'h-[calc(100vh-7rem)]' : 'h-[calc(100vh-4rem)]'
+})
 
 // Market stats
 const marketStats = ref([
@@ -76,7 +85,7 @@ onMounted(() => {
 <template>
   <section class="relative overflow-hidden">
     <!-- Slider Container -->
-    <div class="relative h-[80vh]">
+    <div class="relative transition-all duration-500 ease-in-out" :class="heroHeight">
       <!-- Slide 1: Trading Dashboard -->
       <div 
         class="absolute inset-0 transition-opacity duration-1000"
