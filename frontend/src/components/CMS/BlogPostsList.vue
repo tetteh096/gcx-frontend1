@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 import { useBlog } from '../../composables/useBlog'
 import { useAuth } from '../../composables/useAuth'
@@ -12,6 +13,7 @@ interface Emits {
 }
 
 const emit = defineEmits<Emits>()
+const { t } = useI18n()
 
 const { posts, fetchPosts, deletePost, isLoading, error, publishedPosts, draftPosts, privatePosts } = useBlog()
 const { user, isAdmin } = useAuth()

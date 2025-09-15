@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 
 interface Commodity {
@@ -18,6 +19,8 @@ interface MarketCategory {
 }
 
 // Mock market data based on GCX commodities
+const { t } = useI18n()
+
 const marketData = ref<MarketCategory[]>([
   {
     category: 'Soya Bean',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n'
 import { useRoute, useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
 import LivePrices from '../components/MarketData/LivePrices.vue'
@@ -7,6 +8,7 @@ import PriceChart from '../components/MarketData/PriceChart.vue'
 import MarketOverview from '../components/MarketData/MarketOverview.vue'
 
 const route = useRoute()
+const { t } = useI18n()
 const router = useRouter()
 
 const tabs = [
@@ -48,11 +50,11 @@ onMounted(() => setActiveFromHash())
     <!-- Hero Section -->
     <section class="relative py-14 lg:py-20 overflow-hidden">
       <div class="absolute inset-0">
-        <img src="/trading dashboard.jpg" alt="Market Data" class="w-full h-full object-cover" />
+        <img src="/trading dashboard.jpg" alt="{{ t('navigation.menu.marketData') }}" class="w-full h-full object-cover" />
         <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/40' : 'bg-white/40'"></div>
       </div>
       <div class="relative max-w-[1600px] mx-auto px-4 text-center">
-        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Market Data</h1>
+        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ t('navigation.menu.marketData') }}</h1>
         <p class="text-lg max-w-3xl mx-auto mb-8" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
           Real-time market information, prices, reports, and trading statistics for GCX commodities.
         </p>

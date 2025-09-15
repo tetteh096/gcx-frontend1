@@ -9,10 +9,40 @@ import { RouterView } from 'vue-router'
 
 const route = useRoute()
 
-// Hide navbar for CMS and auth pages
+// Hide navbar and ticker for CMS and auth pages
 const hideNavbar = computed(() => {
   const hideOnRoutes = ['/login', '/cms']
-  return hideOnRoutes.includes(route.path)
+  const hideOnRoutePrefixes = ['/cms/']
+  
+  // Check exact routes
+  if (hideOnRoutes.includes(route.path)) {
+    return true
+  }
+  
+  // Check route prefixes
+  if (hideOnRoutePrefixes.some(prefix => route.path.startsWith(prefix))) {
+    return true
+  }
+  
+  return false
+})
+
+// Hide ticker for CMS, auth pages, and other protected routes
+const hideTicker = computed(() => {
+  const hideOnRoutes = ['/login', '/cms']
+  const hideOnRoutePrefixes = ['/admin', '/dashboard', '/api', '/cms']
+  
+  // Check exact routes
+  if (hideOnRoutes.includes(route.path)) {
+    return true
+  }
+  
+  // Check route prefixes
+  if (hideOnRoutePrefixes.some(prefix => route.path.startsWith(prefix))) {
+    return true
+  }
+  
+  return false
 })
 
 // No padding needed - hero section handles its own positioning
@@ -24,8 +54,8 @@ onMounted(() => {
 
 <template>
   <div id="app" class="min-h-screen transition-colors duration-300">
-    <!-- TradingView Ticker - Always visible at top -->
-    <TradingViewTicker />
+    <!-- TradingView Ticker - Only show on main website pages -->
+    <TradingViewTicker v-if="!hideTicker" />
     
     <!-- Only show Navbar for main website pages -->
     <Navbar v-if="!hideNavbar" />

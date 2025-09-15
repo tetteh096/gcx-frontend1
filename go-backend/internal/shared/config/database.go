@@ -8,6 +8,7 @@ import (
 
 	cms_models "gcx-cms/internal/cms/models"
 	marketdata_models "gcx-cms/internal/marketdata/models"
+	"gcx-cms/internal/models"
 	shared_models "gcx-cms/internal/shared/models"
 
 	"gorm.io/driver/mysql"
@@ -100,6 +101,20 @@ func AutoMigrate() error {
 		&cms_models.BlogPost{},
 		&cms_models.BlogCategory{},
 		&cms_models.MediaFile{},
+		&cms_models.Page{},
+		&cms_models.Setting{},
+		&cms_models.Menu{},
+		&cms_models.MenuItem{},
+		&cms_models.Translation{},
+		&cms_models.Language{},
+		&cms_models.BoardMember{},
+		&cms_models.TeamMember{},
+		&cms_models.Trader{},
+		&cms_models.Broker{},
+		&models.Partner{},
+		&cms_models.Publication{},
+		&cms_models.Career{},
+		&cms_models.Commodity{},
 
 		// Market Data models
 		&marketdata_models.MarketData{},

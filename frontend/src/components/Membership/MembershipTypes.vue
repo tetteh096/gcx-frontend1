@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 
 type Membership = {
@@ -125,6 +126,7 @@ const fshs: Membership = {
   ],
 }
 const activeSub = ref<'spot' | 'fshs'>('spot')
+const { t } = useI18n()
 </script>
 
 <template>
@@ -136,7 +138,7 @@ const activeSub = ref<'spot' | 'fshs'>('spot')
         <p class="text-lg" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Explore Spot Commodity Contracts and Free SHS Supplier categories.</p>
       </div>
       <div class="hidden lg:block">
-        <img src="/trading.jpg" alt="Membership" class="w-full h-32 object-cover rounded-xl" loading="lazy" />
+        <img src="/trading.jpg" alt="{{ t('navigation.menu.membership') }}" class="w-full h-32 object-cover rounded-xl" loading="lazy" />
       </div>
     </div>
 

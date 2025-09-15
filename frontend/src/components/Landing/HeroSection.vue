@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
-import { isDarkMode } from '../../utils/darkMode'
+
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
+import { useI18n } from '../../composables/useI18n'
 
 // Ticker visibility
 const { isTickerVisible } = useTickerVisibility()
+const { t } = useI18n()
 
 // Dynamic hero height based on ticker visibility
 const heroHeight = computed(() => {
-  return isTickerVisible.value ? 'h-[calc(100vh-7rem)]' : 'h-[calc(100vh-4rem)]'
+  return isTickerVisible.value ? 'h-[calc(90vh-4rem)]' : 'h-[calc(90vh-3rem)]'
 })
 
 // Market stats
@@ -100,27 +102,24 @@ onMounted(() => {
                 <div class="text-white">
                   <div class="inline-flex items-center px-4 py-2 bg-yellow-500/20 rounded-full text-yellow-300 text-sm font-medium mb-6">
                     <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
-                    Live Trading • Market Open
+                    {{ t('pages.home.hero.features.realTimeData.title') }} • {{ t('common.status.online') }}
                   </div>
                   
                   <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-                    Ghana's Premier 
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
-                      Commodity Exchange
-                    </span>
+                    {{ t('pages.home.hero.title') }}
                   </h1>
                   
                   <p class="text-xl text-slate-300 mb-8 max-w-lg">
-                    Connecting markets, empowering traders, and driving Ghana's agricultural transformation through innovative trading solutions.
+                    {{ t('pages.home.hero.subtitle') }}
                   </p>
                   
                   <!-- CTA Buttons -->
                   <div class="flex flex-col sm:flex-row gap-4 mb-12">
                     <button class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                      Start Trading Today
+                      {{ t('pages.home.hero.cta.startTrading') }}
                     </button>
                     <button class="border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all">
-                      View Market Data
+                      {{ t('pages.home.hero.cta.viewPlatform') }}
                     </button>
                   </div>
 
@@ -128,11 +127,11 @@ onMounted(() => {
                   <div class="grid grid-cols-2 gap-6">
                     <div class="text-center lg:text-left">
                       <div class="text-3xl font-bold text-yellow-400">₵{{ formatNumber(animatedValue) }}</div>
-                      <div class="text-slate-400 text-sm">Total Trading Volume</div>
+                      <div class="text-slate-400 text-sm">{{ t('pages.home.statistics.tradingVolume') }}</div>
                     </div>
                     <div class="text-center lg:text-left">
                       <div class="text-3xl font-bold text-green-400">1,247+</div>
-                      <div class="text-slate-400 text-sm">Active Members</div>
+                      <div class="text-slate-400 text-sm">{{ t('pages.home.statistics.activeMembers') }}</div>
                     </div>
                   </div>
                 </div>
@@ -141,7 +140,7 @@ onMounted(() => {
                 <div class="lg:mt-0 mt-12">
                   <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
                     <div class="flex items-center justify-between mb-6">
-                      <h3 class="text-white font-bold text-lg">Live Market Overview</h3>
+                      <h3 class="text-white font-bold text-lg">{{ t('pages.home.statistics.marketCap') }}</h3>
                       <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     </div>
                     

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 
 interface BlogPost {
@@ -25,6 +26,7 @@ interface Emits {
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 const emit = defineEmits<Emits>()
 
 // Get paginated posts (excluding featured)

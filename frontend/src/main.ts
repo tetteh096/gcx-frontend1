@@ -6,6 +6,7 @@ import 'primeicons/primeicons.css'
 import App from './App.vue'
 import './plugins/axios'
 import { useAuthStore } from './stores/auth'
+import i18n from './plugins/i18n'
 
 // PrimeVue Configuration
 import PrimeVue from 'primevue/config'
@@ -19,6 +20,7 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 
 // Configure PrimeVue with Aura theme
 app.use(PrimeVue, {

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
 
 // Real GCX commodity data with custom avatars
+const { t } = useI18n()
+
 const commodities = ref([
   {
     symbol: 'GAPWM2',
@@ -98,15 +101,15 @@ const formatPrice = (price: number) => {
   <div 
     class="fixed left-0 right-0 z-50 transition-all duration-500 ease-in-out" 
     :class="[
-      isVisible ? 'top-0' : '-top-20',
+      isVisible ? 'top-0' : '-top-12',
       isDarkMode ? 'bg-slate-900 border-b border-slate-700' : 'bg-white border-b border-slate-200'
     ]"
   >
     <!-- Custom Commodity Ticker -->
-    <div class="relative overflow-hidden">
+    <div class="relative overflow-hidden h-10 md:h-12">
       <!-- Ticker Container -->
       <div 
-        class="flex items-center py-2 px-4 space-x-6 ticker-scroll"
+        class="flex items-center py-1 px-4 space-x-4 md:space-x-6 ticker-scroll h-full"
         :class="{ 'ticker-paused': isPaused }"
         @mouseenter="pauseScrolling"
         @mouseleave="resumeScrolling"
@@ -115,21 +118,21 @@ const formatPrice = (price: number) => {
         <div 
           v-for="commodity in commodities" 
           :key="commodity.symbol"
-          class="flex items-center space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-lg px-2 py-1"
+          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-1.5 py-0.5"
           :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'"
         >
           <!-- Commodity Avatar -->
-          <div class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
+          <div class="w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
             {{ commodity.avatar }}
           </div>
           
           <!-- Commodity Info -->
           <div class="flex flex-col">
             <div class="flex items-center space-x-1">
-              <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              <span class="font-bold text-xs md:text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ commodity.name }}
               </span>
-              <span class="text-xs font-mono" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <span class="text-xs font-mono hidden md:inline" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                 ({{ commodity.symbol }})
               </span>
             </div>
@@ -148,11 +151,11 @@ const formatPrice = (price: number) => {
         <div 
           v-for="commodity in commodities" 
           :key="`duplicate-${commodity.symbol}`"
-          class="flex items-center space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-lg px-2 py-1"
+          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-1.5 py-0.5"
           :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'"
         >
           <!-- Commodity Avatar -->
-          <div class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
+          <div class="w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
             {{ commodity.avatar }}
           </div>
           
@@ -162,7 +165,7 @@ const formatPrice = (price: number) => {
               <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ commodity.name }}
               </span>
-              <span class="text-xs font-mono" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <span class="text-xs font-mono hidden md:inline" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                 ({{ commodity.symbol }})
               </span>
             </div>
@@ -181,11 +184,11 @@ const formatPrice = (price: number) => {
         <div 
           v-for="commodity in commodities" 
           :key="`triplicate-${commodity.symbol}`"
-          class="flex items-center space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-lg px-2 py-1"
+          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-1.5 py-0.5"
           :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'"
         >
           <!-- Commodity Avatar -->
-          <div class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
+          <div class="w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
             {{ commodity.avatar }}
           </div>
           
@@ -195,7 +198,7 @@ const formatPrice = (price: number) => {
               <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ commodity.name }}
               </span>
-              <span class="text-xs font-mono" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <span class="text-xs font-mono hidden md:inline" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                 ({{ commodity.symbol }})
               </span>
             </div>
@@ -212,9 +215,9 @@ const formatPrice = (price: number) => {
       </div>
 
       <!-- Menu Button -->
-      <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-        <button class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors duration-200 shadow-lg hover:shadow-xl">
-          <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="absolute right-2 top-1/2 transform -translate-y-1/2">
+        <button class="w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors duration-200 shadow-lg hover:shadow-xl">
+          <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </button>

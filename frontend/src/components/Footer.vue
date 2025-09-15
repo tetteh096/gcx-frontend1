@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from '../composables/useI18n'
+
+const { t } = useI18n()
 // Professional footer for Ghana Commodity Exchange
 </script>
 
@@ -55,15 +58,15 @@
         <div>
           <h3 class="text-lg font-bold mb-6 text-yellow-500">Menu</h3>
           <ul class="space-y-3">
-            <li><router-link to="/" class="text-slate-300 hover:text-white transition-colors">Home</router-link></li>
+            <li><router-link to="/" class="text-slate-300 hover:text-white transition-colors">{{ t('navigation.menu.home') }}</router-link></li>
             <li><router-link to="/about" class="text-slate-300 hover:text-white transition-colors">About Us</router-link></li>
             <li><router-link to="/services" class="text-slate-300 hover:text-white transition-colors">Our Services</router-link></li>
-            <li><router-link to="/membership" class="text-slate-300 hover:text-white transition-colors">Membership</router-link></li>
-            <li><router-link to="/market-data" class="text-slate-300 hover:text-white transition-colors">Market Data</router-link></li>
+            <li><router-link to="/membership" class="text-slate-300 hover:text-white transition-colors">{{ t('navigation.menu.membership') }}</router-link></li>
+            <li><router-link to="/market-data" class="text-slate-300 hover:text-white transition-colors">{{ t('navigation.menu.marketData') }}</router-link></li>
             <li><router-link to="/commodities" class="text-slate-300 hover:text-white transition-colors">Commodities</router-link></li>
             <li><router-link to="/certification" class="text-slate-300 hover:text-white transition-colors">GCX Certification Program</router-link></li>
             <li><router-link to="/careers" class="text-slate-300 hover:text-white transition-colors">Careers</router-link></li>
-            <li><router-link to="/media" class="text-slate-300 hover:text-white transition-colors">Media</router-link></li>
+            <li><router-link to="/media" class="text-slate-300 hover:text-white transition-colors">{{ t('navigation.menu.media') }}</router-link></li>
             <li><router-link to="/contact" class="text-slate-300 hover:text-white transition-colors">Contact Us</router-link></li>
           </ul>
         </div>

@@ -137,11 +137,13 @@
        </div>
      </section>
   </div>
+  <Footer />
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { isDarkMode } from '../utils/darkMode'
+import Footer from '../components/Footer.vue'
 
 type ServiceItem = {
   title: string

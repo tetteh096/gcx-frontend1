@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 
 interface Commodity {
@@ -19,6 +20,8 @@ interface Commodity {
 }
 
 // Mock data based on the provided GCX data
+const { t } = useI18n()
+
 const commodityPrices = ref<Commodity[]>([
   {
     symbol: 'GAPWM2',

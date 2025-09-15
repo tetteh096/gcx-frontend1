@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from 'vue'
+import { useI18n } from '../composables/useI18n'
 import { useRoute, useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
+import Footer from '../components/Footer.vue'
 
 // Import actual components
 import MembershipTypes from '../components/Membership/MembershipTypes.vue'
@@ -20,6 +22,7 @@ const sections: Section[] = [
 ]
 
 const route = useRoute()
+const { t } = useI18n()
 const router = useRouter()
 const active = ref<string>('types')
 
@@ -53,7 +56,7 @@ watch(() => route.hash, setActiveFromHash)
     <!-- Hero with background image -->
     <section class="relative py-14 lg:py-20 overflow-hidden">
       <div class="absolute inset-0">
-        <img src="/maize.jpg" alt="Membership" class="w-full h-full object-cover" />
+        <img src="/maize.jpg" alt="{{ t('navigation.menu.membership') }}" class="w-full h-full object-cover" />
         <div class="absolute inset-0"
              :class="isDarkMode ? 'bg-slate-900/40' : 'bg-white/40'">
         </div>
@@ -137,6 +140,7 @@ watch(() => route.hash, setActiveFromHash)
       </div>
     </section>
   </div>
+  <Footer />
 </template>
 
 

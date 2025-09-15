@@ -143,7 +143,7 @@ func CreatePost(c *gin.Context) {
 	}
 
 	// Generate slug from title
-	slug := generateSlug(req.Title)
+	slug := generateBlogSlug(req.Title)
 
 	// Check if slug already exists
 	var existingPost models.BlogPost
@@ -206,7 +206,7 @@ func DeletePost(c *gin.Context) {
 }
 
 // Helper function to generate slug from title
-func generateSlug(title string) string {
+func generateBlogSlug(title string) string {
 	slug := strings.ToLower(title)
 	slug = strings.ReplaceAll(slug, " ", "-")
 	var result strings.Builder

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 
 const email = ref('')
+const { t } = useI18n()
 const isSubscribing = ref(false)
 
 const subscribe = () => {

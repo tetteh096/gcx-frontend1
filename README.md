@@ -1,46 +1,65 @@
-# GCX Website - Full Stack Project
+# GCX Website - Multi-Component Application
 
-A modern full-stack web application built with Vue.js 3 (frontend) and Laravel 10 (backend), featuring a blog system with CMS-like functionality.
+A comprehensive web application suite built with modern technologies, featuring a main website, market data platform, and CMS backend.
 
 ## 🚀 Tech Stack
 
-### Frontend
+### Frontend (Vue.js)
 - **Vue.js 3** - Progressive JavaScript framework
 - **TypeScript** - Type-safe JavaScript
 - **Vite** - Fast build tool and dev server
 - **Vue Router** - Official router for Vue.js
 - **Pinia** - State management for Vue
 - **Tailwind CSS** - Utility-first CSS framework
-- **Axios** - HTTP client for API calls
-- **Heroicons** - Beautiful SVG icons
+- **PrimeVue** - UI component library
+- **Vue i18n** - Internationalization
 
-### Backend
-- **Laravel 10** - PHP web framework
-- **MySQL** - Database (via XAMPP)
-- **Eloquent ORM** - Database abstraction layer
-- **Laravel Migrations** - Database schema management
-- **Laravel Seeders** - Database seeding
+### Market Data App (Next.js)
+- **Next.js 15** - React framework
+- **React 19** - UI library
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Styling
+- **Recharts** - Data visualization
+- **Stripe** - Payment processing
+
+### Backend Services
+- **Laravel 12** - PHP web framework
+- **Go 1.21** - High-performance backend
+- **MySQL 8.0** - Primary database
+- **Redis** - Caching and sessions
 
 ## 📁 Project Structure
 
 ```
 GCX_website/
-├── frontend/                 # Vue.js 3 application
+├── frontend/                 # Vue.js 3 main website
 │   ├── src/
 │   │   ├── components/      # Reusable Vue components
 │   │   ├── views/          # Page components
 │   │   ├── stores/         # Pinia state management
-│   │   ├── router/         # Vue Router configuration
-│   │   └── plugins/        # Axios configuration
+│   │   ├── locales/        # i18n translations
+│   │   └── services/       # API services
 │   └── package.json
-├── backend/                 # Laravel 10 API
+├── gcx_marketdata/          # Next.js market data app
+│   ├── src/
+│   │   ├── app/            # Next.js app directory
+│   │   ├── components/     # React components
+│   │   └── services/       # API services
+│   └── package.json
+├── backend/                 # Laravel 12 API
 │   ├── app/
-│   │   ├── Http/Controllers/Api/  # API controllers
+│   │   ├── Http/Controllers/  # API controllers
 │   │   └── Models/         # Eloquent models
 │   ├── database/
 │   │   ├── migrations/     # Database migrations
 │   │   └── seeders/       # Database seeders
-│   └── routes/api.php      # API routes
+│   └── composer.json
+├── go-backend/              # Go high-performance backend
+│   ├── cmd/                # Command-line tools
+│   ├── internal/           # Internal packages
+│   ├── routes/             # API routes
+│   └── go.mod
+├── PRODUCTION_README.md     # Production deployment guide
 └── README.md
 ```
 

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '@/utils/darkMode'
 import BlogPostsList from '@/components/CMS/BlogPostsList.vue'
 import BlogEditor from '@/components/CMS/BlogEditor.vue'
 import type { BlogPost } from '@/types/cms'
 
 const currentView = ref<'list' | 'create' | 'edit'>('list')
+const { t } = useI18n()
 const currentPost = ref<BlogPost | null>(null)
 
 const showPostsList = () => {

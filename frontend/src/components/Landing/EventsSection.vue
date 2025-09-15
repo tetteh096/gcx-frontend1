@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { CalendarIcon, MapPinIcon, ClockIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { isDarkMode } from '../../utils/darkMode'
 
 const activeTab = ref('upcoming')
+const { t } = useI18n()
 
 const upcomingEvents = [
   {

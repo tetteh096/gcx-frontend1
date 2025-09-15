@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
+import { useI18n } from '../composables/useI18n'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const membershipTypes = ref([
   {
@@ -151,7 +153,7 @@ const navigateToApplication = () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             <div class="text-center">
               <div class="text-3xl font-bold text-black">500+</div>
-              <div class="text-sm text-black/70">Active Members</div>
+              <div class="text-sm text-black/70">{{ t('pages.home.statistics.activeMembers') }}</div>
             </div>
             <div class="text-center">
               <div class="text-3xl font-bold text-black">₵2.4B+</div>

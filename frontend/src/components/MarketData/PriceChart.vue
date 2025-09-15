@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 import TradingViewWidget from './TradingViewWidget.vue'
 import { Line } from 'vue-chartjs'
@@ -26,6 +27,8 @@ ChartJS.register(
   Legend,
   Filler
 )
+
+const { t } = useI18n()
 
 const props = defineProps<{
   symbol: string

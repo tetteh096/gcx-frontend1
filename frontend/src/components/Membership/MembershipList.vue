@@ -1,29 +1,26 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
+import { useTraders } from '../../composables/useTraders'
 
-type Member = {
-  name: string
-  industry?: string
-  memberType: string
-  phone: string
-}
-
-const allMembers = ref<Member[]>([
-  { name: 'Eric  Kwabena  Agyei', industry: '', memberType: 'Associates', phone: '0244 692 089/ 0245 071 061' },
-  { name: 'Joseph  Awudu  Malik', industry: '', memberType: 'Associates', phone: '0244 869 387' },
-  { name: 'Kofi  Adusei  Koduah', industry: '', memberType: 'Associates', phone: '0540 122295' },
-  { name: 'Kwabena  Duah  Agyemang', industry: '', memberType: 'Associates', phone: '0201 689497' },
-  { name: 'Maame  Adjoa  Thompson', industry: '', memberType: 'Associates', phone: '0302 200748/ 0266 802388' },
-  { name: 'Monica  .  .', industry: '', memberType: 'Associates', phone: '0269 382146' },
-  { name: 'Praise  Awisi  Bogobley', industry: '', memberType: 'Associates', phone: '0244 590 621' },
-  { name: 'Roland  Apindem  Ajiabadek', industry: '', memberType: 'Associates', phone: '020 535 1223' },
-])
+const { t } = useI18n()
+const { traders, loading, error, loadTraders } = useTraders()
 
 const pageSizeOptions = [10, 25, 50]
 const pageSize = ref<number>(10)
 const currentPage = ref<number>(1)
 const query = ref<string>('')
+
+// Convert traders to the format expected by the template
+const allMembers = computed(() => 
+  traders.value.map(trader => ({
+    name: trader.name,
+    industry: trader.industry || '',
+    memberType: trader.member_type,
+    phone: trader.phone_no || ''
+  }))
+)
 
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
@@ -48,6 +45,11 @@ function goTo(page: number) {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
 }
+
+// Watch for search query changes and reload data
+watch(query, (newQuery) => {
+  loadTraders({ search: newQuery })
+}, { debounce: 500 })
 </script>
 
 <template>
@@ -72,7 +74,31 @@ function goTo(page: number) {
              :class="isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-100 focus:ring-yellow-700' : 'bg-white border-slate-300 text-slate-900 focus:ring-yellow-300'" />
     </div>
 
-    <div class="overflow-x-auto rounded-xl border" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-12">
+      <div class="inline-flex items-center space-x-2">
+        <i class="pi pi-spin pi-spinner text-2xl text-blue-600"></i>
+        <span class="text-lg" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Loading members...</span>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-12">
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md mx-auto">
+        <i class="pi pi-exclamation-triangle text-3xl text-red-600 mb-4"></i>
+        <h3 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error Loading Members</h3>
+        <p class="text-red-600 dark:text-red-300">{{ error }}</p>
+        <button
+          @click="loadTraders()"
+          class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div v-else class="overflow-x-auto rounded-xl border" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
       <table class="min-w-full text-left">
         <thead>
           <tr :class="isDarkMode ? 'bg-slate-800 text-slate-200' : 'bg-slate-50 text-slate-700'">

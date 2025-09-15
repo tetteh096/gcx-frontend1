@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
@@ -24,6 +25,8 @@ interface Emits {
   (e: 'cancel'): void
   (e: 'delete', postId: number): void
 }
+
+const { t } = useI18n()
 
 const props = withDefaults(defineProps<Props>(), {
   post: null,

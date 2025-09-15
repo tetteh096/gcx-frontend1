@@ -2,14 +2,20 @@
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { isDarkMode } from '../utils/darkMode';
+import { usePageContentEditor } from '../composables/usePageContentEditor';
 import AboutGCX from '../components/AboutUs/AboutGCX.vue';
+import Mission from '../components/AboutUs/Mission.vue';
 import VisionPurpose from '../components/AboutUs/VisionPurpose.vue';
-import BoardDirectors from '../components/AboutUs/BoardDirectors.vue';
-import ExecutiveManagement from '../components/AboutUs/ExecutiveManagement.vue';
-import FunctionalHeads from '../components/AboutUs/FunctionalHeads.vue';
+import DynamicBoardOfDirectors from '../components/AboutUs/DynamicBoardOfDirectors.vue';
+import DynamicExecutiveManagement from '../components/AboutUs/DynamicExecutiveManagement.vue';
+import DynamicFunctionalHeads from '../components/AboutUs/DynamicFunctionalHeads.vue';
+import Footer from '../components/Footer.vue'
 
 const route = useRoute()
 const router = useRouter()
+
+// CMS Content
+const { loadPageContent, getContent, getImage } = usePageContentEditor('about')
 
 const tabs = [
   { label: 'About GCX', key: 'about' },
@@ -39,7 +45,10 @@ const go = async (key: string) => {
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-onMounted(() => setActiveFromHash())
+onMounted(() => {
+  setActiveFromHash()
+  loadPageContent() // Load CMS content
+})
 watch(() => route.hash, setActiveFromHash)
 </script>
 
@@ -50,8 +59,8 @@ watch(() => route.hash, setActiveFromHash)
       <!-- Background Image -->
       <div class="absolute inset-0">
         <img 
-          src="/trading dashboard.jpg" 
-          alt="GCX Trading Platform" 
+          :src="getImage('hero_image', '/trading dashboard.jpg')" 
+          :alt="getContent('hero_title', 'GCX Trading Platform')" 
           class="w-full h-full object-cover opacity-60 dark:opacity-50"
         />
         <div class="absolute inset-0 bg-gradient-to-r from-yellow-50/70 via-white/60 to-yellow-50/70 dark:from-slate-900/70 dark:via-slate-800/60 dark:to-slate-900/70"></div>
@@ -76,14 +85,13 @@ watch(() => route.hash, setActiveFromHash)
           <!-- Main Heading -->
           <h1 class="text-4xl lg:text-6xl font-bold mb-6 transition-colors duration-300 drop-shadow-lg" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
             <span class="block bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-700 bg-clip-text text-transparent">
-              What is GCX
+              {{ getContent('hero_title', 'What is GCX') }}
             </span>
           </h1>
           
           <!-- Description -->
           <p class="text-lg lg:text-xl font-bold transition-colors duration-300 leading-relaxed mb-8 drop-shadow-lg text-white">
-            A regulated market that links buyers and sellers of commodities to trade by Rules, 
-            while we assure the market quantity and quality, timely delivery and settlement.
+            {{ getContent('hero_subtitle', 'A regulated market that links buyers and sellers of commodities to trade by Rules, while we assure the market quantity and quality, timely delivery and settlement.') }}
           </p>
           
           <!-- CTA Buttons -->
@@ -126,59 +134,9 @@ watch(() => route.hash, setActiveFromHash)
           <AboutGCX />
         </div>
 
-        <!-- Who We Are Tab -->
-        <div id="tab-who" :class="activeTab === 'who' ? 'block' : 'hidden'" class="space-y-16">
-          <div class="text-center mb-16">
-            <h2 class="text-6xl font-bold mb-8 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Mission</h2>
-            <div class="w-24 h-1 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full mx-auto mb-8"></div>
-            <p class="text-2xl transition-colors duration-300 max-w-4xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-              Ghana Commodity Exchange (GCX) is a leading commodity exchange platform dedicated to transforming agricultural trading in Ghana and West Africa.
-            </p>
-          </div>
-          
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div class="space-y-10">
-              <div>
-                <h3 class="text-5xl font-bold mb-8 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Our Mission</h3>
-                <p class="text-xl transition-colors duration-300 leading-relaxed mb-8" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                  We provide innovative solutions for farmers, traders, and stakeholders, ensuring transparency, efficiency, and growth in the agricultural sector.
-                </p>
-                <p class="text-xl transition-colors duration-300 leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                  Through our regulated marketplace, we connect agricultural producers with buyers, enabling fair pricing and secure transactions.
-                </p>
-              </div>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="p-8 rounded-2xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'">
-                  <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl mb-6 flex items-center justify-center">
-                    <div class="w-10 h-10 bg-white rounded-lg"></div>
-                  </div>
-                  <h4 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Transparency</h4>
-                  <p class="text-lg transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                    Open and fair trading practices with clear pricing mechanisms
-                  </p>
-                </div>
-                
-                <div class="p-8 rounded-2xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'">
-                  <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl mb-6 flex items-center justify-center">
-                    <div class="w-10 h-10 bg-white rounded-lg"></div>
-                  </div>
-                  <h4 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Efficiency</h4>
-                  <p class="text-lg transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                    Streamlined processes for optimal market performance
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="relative">
-              <img src="/crop.jpg" alt="Agricultural Trading" class="rounded-2xl shadow-2xl w-full" />
-              <div class="absolute -bottom-6 -left-6 rounded-2xl p-8 shadow-xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'">
-                <div class="text-4xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">50K+</div>
-                <div class="text-lg transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Farmers Connected</div>
-              </div>
-            </div>
-          </div>
+        <!-- Mission Tab -->
+        <div id="tab-who" :class="activeTab === 'who' ? 'block' : 'hidden'">
+          <Mission />
         </div>
 
         <!-- Vision & Purpose Tab -->
@@ -188,19 +146,22 @@ watch(() => route.hash, setActiveFromHash)
 
         <!-- Board of Directors Tab -->
         <div id="tab-board" :class="activeTab === 'board' ? 'block' : 'hidden'">
-          <BoardDirectors />
+          <DynamicBoardOfDirectors />
         </div>
 
         <!-- Executive Management Tab -->
         <div id="tab-exec" :class="activeTab === 'exec' ? 'block' : 'hidden'">
-          <ExecutiveManagement />
+          <DynamicExecutiveManagement />
         </div>
 
         <!-- Functional Heads Tab -->
         <div id="tab-func" :class="activeTab === 'func' ? 'block' : 'hidden'">
-          <FunctionalHeads />
+          <DynamicFunctionalHeads />
         </div>
       </div>
     </section>
+    
+    <!-- Footer -->
+    <Footer />
   </div>
 </template>

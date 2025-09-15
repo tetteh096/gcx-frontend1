@@ -1,5 +1,26 @@
 <script setup lang="ts">
+import { onMounted, computed } from 'vue'
 import { isDarkMode } from '../../utils/darkMode';
+import { usePageContentEditor } from '../../composables/usePageContentEditor';
+
+// CMS Content
+const { getContent, getImage, loadPageContent, pageContent } = usePageContentEditor('about')
+
+// Reactive computed properties for better reactivity
+const aboutTitle = computed(() => getContent('about_title', 'About GCX'))
+const aboutDescription = computed(() => getContent('about_description', 'The Ghana Commodity Exchange is a private company limited by shares, structured as a Public-Private Partnership, with the Government of Ghana currently the sole shareholder. The Exchange aims to establish linkages between agricultural and commodity producers and buyers, secure competitive prices for their products, assure the market quantity and quality, and settle trade promptly.'))
+const ceoName = computed(() => getContent('ceo_name', 'Mr. Robert Dowuona Owoo'))
+const ceoTitle = computed(() => getContent('ceo_title', 'Acting Chief Executive Officer'))
+const ceoImage = computed(() => getImage('ceo_image', '/Mr. Robert Dowuona Owoo.jpeg'))
+const ceoIntro = computed(() => getContent('ceo_intro', 'Ghana Commodity Exchange\'s Management team is led by Mr. Robert Dowuona Owooi, the Acting Chief Executive Officer.'))
+const keyGoalTitle = computed(() => getContent('key_goal_title', 'Our Key Goal'))
+const keyGoalDescription = computed(() => getContent('key_goal_description', 'To link Ghanaian smallholder farmers to agricultural and financial markets in Ghana and across the West Africa Region to ensure Ghana farmers secure competitive prices for their commodities, as well as supply good quality commodities which meet the nutritional needs of the Ghanaian people.'))
+
+// Load CMS content when component mounts
+onMounted(async () => {
+  await loadPageContent()
+  console.log('🔍 AboutGCX: CMS content loaded for about page', pageContent)
+})
 </script>
 
 <template>
@@ -9,39 +30,40 @@ import { isDarkMode } from '../../utils/darkMode';
       <div class="space-y-8">
         <div>
           <h2 class="text-5xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-            About GCX
+            {{ aboutTitle }}
           </h2>
           <div class="w-20 h-1 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full mb-6"></div>
           <p class="text-xl transition-colors duration-300 leading-relaxed mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-            The Ghana Commodity Exchange is a private company limited by shares, structured as a Public-Private Partnership, 
-            with the Government of Ghana currently the sole shareholder. The Exchange aims to establish linkages between 
-            agricultural and commodity producers and buyers, secure competitive prices for their products, assure the market 
-            quantity and quality, and settle trade promptly.
+            {{ aboutDescription }}
           </p>
           <p class="text-xl transition-colors duration-300 leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-            Ghana Commodity Exchange's Management team is led by Mr. Robert Dowuona Owooi, the Acting Chief Executive Officer.
+            {{ ceoIntro }}
           </p>
         </div>
         
         <div class="rounded-2xl p-8 border transition-colors duration-300" :class="isDarkMode ? 'bg-gradient-to-r from-yellow-900/20 to-yellow-800/20 border-yellow-800' : 'bg-gradient-to-r from-yellow-100 to-yellow-200 border-yellow-300'">
-          <h3 class="text-3xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-yellow-200' : 'text-yellow-900'">Our Key Goal</h3>
+          <h3 class="text-3xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-yellow-200' : 'text-yellow-900'">
+            {{ keyGoalTitle }}
+          </h3>
           <p class="text-lg transition-colors duration-300 leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-800'">
-            To link Ghanaian smallholder farmers to agricultural and financial markets in Ghana and across the West Africa Region 
-            to ensure Ghana farmers secure competitive prices for their commodities, as well as supply good quality commodities 
-            which meet the nutritional needs of the Ghanaian people.
+            {{ keyGoalDescription }}
           </p>
         </div>
       </div>
       
       <div class="relative">
         <img 
-          src="/Mr. Robert Dowuona Owoo.jpeg" 
-          alt="Mr. Robert Dowuona Owoo - Acting Chief Executive Officer" 
+          :src="ceoImage" 
+          :alt="ceoName + ' - ' + ceoTitle" 
           class="rounded-2xl shadow-2xl w-full"
         />
         <div class="absolute -bottom-6 -left-6 rounded-2xl p-6 shadow-xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
-          <div class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Mr. Robert Dowuona Owoo</div>
-          <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Acting Chief Executive Officer</div>
+          <div class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            {{ ceoName }}
+          </div>
+          <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+            {{ ceoTitle }}
+          </div>
         </div>
       </div>
     </div>

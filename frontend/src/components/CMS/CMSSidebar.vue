@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { useAuth } from '../../composables/useAuth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import type { NavigationItem } from '../../types/cms'
 
 interface Props {
@@ -15,13 +16,18 @@ interface Emits {
 
 defineProps<Props>()
 const emit = defineEmits<Emits>()
+const { t } = useI18n()
 
 const { user, logout } = useAuth()
 const router = useRouter()
+const route = useRoute()
 
-const activeSection = ref('dashboard')
+const activeSection = computed(() => route.meta.section || 'dashboard')
 
-// Navigation items with PrimeIcons
+// Track which dropdowns are open
+const openDropdowns = ref<Set<string>>(new Set(['content'])) // Open content by default
+
+// Navigation items with PrimeIcons - Organized with dropdowns
 const navigationItems = computed<NavigationItem[]>(() => [
   {
     id: 'dashboard',
@@ -30,7 +36,7 @@ const navigationItems = computed<NavigationItem[]>(() => [
   },
   {
     id: 'content',
-    label: 'Content',
+    label: 'Content Management',
     icon: 'pi pi-folder',
     children: [
       {
@@ -40,16 +46,78 @@ const navigationItems = computed<NavigationItem[]>(() => [
         permissions: ['blogger', 'admin']
       },
       {
-        id: 'media',
-        label: 'Media Library',
-        icon: 'pi pi-images',
+        id: 'image-manager',
+        label: 'Images',
+        icon: 'pi pi-image',
         permissions: ['blogger', 'admin']
       },
       {
         id: 'pages',
-        label: 'Website Content',
+        label: 'Pages',
         icon: 'pi pi-globe',
         permissions: ['admin']
+      },
+      {
+        id: 'content-manager',
+        label: 'Content Library',
+        icon: 'pi pi-database',
+        permissions: ['admin', 'editor']
+      }
+    ]
+  },
+  {
+    id: 'people',
+    label: 'People & Roles',
+    icon: 'pi pi-users',
+    children: [
+      {
+        id: 'team-manager',
+        label: 'Team Members',
+        icon: 'pi pi-user',
+        permissions: ['admin', 'editor']
+      },
+      {
+        id: 'trader-manager',
+        label: 'Traders',
+        icon: 'pi pi-user-plus',
+        permissions: ['admin', 'editor']
+      },
+      {
+        id: 'broker-manager',
+        label: 'Brokers',
+        icon: 'pi pi-briefcase',
+        permissions: ['admin', 'editor']
+      },
+      {
+        id: 'partner-manager',
+        label: 'Partners',
+        icon: 'pi pi-handshake',
+        permissions: ['admin', 'editor']
+      }
+    ]
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    icon: 'pi pi-book',
+    children: [
+      {
+        id: 'publication-manager',
+        label: 'Publications',
+        icon: 'pi pi-file-pdf',
+        permissions: ['admin', 'editor']
+      },
+      {
+        id: 'career-manager',
+        label: 'Careers',
+        icon: 'pi pi-briefcase',
+        permissions: ['admin', 'editor']
+      },
+      {
+        id: 'commodity-manager',
+        label: 'Commodities',
+        icon: 'pi pi-shopping-cart',
+        permissions: ['admin', 'editor']
       }
     ]
   },
@@ -61,7 +129,7 @@ const navigationItems = computed<NavigationItem[]>(() => [
   },
   {
     id: 'users',
-    label: 'Users',
+    label: 'User Management',
     icon: 'pi pi-users',
     permissions: ['admin']
   },
@@ -76,7 +144,7 @@ const navigationItems = computed<NavigationItem[]>(() => [
     label: 'Settings',
     icon: 'pi pi-cog',
     permissions: ['admin']
-  }
+  },
 ])
 
 // Filter navigation items based on user permissions
@@ -105,8 +173,45 @@ const hasChildren = (item: NavigationItem): boolean => {
   return !!(item.children && item.children.length > 0)
 }
 
+const isDropdownOpen = (itemId: string): boolean => {
+  return openDropdowns.value.has(itemId)
+}
+
+const toggleDropdown = (itemId: string) => {
+  if (openDropdowns.value.has(itemId)) {
+    openDropdowns.value.delete(itemId)
+  } else {
+    openDropdowns.value.add(itemId)
+  }
+  // Force reactivity update
+  openDropdowns.value = new Set(openDropdowns.value)
+}
+
 const navigateToSection = (section: string) => {
-  activeSection.value = section
+  // Map section IDs to route names
+  const routeMap: Record<string, string> = {
+    'dashboard': 'cms-dashboard',
+    'posts': 'cms-posts',
+    'image-manager': 'cms-images',
+    'pages': 'cms-pages',
+    'content-manager': 'cms-content',
+    'team-manager': 'cms-team',
+    'trader-manager': 'cms-traders',
+    'broker-manager': 'cms-brokers',
+    'partner-manager': 'cms-partners',
+    'publication-manager': 'cms-publications',
+    'career-manager': 'cms-careers',
+    'commodity-manager': 'cms-commodities',
+    'market-data': 'cms-market-data',
+    'users': 'cms-users',
+    'analytics': 'cms-analytics',
+    'settings': 'cms-settings'
+  }
+  
+  const routeName = routeMap[section]
+  if (routeName) {
+    router.push({ name: routeName })
+  }
   emit('navigate', section)
 }
 
@@ -151,43 +256,60 @@ const handleLogout = async () => {
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto p-4 space-y-2">
+    <nav class="flex-1 overflow-y-auto p-4 space-y-2 pb-80">
       <template v-for="item in visibleItems" :key="item.id">
         <!-- Parent Item without children -->
         <div v-if="!hasChildren(item)">
           <button
             @click="navigateToSection(item.id)"
-            class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group"
+            class="w-full flex items-center space-x-4 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group"
             :class="isItemActive(item.id)
               ? 'bg-green-600 text-white shadow-lg'
-              : 'text-gray-300 hover:bg-gray-800 hover:text-white'"
+              : 'text-white hover:bg-gray-800 hover:text-white'"
           >
-            <div class="w-5 h-5 flex items-center justify-center">
-              <i :class="item.icon" class="text-base"></i>
+            <div class="w-6 h-6 flex items-center justify-center">
+              <i :class="item.icon" class="text-lg"></i>
             </div>
             <span>{{ item.label }}</span>
           </button>
         </div>
 
-        <!-- Parent with Children -->
+        <!-- Parent with Children (Dropdown) -->
         <div v-else class="space-y-1">
-          <div class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center space-x-2">
-            <i :class="item.icon" class="text-sm"></i>
-            <span>{{ item.label }}</span>
-          </div>
+          <button
+            @click="toggleDropdown(item.id)"
+            class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group hover:bg-gray-800"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="w-6 h-6 flex items-center justify-center">
+                <i :class="item.icon" class="text-lg text-white group-hover:text-white"></i>
+              </div>
+              <span class="text-white group-hover:text-white">{{ item.label }}</span>
+            </div>
+            <i 
+              :class="[
+                'pi transition-transform duration-200 text-white',
+                isDropdownOpen(item.id) ? 'pi-chevron-down' : 'pi-chevron-right'
+              ]"
+            ></i>
+          </button>
           
-          <div class="space-y-1 ml-2">
+          <!-- Dropdown Content -->
+          <div 
+            v-show="isDropdownOpen(item.id)"
+            class="space-y-1 ml-6 border-l border-gray-700 pl-4"
+          >
             <button
               v-for="child in item.children"
               :key="child.id"
               @click="navigateToSection(child.id)"
-              class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group"
+              class="w-full flex items-center space-x-4 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group"
               :class="isItemActive(child.id)
                 ? 'bg-green-600 text-white shadow-lg'
-                : 'text-gray-300 hover:bg-gray-800 hover:text-white'"
+                : 'text-white hover:bg-gray-800 hover:text-white'"
             >
-              <div class="w-4 h-4 flex items-center justify-center">
-                <i :class="child.icon" class="text-sm"></i>
+              <div class="w-5 h-5 flex items-center justify-center">
+                <i :class="child.icon" class="text-base"></i>
               </div>
               <span>{{ child.label }}</span>
             </button>
@@ -196,23 +318,8 @@ const handleLogout = async () => {
       </template>
     </nav>
 
-    <!-- Bottom Section - Absolute bottom with visible divider -->
-    <div class="mt-auto">
-      <!-- Strong visible divider -->
-      <div class="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent my-4"></div>
-      
-      <!-- Logout Section -->
-      <div class="px-6 py-4 border-t-2 border-gray-700">
-        <button
-          @click="handleLogout"
-          class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-red-400 hover:bg-red-900/20 hover:text-red-300 group"
-        >
-          <i class="pi pi-sign-out text-base"></i>
-          <span>Logout</span>
-          <i class="pi pi-angle-right text-xs ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
-        </button>
-      </div>
-
+    <!-- Fixed Bottom Section -->
+    <div class="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800">
       <!-- User Info -->
       <div class="px-6 py-4">
         <div class="flex items-center space-x-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700">
@@ -231,11 +338,23 @@ const handleLogout = async () => {
               </p>
               <div class="flex items-center space-x-1">
                 <i class="pi pi-circle-fill text-green-500 text-xs"></i>
-                <span class="text-xs text-gray-400">Online</span>
+                <span class="text-xs text-gray-400">{{ t('common.status.online') }}</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Logout Section -->
+      <div class="px-6 py-4 border-t-2 border-gray-700">
+        <button
+          @click="handleLogout"
+          class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-red-400 hover:bg-red-900/20 hover:text-red-300 group"
+        >
+          <i class="pi pi-sign-out text-base"></i>
+          <span>{{ t('navigation.menu.logout') }}</span>
+          <i class="pi pi-angle-right text-xs ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
+        </button>
       </div>
 
       <!-- Footer -->
@@ -245,9 +364,6 @@ const handleLogout = async () => {
         </p>
       </div>
     </div>
-
-    <!-- Decorative accent -->
-    <div class="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-green-500 to-green-600"></div>
   </div>
 
   <!-- Overlay for mobile -->

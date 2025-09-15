@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { isDarkMode } from '../../utils/darkMode';
+import { usePageContentEditor } from '../../composables/usePageContentEditor';
 
 interface Executive {
   id: string;
@@ -13,16 +14,25 @@ interface Executive {
   facebook?: string;
 }
 
+// CMS Content
+const { loadPageContent, getContent } = usePageContentEditor('about');
+
 const selectedExecutive = ref<Executive | null>(null);
 const showProfile = ref(false);
 
-const executives: Executive[] = [
+// Load content on mount
+onMounted(async () => {
+  await loadPageContent();
+});
+
+// Dynamic executives using CMS content
+const executives = computed(() => [
   {
     id: 'dowuona-owoo',
-    name: 'Mr. Robert Dowuona Owoo',
-    position: 'Acting Chief Executive Officer',
-    image: '/Mr. Robert Dowuona Owoo.jpeg',
-    description: `Robert Dowuona Owoo is a Lawyer by profession and holds a BSc in Mathematics from the University of Cape Coast, Ghana, and an MSc in Finance and Management from Exeter University, UK.
+    name: getContent('ceo_name', 'Mr. Robert Dowuona Owoo'),
+    position: getContent('ceo_title', 'Acting Chief Executive Officer'),
+    image: getContent('ceo_image', '/Mr. Robert Dowuona Owoo.jpeg'),
+    description: getContent('ceo_bio', `Robert Dowuona Owoo is a Lawyer by profession and holds a BSc in Mathematics from the University of Cape Coast, Ghana, and an MSc in Finance and Management from Exeter University, UK.
 
 He started his professional career with the Securities and Exchange Commission, Ghana, where he worked in various capacities and has thirteen (13) years' experience in Securities (Capital Market) Regulations and Supervision.
 
@@ -30,17 +40,17 @@ Mr. Robert Dowuona Owoo left his position as Head of Research, Policy, and IT at
 
 Being the first of its kind in the West Africa sub-region, the GCX design and model are recognized as an innovative model that is currently being studied by other countries within Africa, and the West Africa sub-region is seeking to establish a functioning commodity exchange. As a founding member of the Ghana Commodity Exchange, Mr. Dowuona Owoo has helped to successfully implement the GCX model, which has helped structure Agricultural Commodity Trading in Ghana.
 
-Mr. Robert Dowuona Owoo is currently the Acting Chief Executive Officer of the GCX, doubling up as the Head of Legal, Compliance, and Enforcement.`,
+Mr. Robert Dowuona Owoo is currently the Acting Chief Executive Officer of the GCX, doubling up as the Head of Legal, Compliance, and Enforcement.`),
     linkedin: '#',
     instagram: '#',
     facebook: '#'
   },
   {
     id: 'atoklo',
-    name: 'Ms. Ophelia Martekuo Atoklo',
-    position: 'Acting Deputy Chief Executive Officer',
-    image: '/Ms. Ophelia Martekuo Atoklo \'Deputy Chief Executive Officer\'.jpg',
-    description: `Ms. Ophelia Martekuo Atoklo brings to the Ghana Commodity Exchange (GCX) over a decade of experience in human capital management, organizational leadership, and administrative excellence, with a diverse background spanning the healthcare, optical, environmental, and waste management services sectors.
+    name: getContent('deputy_ceo_name', 'Ms. Ophelia Martekuo Atoklo'),
+    position: getContent('deputy_ceo_title', 'Acting Deputy Chief Executive Officer'),
+    image: getContent('deputy_ceo_image', '/Ms. Ophelia Martekuo Atoklo \'Deputy Chief Executive Officer\'.jpg'),
+    description: getContent('deputy_ceo_bio', `Ms. Ophelia Martekuo Atoklo brings to the Ghana Commodity Exchange (GCX) over a decade of experience in human capital management, organizational leadership, and administrative excellence, with a diverse background spanning the healthcare, optical, environmental, and waste management services sectors.
 
 She joins GCX from the Accra Compost & Recycling Plant (a subsidiary of the Jospong Group), where she served as Human Capital and Administrative Manager. In that role, she led strategic initiatives in talent management, compensation, compliance, employee wellness, and administrative operations, driving strong alignment between people strategy and institutional performance in a dynamic industrial environment.
 
@@ -50,12 +60,12 @@ Ms. Atoklo holds a Bachelor of Arts degree in Sociology and Political Science fr
 
 Known for her disciplined and collaborative leadership style, she is passionate about inclusive leadership, staff development, and building systems that drive innovation and institutional transformation.
 
-As Acting Deputy Chief Executive Officer of GCX, Ms. Atoklo will support the CEO in the overall management of the Exchange, with specific oversight of operations, corporate services, and capacity-building initiatives. She will play a pivotal role in aligning GCX's operational and human capital strategies with its mission to promote inclusive agricultural trade and market development across Ghana.`,
+As Acting Deputy Chief Executive Officer of GCX, Ms. Atoklo will support the CEO in the overall management of the Exchange, with specific oversight of operations, corporate services, and capacity-building initiatives. She will play a pivotal role in aligning GCX's operational and human capital strategies with its mission to promote inclusive agricultural trade and market development across Ghana.`),
     linkedin: '#',
     instagram: '#',
     facebook: '#'
   }
-];
+]);
 
 const openProfile = (executive: Executive) => {
   selectedExecutive.value = executive;
@@ -73,11 +83,11 @@ const closeProfile = () => {
     <!-- Clean Header Section -->
     <div class="text-center">
       <h2 class="text-5xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-        Executive Management
+        {{ getContent('leadership_title', 'Executive Management') }}
       </h2>
       <div class="w-24 h-0.5 bg-yellow-500 rounded-full mx-auto mb-8"></div>
       <p class="text-lg transition-colors duration-300 max-w-3xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-        Experienced leaders driving Ghana Commodity Exchange's strategic vision and operational excellence.
+        {{ getContent('leadership_subtitle', 'Experienced leaders driving Ghana Commodity Exchange\'s strategic vision and operational excellence.') }}
       </p>
     </div>
 

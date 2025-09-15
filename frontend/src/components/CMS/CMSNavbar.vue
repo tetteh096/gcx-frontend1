@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '../../composables/useI18n'
 import { useRouter } from 'vue-router'
 import { isDarkMode, toggleDarkMode } from '../../utils/darkMode'
 import { useAuth } from '../../composables/useAuth'
@@ -15,6 +16,7 @@ interface Emits {
 
 defineProps<Props>()
 const emit = defineEmits<Emits>()
+const { t } = useI18n()
 
 const router = useRouter()
 const { user, logout } = useAuth()

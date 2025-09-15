@@ -14,6 +14,7 @@ interface Emits {
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 const emit = defineEmits<Emits>()
 
 const updateSearchQuery = (value: string) => {

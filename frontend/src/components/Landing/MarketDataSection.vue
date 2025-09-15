@@ -401,35 +401,10 @@ onMounted(() => {
 
       <!-- Trading Interface -->
       <div class="bg-white rounded-2xl shadow-2xl overflow-hidden" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
-        <!-- Trading Tabs -->
-        <div class="flex border-b" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
-          <div class="flex-1 px-6 py-4 text-sm font-semibold text-center capitalize bg-green-500 text-white">
-            Buy
-          </div>
-          <div class="flex-1 px-6 py-4 text-sm font-semibold text-center capitalize bg-slate-100" :class="isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'">
-            Sell
-          </div>
-          <div class="flex-1 px-6 py-4 text-sm font-semibold text-center capitalize bg-slate-100" :class="isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'">
-            Trade
-          </div>
-        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
           <!-- Left Panel - Commodity List -->
           <div class="p-6" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
-            <!-- Sub-tabs -->
-            <div class="flex rounded-lg border overflow-hidden mb-6" :class="isDarkMode ? 'border-slate-600' : 'border-slate-300'">
-              <button
-                v-for="subTab in ['cash-settled', 'deliverable']"
-                :key="subTab"
-                class="flex-1 px-4 py-2 text-sm font-medium transition-all duration-200 capitalize"
-                :class="subTab === 'cash-settled' 
-                  ? 'bg-black text-white' 
-                  : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-100')"
-              >
-                {{ subTab.replace('-', ' ') }}
-              </button>
-            </div>
 
             <!-- Commodity List -->
             <div class="space-y-2">

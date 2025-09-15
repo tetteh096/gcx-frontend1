@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
 import BlogHero from '../components/Blog/BlogHero.vue'
 import RecentPosts from '../components/Blog/RecentPosts.vue'
@@ -11,6 +12,7 @@ const { posts, fetchPublicPosts, isLoading } = useBlog()
 
 // Blog posts from API - no more mock data!
 const blogPosts = ref([])
+const { t } = useI18n()
 
 const searchQuery = ref('')
 const selectedTag = ref('')

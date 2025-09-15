@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
+import Footer from '../components/Footer.vue'
 import { 
   EnvelopeIcon, 
   PhoneIcon, 
@@ -20,6 +22,8 @@ declare global {
   const google: any
   const L: any
 }
+
+const { t } = useI18n()
 
 const formData = ref({
   name: '',
@@ -508,6 +512,7 @@ const initLeafletMap = () => {
       </section>
     </div>
   </div>
+  <Footer />
 </template>
 
 <style scoped>

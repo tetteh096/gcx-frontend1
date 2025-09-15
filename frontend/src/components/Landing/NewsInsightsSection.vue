@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ChevronRightIcon, CalendarIcon, ClockIcon } from '@heroicons/vue/24/outline'
 import { isDarkMode } from '../../utils/darkMode'
+import { useI18n } from '../../composables/useI18n'
+
+const { t } = useI18n()
 
 const newsItems = [
   {

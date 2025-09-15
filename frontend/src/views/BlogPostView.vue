@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n'
 import { useRoute, useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
 import { useBlog } from '../composables/useBlog'
 
 const route = useRoute()
+const { t } = useI18n()
 const router = useRouter()
 
 const { posts, fetchPublicPosts, isLoading } = useBlog()

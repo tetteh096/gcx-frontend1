@@ -93,8 +93,106 @@ const router = createRouter({
       path: '/cms',
       name: 'cms',
       component: CMSView,
-      meta: { requiresAuth: true }
-    }
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'cms-dashboard',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'dashboard' }
+        },
+        {
+          path: 'posts',
+          name: 'cms-posts',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'posts' }
+        },
+        {
+          path: 'images',
+          name: 'cms-images',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'image-manager' }
+        },
+        {
+          path: 'pages',
+          name: 'cms-pages',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'pages' }
+        },
+        {
+          path: 'content',
+          name: 'cms-content',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'content-manager' }
+        },
+        {
+          path: 'team',
+          name: 'cms-team',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'team-manager' }
+        },
+        {
+          path: 'traders',
+          name: 'cms-traders',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'trader-manager' }
+        },
+        {
+          path: 'brokers',
+          name: 'cms-brokers',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'broker-manager' }
+        },
+        {
+          path: 'partners',
+          name: 'cms-partners',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'partner-manager' }
+        },
+        {
+          path: 'publications',
+          name: 'cms-publications',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'publication-manager' }
+        },
+        {
+          path: 'careers',
+          name: 'cms-careers',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'career-manager' }
+        },
+        {
+          path: 'commodities',
+          name: 'cms-commodities',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'commodity-manager' }
+        },
+        {
+          path: 'market-data',
+          name: 'cms-market-data',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'market-data' }
+        },
+        {
+          path: 'users',
+          name: 'cms-users',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'users' }
+        },
+        {
+          path: 'analytics',
+          name: 'cms-analytics',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'analytics' }
+        },
+        {
+          path: 'settings',
+          name: 'cms-settings',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'settings' }
+        }
+      ]
+    },
   ]
 })
 

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
 
 const activeTab = ref('blog')
+const { t } = useI18n()
 </script>
 
 <template>
@@ -10,11 +12,11 @@ const activeTab = ref('blog')
     <!-- Hero Section -->
     <section class="relative py-14 lg:py-20 overflow-hidden">
       <div class="absolute inset-0">
-        <img src="/Picture3.png" alt="Media" class="w-full h-full object-cover" />
+        <img src="/Picture3.png" alt="{{ t('navigation.menu.media') }}" class="w-full h-full object-cover" />
         <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/40' : 'bg-white/40'"></div>
       </div>
       <div class="relative max-w-[1600px] mx-auto px-4 text-center">
-        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Media</h1>
+        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ t('navigation.menu.media') }}</h1>
         <p class="text-lg max-w-3xl mx-auto" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Blog insights, videos, and resources from GCX.</p>
       </div>
     </section>
