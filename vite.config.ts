@@ -4,7 +4,7 @@ import { resolve } from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/GCX_website/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/gcx-frontend1/' : '/',
   plugins: [vue()],
   resolve: {
     alias: {
