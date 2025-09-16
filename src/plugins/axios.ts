@@ -4,15 +4,23 @@ import axios from 'axios'
 const BACKEND_CONFIG = {
   // Set to 'go' or 'laravel' to switch backends
   BACKEND_TYPE: 'go', // Change this to 'laravel' to use Laravel backend
-  GO_BACKEND_URL: 'http://localhost:8080',
+  
+  // Go backend URLs - switch between local and ngrok
+  GO_BACKEND_URL_LOCAL: 'http://localhost:8080',
+  GO_BACKEND_URL_NGROK: 'https://8f5e6659a95f.ngrok-free.app',
+  GO_USE_NGROK: true, // Set to true for ngrok, false for local
+  
   LARAVEL_BACKEND_URL: 'http://localhost:8000'
 }
 
 // Get the appropriate backend URL
 const getBackendURL = () => {
-  return BACKEND_CONFIG.BACKEND_TYPE === 'go' 
-    ? BACKEND_CONFIG.GO_BACKEND_URL 
-    : BACKEND_CONFIG.LARAVEL_BACKEND_URL
+  if (BACKEND_CONFIG.BACKEND_TYPE === 'go') {
+    return BACKEND_CONFIG.GO_USE_NGROK 
+      ? BACKEND_CONFIG.GO_BACKEND_URL_NGROK
+      : BACKEND_CONFIG.GO_BACKEND_URL_LOCAL
+  }
+  return BACKEND_CONFIG.LARAVEL_BACKEND_URL
 }
 
 // Configure axios defaults
