@@ -110,7 +110,7 @@ const pageDescription = computed(() => pageContent.value?.excerpt || staticConte
           <!-- Benefits to Members -->
           <div class="rounded-2xl p-8 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
             <div class="w-full h-48 mb-6 rounded-xl overflow-hidden">
-              <img src="/membership.jpg" alt="Membership Benefits" class="w-full h-full object-cover" />
+              <img src="/maize.jpg" alt="Membership Benefits" class="w-full h-full object-cover" />
             </div>
             <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Benefits to Members</h3>
             <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
@@ -121,7 +121,7 @@ const pageDescription = computed(() => pageContent.value?.excerpt || staticConte
           <!-- Benefits to Society -->
           <div class="rounded-2xl p-8 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
             <div class="w-full h-48 mb-6 rounded-xl overflow-hidden">
-              <img src="/society benefits.jpg" alt="Society Benefits" class="w-full h-full object-cover" />
+              <img src="/crop.jpg" alt="Society Benefits" class="w-full h-full object-cover" />
             </div>
             <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Benefits to Society</h3>
             <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
