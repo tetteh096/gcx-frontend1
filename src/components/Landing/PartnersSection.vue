@@ -14,7 +14,7 @@ const displayPartners = [
 // Error handling for images
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
-  img.src = '/gcx-frontend1/Partners/default-partner.png'
+  img.src = '/gcx-frontend1/Partners/1-ukaid.jpg'
 }
 </script>
 

@@ -182,14 +182,14 @@ const apiPartners = computed(() => {
 // Helper function to get default logo based on category
 const getDefaultLogo = (category: string) => {
   const logoMap: Record<string, string> = {
-    'partners': '/gcx-frontend1/Partners/default-partner.png',
+    'partners': '/gcx-frontend1/Partners/1-ukaid.jpg',
     'donors': '/Donors/default-donor.png',
     'government': '/government/default-government.png',
     'ngos': '/NGO/default-ngo.png',
     'private': '/private/default-private.png',
     'tenders': '/tenders/default-tender.png'
   }
-  return logoMap[category] || '/gcx-frontend1/Partners/default-partner.png'
+  return logoMap[category] || '/gcx-frontend1/Partners/1-ukaid.jpg'
 }
 
 // Load partners when component mounts
