@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { isDarkMode } from '@/utils/darkMode'
+import { getBackendURL } from '@/plugins/axios'
 
 const router = useRouter()
 const { login, isAuthenticated, error, isLoading } = useAuth()
@@ -167,7 +168,7 @@ const handleKeypress = (event: KeyboardEvent) => {
         <!-- Backend Status -->
         <div class="mt-4 text-center">
           <p class="text-xs" :class="isDarkMode ? 'text-slate-500' : 'text-slate-400'">
-            Using Go Backend: {{ isLoading ? 'Connecting...' : 'http://localhost:8080' }}
+            Using Go Backend: {{ isLoading ? 'Connecting...' : getBackendURL() }}
           </p>
         </div>
       </div>

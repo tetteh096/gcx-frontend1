@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+import axios from '../plugins/axios';
 
 export interface Publication {
   id: number;
@@ -47,30 +45,30 @@ export const getAllPublications = async (filters: PublicationFilters = {}): Prom
   if (filters.search) params.append('search', filters.search);
   if (filters.category) params.append('category', filters.category);
 
-  const response = await axios.get(`${API_BASE_URL}/publications?${params.toString()}`);
+  const response = await axios.get(`/api/publications?${params.toString()}`);
   return response.data;
 };
 
 // Get single publication by ID
 export const getPublicationById = async (id: number): Promise<{ success: boolean; data: Publication }> => {
-  const response = await axios.get(`${API_BASE_URL}/publications/${id}`);
+  const response = await axios.get(`/api/publications/${id}`);
   return response.data;
 };
 
 // Create new publication
 export const createPublication = async (publication: Omit<Publication, 'id' | 'created_at' | 'updated_at' | 'download_count'>): Promise<{ success: boolean; data: Publication }> => {
-  const response = await axios.post(`${API_BASE_URL}/publications`, publication);
+  const response = await axios.post(`/api/publications`, publication);
   return response.data;
 };
 
 // Update publication
 export const updatePublication = async (id: number, publication: Partial<Publication>): Promise<{ success: boolean; data: Publication }> => {
-  const response = await axios.put(`${API_BASE_URL}/publications/${id}`, publication);
+  const response = await axios.put(`/api/publications/${id}`, publication);
   return response.data;
 };
 
 // Delete publication
 export const deletePublication = async (id: number): Promise<{ success: boolean; message: string }> => {
-  const response = await axios.delete(`${API_BASE_URL}/publications/${id}`);
+  const response = await axios.delete(`/api/publications/${id}`);
   return response.data;
 };

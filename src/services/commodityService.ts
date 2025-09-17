@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+import axios from '../plugins/axios';
 
 export interface Commodity {
   id: number;
@@ -57,12 +55,12 @@ export const getAllCommodities = async (filters: CommodityFilters = {}): Promise
   if (filters.category) params.append('category', filters.category);
   if (filters.status) params.append('status', filters.status);
 
-  const response = await axios.get(`${API_BASE_URL}/commodities?${params.toString()}`);
+  const response = await axios.get(`/api/commodities?${params.toString()}`);
   return response.data;
 };
 
 // Get single commodity by ID
 export const getCommodityById = async (id: number): Promise<{ success: boolean; data: Commodity }> => {
-  const response = await axios.get(`${API_BASE_URL}/commodities/${id}`);
+  const response = await axios.get(`/api/commodities/${id}`);
   return response.data;
 };

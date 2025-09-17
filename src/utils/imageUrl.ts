@@ -1,3 +1,5 @@
+import { getBackendURL } from '../plugins/axios'
+
 // Utility function to ensure image URLs are properly formatted for cross-origin access
 export const getImageUrl = (src: string): string => {
   // If it's already a full URL (starts with http), return as is
@@ -7,7 +9,7 @@ export const getImageUrl = (src: string): string => {
   
   // If it's a relative URL starting with /uploads, prepend backend URL
   if (src.startsWith('/uploads')) {
-    return `http://localhost:8080${src}`
+    return `${getBackendURL()}${src}`
   }
   
   // If it's a data URL (base64), return as is
@@ -16,7 +18,7 @@ export const getImageUrl = (src: string): string => {
   }
   
   // Otherwise, assume it's a relative URL and prepend backend URL
-  return `http://localhost:8080${src.startsWith('/') ? src : '/' + src}`
+  return `${getBackendURL()}${src.startsWith('/') ? src : '/' + src}`
 }
 
 // Utility function to check if an image URL is valid
@@ -31,5 +33,5 @@ export const isValidImageUrl = (url: string): boolean => {
 
 // Utility function to get the correct API base URL
 export const getApiBaseUrl = (): string => {
-  return 'http://localhost:8080'
+  return getBackendURL()
 }

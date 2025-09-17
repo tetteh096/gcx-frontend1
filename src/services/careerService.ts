@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+import axios from '../plugins/axios';
 
 export interface Career {
   id: number;
@@ -58,12 +56,12 @@ export const getAllCareers = async (filters: CareerFilters = {}): Promise<Career
   if (filters.employment_type) params.append('employment_type', filters.employment_type);
   if (filters.experience_level) params.append('experience_level', filters.experience_level);
 
-  const response = await axios.get(`${API_BASE_URL}/careers?${params.toString()}`);
+  const response = await axios.get(`/api/careers?${params.toString()}`);
   return response.data;
 };
 
 // Get single career by ID
 export const getCareerById = async (id: number): Promise<{ success: boolean; data: Career }> => {
-  const response = await axios.get(`${API_BASE_URL}/careers/${id}`);
+  const response = await axios.get(`/api/careers/${id}`);
   return response.data;
 };
