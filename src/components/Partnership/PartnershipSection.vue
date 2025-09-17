@@ -92,6 +92,7 @@ import { computed, onMounted } from 'vue'
 import PartnershipGrid from './PartnershipGrid.vue';
 import PartnershipCategory from './PartnershipCategory.vue';
 import { usePartners } from '../../composables/usePartners'
+import { getPartnerLogo } from '../../utils/imageUtils'
 
 interface PartnershipItem {
   imageSrc: string;
@@ -182,14 +183,14 @@ const apiPartners = computed(() => {
 // Helper function to get default logo based on category
 const getDefaultLogo = (category: string) => {
   const logoMap: Record<string, string> = {
-    'partners': '/gcx-frontend1/Partners/1-ukaid.jpg',
-    'donors': '/Donors/default-donor.png',
-    'government': '/government/default-government.png',
-    'ngos': '/NGO/default-ngo.png',
-    'private': '/private/default-private.png',
-    'tenders': '/tenders/default-tender.png'
+    'partners': 'Partners/1-ukaid.jpg',
+    'donors': 'Donors/1-ukaid.jpg', // Use existing image
+    'government': 'government/ghana-exim-bank.jpg', // Use existing image
+    'ngos': 'NGO/6-ciag.jpg', // Use existing image
+    'private': 'Private/ipmc.jpg', // Use existing image
+    'tenders': 'Partners/1-ukaid.jpg' // Use existing image
   }
-  return logoMap[category] || '/gcx-frontend1/Partners/1-ukaid.jpg'
+  return getPartnerLogo(logoMap[category] || 'Partners/1-ukaid.jpg')
 }
 
 // Load partners when component mounts

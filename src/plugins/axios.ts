@@ -8,7 +8,7 @@ const BACKEND_CONFIG = {
   // Go backend URLs - switch between local and ngrok
   GO_BACKEND_URL_LOCAL: 'http://localhost:8080',
   GO_BACKEND_URL_NGROK: 'https://8f5e6659a95f.ngrok-free.app',
-  GO_USE_NGROK: true, // Set to true for ngrok, false for local
+  GO_USE_NGROK: false, // Set to true for ngrok, false for local
   
   LARAVEL_BACKEND_URL: 'http://localhost:8000'
 }

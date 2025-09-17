@@ -16,6 +16,9 @@ export function useCareers() {
   const searchQuery = ref('');
   const categoryFilter = ref('');
   const statusFilter = ref('');
+  const departmentFilter = ref('');
+  const employmentTypeFilter = ref('');
+  const experienceLevelFilter = ref('');
 
   // Computed properties
   const filteredCareers = computed(() => careers.value);
@@ -33,7 +36,10 @@ export function useCareers() {
         limit: filters.limit || pagination.value.limit,
         search: filters.search || searchQuery.value,
         category: filters.category || categoryFilter.value,
-        status: filters.status || statusFilter.value
+        status: filters.status || statusFilter.value,
+        department: filters.department || departmentFilter.value,
+        employment_type: filters.employment_type || employmentTypeFilter.value,
+        experience_level: filters.experience_level || experienceLevelFilter.value
       });
       
       careers.value = response.data;
@@ -67,11 +73,35 @@ export function useCareers() {
     await fetchCareers();
   };
 
+  // Filter by department
+  const filterByDepartment = async (department: string) => {
+    departmentFilter.value = department;
+    pagination.value.page = 1; // Reset to first page
+    await fetchCareers();
+  };
+
+  // Filter by employment type
+  const filterByEmploymentType = async (employmentType: string) => {
+    employmentTypeFilter.value = employmentType;
+    pagination.value.page = 1; // Reset to first page
+    await fetchCareers();
+  };
+
+  // Filter by experience level
+  const filterByExperienceLevel = async (experienceLevel: string) => {
+    experienceLevelFilter.value = experienceLevel;
+    pagination.value.page = 1; // Reset to first page
+    await fetchCareers();
+  };
+
   // Clear filters
   const clearFilters = async () => {
     searchQuery.value = '';
     categoryFilter.value = '';
     statusFilter.value = '';
+    departmentFilter.value = '';
+    employmentTypeFilter.value = '';
+    experienceLevelFilter.value = '';
     pagination.value.page = 1;
     await fetchCareers();
   };
@@ -96,39 +126,6 @@ export function useCareers() {
     }
   };
 
-  // CRUD operations
-  const createCareer = async (careerData: Omit<Career, 'id' | 'created_at' | 'updated_at' | 'application_count'>) => {
-    try {
-      const response = await careerService.createCareer(careerData);
-      await fetchCareers(); // Refresh the list
-      return response;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to create career';
-      throw err;
-    }
-  };
-
-  const updateCareer = async (id: number, careerData: Partial<Career>) => {
-    try {
-      const response = await careerService.updateCareer(id, careerData);
-      await fetchCareers(); // Refresh the list
-      return response;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to update career';
-      throw err;
-    }
-  };
-
-  const deleteCareer = async (id: number) => {
-    try {
-      await careerService.deleteCareer(id);
-      await fetchCareers(); // Refresh the list
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to delete career';
-      throw err;
-    }
-  };
-
   return {
     // State
     careers,
@@ -138,6 +135,9 @@ export function useCareers() {
     searchQuery,
     categoryFilter,
     statusFilter,
+    departmentFilter,
+    employmentTypeFilter,
+    experienceLevelFilter,
     
     // Computed
     filteredCareers,
@@ -149,12 +149,12 @@ export function useCareers() {
     searchCareers,
     filterByCategory,
     filterByStatus,
+    filterByDepartment,
+    filterByEmploymentType,
+    filterByExperienceLevel,
     clearFilters,
     goToPage,
     nextPage,
-    prevPage,
-    createCareer,
-    updateCareer,
-    deleteCareer
+    prevPage
   };
 }

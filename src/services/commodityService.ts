@@ -66,21 +66,3 @@ export const getCommodityById = async (id: number): Promise<{ success: boolean; 
   const response = await axios.get(`${API_BASE_URL}/commodities/${id}`);
   return response.data;
 };
-
-// Create new commodity
-export const createCommodity = async (commodity: Omit<Commodity, 'id' | 'created_at' | 'updated_at'>): Promise<{ success: boolean; data: Commodity }> => {
-  const response = await axios.post(`${API_BASE_URL}/commodities`, commodity);
-  return response.data;
-};
-
-// Update commodity
-export const updateCommodity = async (id: number, commodity: Partial<Commodity>): Promise<{ success: boolean; data: Commodity }> => {
-  const response = await axios.put(`${API_BASE_URL}/commodities/${id}`, commodity);
-  return response.data;
-};
-
-// Delete commodity
-export const deleteCommodity = async (id: number): Promise<{ success: boolean; message: string }> => {
-  const response = await axios.delete(`${API_BASE_URL}/commodities/${id}`);
-  return response.data;
-};

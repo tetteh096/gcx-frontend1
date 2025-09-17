@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { isDarkMode } from '../utils/darkMode'
 import { usePageContent } from '../composables/usePageContent'
 import MembershipWidget from '../components/MembershipWidget.vue'
+import { getImagePath } from '../utils/imageUtils'
 
 // Import new landing page components
 import HeroSection from '../components/Landing/HeroSection.vue'
@@ -108,7 +109,7 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
            <!-- What is GCX -->
            <div class="rounded-2xl p-6 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
              <div class="w-full h-40 mb-4 rounded-xl overflow-hidden">
-               <img src="/trading dashboard.jpg" alt="Trading Platform" class="w-full h-full object-cover" />
+               <img :src="getImagePath('/trading dashboard.jpg')" alt="Trading Platform" class="w-full h-full object-cover" />
              </div>
              <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ whyJoinContent?.card1_title || 'What is GCX?' }}</h3>
              <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
@@ -119,7 +120,7 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
            <!-- Benefits to Members -->
            <div class="rounded-2xl p-6 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
              <div class="w-full h-40 mb-4 rounded-xl overflow-hidden">
-               <img src="/crop.jpg" alt="Agricultural Trading" class="w-full h-full object-cover" />
+               <img :src="getImagePath('/crop.jpg')" alt="Agricultural Trading" class="w-full h-full object-cover" />
              </div>
              <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ whyJoinContent?.card2_title || 'Benefits to Members' }}</h3>
              <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
@@ -130,7 +131,7 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
            <!-- Benefits to Society -->
            <div class="rounded-2xl p-6 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
              <div class="w-full h-40 mb-4 rounded-xl overflow-hidden">
-               <img src="/trading.jpg" alt="Trading Platform" class="w-full h-full object-cover" />
+               <img :src="getImagePath('/trading.jpg')" alt="Trading Platform" class="w-full h-full object-cover" />
              </div>
              <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ whyJoinContent?.card3_title || 'Benefits to Society' }}</h3>
              <p class="leading-relaxed transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">

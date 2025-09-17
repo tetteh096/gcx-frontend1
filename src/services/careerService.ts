@@ -29,6 +29,9 @@ export interface CareerFilters {
   search?: string;
   category?: string;
   status?: string;
+  department?: string;
+  employment_type?: string;
+  experience_level?: string;
 }
 
 export interface CareerResponse {
@@ -51,6 +54,9 @@ export const getAllCareers = async (filters: CareerFilters = {}): Promise<Career
   if (filters.search) params.append('search', filters.search);
   if (filters.category) params.append('category', filters.category);
   if (filters.status) params.append('status', filters.status);
+  if (filters.department) params.append('department', filters.department);
+  if (filters.employment_type) params.append('employment_type', filters.employment_type);
+  if (filters.experience_level) params.append('experience_level', filters.experience_level);
 
   const response = await axios.get(`${API_BASE_URL}/careers?${params.toString()}`);
   return response.data;
@@ -59,23 +65,5 @@ export const getAllCareers = async (filters: CareerFilters = {}): Promise<Career
 // Get single career by ID
 export const getCareerById = async (id: number): Promise<{ success: boolean; data: Career }> => {
   const response = await axios.get(`${API_BASE_URL}/careers/${id}`);
-  return response.data;
-};
-
-// Create new career
-export const createCareer = async (career: Omit<Career, 'id' | 'created_at' | 'updated_at' | 'application_count'>): Promise<{ success: boolean; data: Career }> => {
-  const response = await axios.post(`${API_BASE_URL}/careers`, career);
-  return response.data;
-};
-
-// Update career
-export const updateCareer = async (id: number, career: Partial<Career>): Promise<{ success: boolean; data: Career }> => {
-  const response = await axios.put(`${API_BASE_URL}/careers/${id}`, career);
-  return response.data;
-};
-
-// Delete career
-export const deleteCareer = async (id: number): Promise<{ success: boolean; message: string }> => {
-  const response = await axios.delete(`${API_BASE_URL}/careers/${id}`);
   return response.data;
 };
