@@ -177,7 +177,7 @@
                     <!-- Image Preview -->
                     <div v-if="editContent[item.key] || item.fallback" class="mt-4">
                       <img
-                        :src="editContent[item.key] || item.fallback"
+                        :src="getImageUrl(editContent[item.key] || item.fallback)"
                         :alt="item.label"
                         class="max-w-full h-48 object-cover rounded-lg border"
                         :class="isDarkMode ? 'border-slate-600' : 'border-slate-200'"
@@ -273,6 +273,7 @@ import { isDarkMode } from '../../utils/darkMode'
 import { useContentMigrator, type PageContent } from '../../composables/useContentMigrator'
 import { usePageContentEditor } from '../../composables/usePageContentEditor'
 import axios from '../../plugins/axios'
+import { getImageUrl } from '../../utils/imageUrl'
 
 const { 
   loading: migrating, 

@@ -286,6 +286,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { isDarkMode } from '../../utils/darkMode'
 import axios from '../../plugins/axios'
+import { getImageUrl } from '../../utils/imageUrl'
 
 interface ImageItem {
   id?: string
@@ -349,12 +350,8 @@ const loadImages = async () => {
     
     if (response.data.success && response.data.data) {
       images.value = response.data.data.map((item: any) => {
-        // Ensure the URL is properly formatted (Vite proxy will handle routing)
-        let imageUrl = item.url
-        if (imageUrl && !imageUrl.startsWith('http')) {
-          // If it's a relative URL, ensure it starts with /
-          imageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`
-        }
+        // Use the getImageUrl utility to properly construct URLs for Heroku backend
+        const imageUrl = getImageUrl(item.url)
         
         console.log('🖼️ Processing image:', {
           id: item.id,
@@ -381,7 +378,7 @@ const loadImages = async () => {
       images.value = [
         {
           id: '1',
-          url: '/uploads/images/1755526687_qqqqqqqq.png',
+          url: getImageUrl('/uploads/images/1755526687_qqqqqqqq.png'),
           name: '1755526687_qqqqqqqq.png',
           alt: 'Sample image 1',
           size: 2200000,
@@ -391,7 +388,7 @@ const loadImages = async () => {
         },
         {
           id: '2', 
-          url: '/uploads/images/1755527015_66666666.png',
+          url: getImageUrl('/uploads/images/1755527015_66666666.png'),
           name: '1755527015_66666666.png',
           alt: 'Sample image 2',
           size: 2100000,
