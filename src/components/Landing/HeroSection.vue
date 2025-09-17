@@ -4,6 +4,7 @@ import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
 
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
 import { useI18n } from '../../composables/useI18n'
+import { getImagePath } from '../../utils/imageUtils'
 
 // Ticker visibility
 const { isTickerVisible } = useTickerVisibility()
@@ -94,7 +95,7 @@ onMounted(() => {
         :class="{ 'opacity-100': currentSlide === 0, 'opacity-0': currentSlide !== 0 }"
       >
         <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-800/70 to-slate-900/80"></div>
-        <img src="/trading dashboard.jpg" alt="Trading Dashboard" class="w-full h-full object-cover" />
+        <img :src="getImagePath('/trading dashboard.jpg')" alt="Trading Dashboard" class="w-full h-full object-cover" />
         <div class="absolute inset-0 flex items-center">
           <div class="w-full px-6 lg:px-12">
             <div class="w-full">
@@ -197,7 +198,7 @@ onMounted(() => {
         :class="{ 'opacity-100': currentSlide === 1, 'opacity-0': currentSlide !== 1 }"
       >
         <div class="absolute inset-0 bg-gradient-to-r from-green-900/80 via-green-800/70 to-green-900/80"></div>
-        <img src="/crop.jpg" alt="Agricultural Trading" class="w-full h-full object-cover" />
+        <img :src="getImagePath('/crop.jpg')" alt="Agricultural Trading" class="w-full h-full object-cover" />
         <div class="absolute inset-0 flex items-center">
           <div class="w-full px-6 lg:px-12">
             <div class="w-full">
@@ -283,7 +284,7 @@ onMounted(() => {
         :class="{ 'opacity-100': currentSlide === 2, 'opacity-0': currentSlide !== 2 }"
       >
         <div class="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/70 to-blue-900/80"></div>
-        <img src="/trading.jpg" alt="Trading Platform" class="w-full h-full object-cover" />
+        <img :src="getImagePath('/trading.jpg')" alt="Trading Platform" class="w-full h-full object-cover" />
         <div class="absolute inset-0 flex items-center">
           <div class="w-full px-6 lg:px-12">
             <div class="w-full">

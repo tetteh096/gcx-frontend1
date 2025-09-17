@@ -96,39 +96,6 @@ export function useCommodities() {
     }
   };
 
-  // CRUD operations
-  const createCommodity = async (commodityData: Omit<Commodity, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      const response = await commodityService.createCommodity(commodityData);
-      await fetchCommodities(); // Refresh the list
-      return response;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to create commodity';
-      throw err;
-    }
-  };
-
-  const updateCommodity = async (id: number, commodityData: Partial<Commodity>) => {
-    try {
-      const response = await commodityService.updateCommodity(id, commodityData);
-      await fetchCommodities(); // Refresh the list
-      return response;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to update commodity';
-      throw err;
-    }
-  };
-
-  const deleteCommodity = async (id: number) => {
-    try {
-      await commodityService.deleteCommodity(id);
-      await fetchCommodities(); // Refresh the list
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to delete commodity';
-      throw err;
-    }
-  };
-
   return {
     // State
     commodities,
@@ -152,9 +119,6 @@ export function useCommodities() {
     clearFilters,
     goToPage,
     nextPage,
-    prevPage,
-    createCommodity,
-    updateCommodity,
-    deleteCommodity
+    prevPage
   };
 }
