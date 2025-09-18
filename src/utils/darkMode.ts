@@ -16,23 +16,17 @@ const initializeDarkMode = () => {
 // Apply dark mode to document
 const applyDarkMode = () => {
   if (typeof document !== 'undefined') {
-    console.log('Applying dark mode:', isDarkMode.value)
     if (isDarkMode.value) {
       document.documentElement.classList.add('dark')
-      console.log('Added dark class')
     } else {
       document.documentElement.classList.remove('dark')
-      console.log('Removed dark class')
     }
-    console.log('Current document classes:', document.documentElement.classList.toString())
   }
 }
 
 // Toggle dark mode
 const toggleDarkMode = () => {
-  console.log('Toggle clicked, current state:', isDarkMode.value)
   isDarkMode.value = !isDarkMode.value
-  console.log('New state:', isDarkMode.value)
   if (typeof window !== 'undefined') {
     localStorage.setItem('darkMode', isDarkMode.value.toString())
   }

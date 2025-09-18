@@ -261,13 +261,11 @@ const tabs = [
 // Methods
 const handleImageSelected = (image: ImageItem) => {
   selectedImageUrl.value = image.url
-  console.log('Image selected:', image)
 }
 
 const handleImageUploaded = (image: ImageItem) => {
   allImages.value.unshift(image)
   updateFolderCounts()
-  console.log('Image uploaded:', image)
 }
 
 const handleBulkFileSelect = (event: Event) => {
@@ -383,7 +381,6 @@ const deleteImage = async (image: ImageItem) => {
     await axios.delete(`/api/media/${image.id}`)
     allImages.value = allImages.value.filter(img => img.id !== image.id)
     updateFolderCounts()
-    console.log('Image deleted:', image)
   } catch (error) {
     console.error('Failed to delete image:', error)
   }

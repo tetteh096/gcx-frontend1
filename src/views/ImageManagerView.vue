@@ -50,6 +50,5 @@ import ImageManager from '../components/CMS/ImageManager.vue'
 
 const toggleDarkMode = () => {
   // This would toggle dark mode - you can implement this based on your dark mode system
-  console.log('Toggle dark mode')
 }
 </script>

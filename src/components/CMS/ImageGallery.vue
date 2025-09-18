@@ -344,21 +344,13 @@ const filteredImages = computed(() => {
 // Methods
 const loadImages = async () => {
   try {
-    console.log('🖼️ Loading images from API...')
     const response = await axios.get('/api/media')
-    console.log('📡 API Response:', response.data)
     
     if (response.data.success && response.data.data) {
       images.value = response.data.data.map((item: any) => {
         // Use the getImageUrl utility to properly construct URLs for Heroku backend
         const imageUrl = getImageUrl(item.url)
         
-        console.log('🖼️ Processing image:', {
-          id: item.id,
-          originalUrl: item.url,
-          processedUrl: imageUrl,
-          filename: item.filename
-        })
         
         return {
           id: item.id,
@@ -371,9 +363,7 @@ const loadImages = async () => {
           error: false
         }
       })
-      console.log('✅ Loaded images:', images.value)
     } else {
-      console.warn('⚠️ No images found or API response format unexpected')
       // Add some sample images for testing
       images.value = [
         {
@@ -399,7 +389,7 @@ const loadImages = async () => {
       ]
     }
   } catch (error) {
-    console.error('❌ Failed to load images:', error)
+    console.error('Failed to load images:', error)
     // Add fallback images
     images.value = [
       {
@@ -509,7 +499,6 @@ const handleImageError = (event: Event) => {
   const imageUrl = img.src
   const imageIndex = parseInt(img.dataset.imageIndex || '0')
   
-  console.error('❌ Image failed to load:', imageUrl, 'Index:', imageIndex)
   
   // Update the error state using the data attribute index
   if (imageIndex >= 0 && imageIndex < images.value.length) {
@@ -523,15 +512,12 @@ const handleImageLoad = (event: Event) => {
   const imageUrl = img.src
   const imageIndex = parseInt(img.dataset.imageIndex || '0')
   
-  console.log('✅ Image loaded successfully:', imageUrl, 'Index:', imageIndex)
   
   // Update the loaded state using the data attribute index
   if (imageIndex >= 0 && imageIndex < images.value.length) {
-    console.log('🎯 Updating image loaded state for index:', imageIndex)
     images.value[imageIndex].loaded = true
     images.value[imageIndex].error = false
   } else {
-    console.warn('⚠️ Invalid image index:', imageIndex)
   }
 }
 
@@ -578,7 +564,6 @@ const downloadImage = (image: ImageItem) => {
 const deleteImage = async (image: ImageItem) => {
   if (confirm(`Are you sure you want to delete "${image.name || image.url.split('/').pop()}"?`)) {
     try {
-      console.log('🗑️ Deleting image:', image.url)
       
       // Call the delete API
       await axios.delete(`/api/media/${image.id}`)
@@ -587,7 +572,6 @@ const deleteImage = async (image: ImageItem) => {
       const imageIndex = images.value.findIndex(img => img.id === image.id)
       if (imageIndex !== -1) {
         images.value.splice(imageIndex, 1)
-        console.log('✅ Image removed from gallery')
       }
       
       // If this was the selected image, clear the selection
@@ -596,7 +580,7 @@ const deleteImage = async (image: ImageItem) => {
       }
       
     } catch (error) {
-      console.error('❌ Error deleting image:', error)
+      console.error('Error deleting image:', error)
       alert('Failed to delete image. Please try again.')
     }
   }

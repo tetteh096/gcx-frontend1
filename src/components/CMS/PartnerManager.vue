@@ -789,7 +789,6 @@ const changePage = (page: number) => {
     loadPartners()
   } else if (!pagination.value) {
     // Fallback for client-side pagination if backend doesn't support it
-    console.log('No backend pagination, using client-side filtering')
   }
 }
 
@@ -895,15 +894,15 @@ const getCategoryLabel = (category: string) => {
 }
 
 const exportPartners = () => {
-  console.log('Export partners:', partners.value)
+  // Export functionality can be implemented here
 }
 
 const toggleFilters = () => {
-  console.log('Toggle filters')
+  // Toggle filters functionality
 }
 
 const viewPartner = (partner: Partner) => {
-  console.log('View partner:', partner)
+  // View partner functionality
 }
 
 // Upload functions
@@ -988,14 +987,12 @@ const removeLogo = () => {
 
 const handleLogoError = (event: Event) => {
   const img = event.target as HTMLImageElement
-  console.warn('Failed to load logo:', img.src)
   // You could add a placeholder image here
   img.src = '/Partners/1-ukaid.jpg'
 }
 
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
-  console.warn('Failed to load image:', img.src)
 }
 
 

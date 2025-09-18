@@ -661,17 +661,14 @@ const getStatusIcon = (status: string) => {
 }
 
 const exportTraders = () => {
-  console.log('Export traders functionality')
   // Implement export functionality
 }
 
 const toggleFilters = () => {
-  console.log('Toggle filters functionality')
   // Implement advanced filters
 }
 
 const viewTrader = (trader: Trader) => {
-  console.log('View trader details:', trader)
   // Implement view trader details
 }
 

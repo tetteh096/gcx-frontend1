@@ -39,7 +39,6 @@ export function useBlog() {
       error.value = null
       
       const response = await blogAPI.getPublicPosts()
-      console.log('Raw API response:', response)
       
       // Handle different response structures
       if (response.data) {
@@ -50,7 +49,6 @@ export function useBlog() {
         posts.value = []
       }
       
-      console.log('Processed posts:', posts.value)
       
       return { success: true }
     } catch (err: any) {

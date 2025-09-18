@@ -35,7 +35,6 @@ const goToWebsite = () => {
 
 const goToProfile = () => {
   // Navigate to profile settings
-  console.log('Navigate to profile')
 }
 
 // Mock notifications

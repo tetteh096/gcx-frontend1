@@ -10,10 +10,8 @@ export const usePartners = () => {
     loading.value = true
     error.value = null
     try {
-      console.log('Loading all partners...')
       const data = await getAllPartners()
       partners.value = data
-      console.log('Partners loaded successfully:', data.length, 'partners')
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Failed to load partners'
       error.value = errorMessage
@@ -32,10 +30,8 @@ export const usePartners = () => {
     loading.value = true
     error.value = null
     try {
-      console.log(`Loading partners for category: ${category}`)
       const data = await getPartnersByCategory(category)
       partners.value = data
-      console.log(`Partners loaded for ${category}:`, data.length, 'partners')
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Failed to load partners'
       error.value = errorMessage

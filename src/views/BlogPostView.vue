@@ -16,7 +16,6 @@ const allPosts = ref([])
 // Load all posts and find current post
 const loadPosts = async () => {
   try {
-    console.log('🔄 Loading blog post...', route.params.id)
     await fetchPublicPosts()
     
     if (posts.value && posts.value.length > 0) {
@@ -66,15 +65,12 @@ const loadPosts = async () => {
         post.slug === param || post.id.toString() === param
       )
       
-      console.log('📝 Current post found:', currentPost.value)
-      
       if (!currentPost.value) {
-        console.warn('❌ Post not found, redirecting to blog')
         router.push('/blog')
       }
     }
   } catch (error) {
-    console.error('❌ Failed to load blog post:', error)
+    console.error('Failed to load blog post:', error)
     router.push('/blog')
   }
 }

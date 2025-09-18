@@ -136,16 +136,6 @@ const {
 
 // Get partners for current category
 const apiPartners = computed(() => {
-  console.log(`Computing API partners for ${props.categoryKey}:`, {
-    error: error.value,
-    partnersCount: partners.value.length,
-    financialCount: financialPartners.value.length,
-    donorCount: donorPartners.value.length,
-    governmentCount: governmentPartners.value.length,
-    ngoCount: ngoPartners.value.length,
-    privateCount: privatePartners.value.length,
-    tenderCount: tenderPartners.value.length
-  })
   
   let categoryPartners = []
   
@@ -172,7 +162,6 @@ const apiPartners = computed(() => {
       categoryPartners = []
   }
   
-  console.log(`Found ${categoryPartners.length} partners for ${props.categoryKey}`)
   
   return categoryPartners.map(partner => ({
     imageSrc: partner.logo || getDefaultLogo(props.categoryKey),
@@ -195,8 +184,6 @@ const getDefaultLogo = (category: string) => {
 
 // Load partners when component mounts
 onMounted(() => {
-  console.log('🚀 PartnershipSection mounted for category:', props.categoryKey)
-  alert(`PartnershipSection mounted for category: ${props.categoryKey}`)
   loadPartnersByCategory(props.categoryKey)
 })
 </script>

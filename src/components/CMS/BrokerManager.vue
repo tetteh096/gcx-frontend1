@@ -649,15 +649,15 @@ const getStatusIcon = (status: string) => {
 }
 
 const exportBrokers = () => {
-  console.log('Export brokers:', brokers.value)
+  // Export functionality
 }
 
 const toggleFilters = () => {
-  console.log('Toggle filters')
+  // Toggle filters functionality
 }
 
 const viewBroker = (broker: Broker) => {
-  console.log('View broker:', broker)
+  // View broker functionality
 }
 
 // Lifecycle

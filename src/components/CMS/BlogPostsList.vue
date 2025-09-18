@@ -170,7 +170,7 @@ const clearFilters = () => {
 
 const exportPosts = () => {
   // TODO: Implement export functionality
-  console.log('Export posts:', filteredPosts.value)
+  // Export functionality
 }
 </script>
 

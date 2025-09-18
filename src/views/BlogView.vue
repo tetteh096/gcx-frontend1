@@ -55,7 +55,6 @@ const clearFilters = () => {
 
 // Manual refresh function for debugging
 const refreshPosts = async () => {
-  console.log('🔄 Manual refresh triggered...')
   blogPosts.value = []
   await loadPosts()
 }
@@ -63,12 +62,7 @@ const refreshPosts = async () => {
 // Load posts function
 const loadPosts = async () => {
   try {
-    console.log('🔄 Fetching blog posts from API...')
     const result = await fetchPublicPosts()
-    
-    console.log('📊 API call result:', result)
-    console.log('📝 Posts received:', posts.value)
-    console.log('📊 Posts count:', posts.value?.length || 0)
     
     if (posts.value && posts.value.length > 0) {
       // Transform API posts to match frontend structure
@@ -119,15 +113,12 @@ const loadPosts = async () => {
         }
       })
       
-      console.log(`✅ Loaded ${transformedPosts.length} blog posts from API`)
-      console.log('🎯 Transformed posts:', transformedPosts)
       blogPosts.value = transformedPosts
     } else {
-      console.log('⚠️ No published posts found - posts.value is:', posts.value)
       blogPosts.value = []
     }
   } catch (error) {
-    console.error('❌ Failed to fetch posts from API:', error)
+    console.error('Failed to fetch posts from API:', error)
     blogPosts.value = []
   }
 }

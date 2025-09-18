@@ -111,7 +111,7 @@ const deletePage = async (pageId: number) => {
   try {
     // For migrated pages, we can't actually delete them from the content migrator
     // This is just a placeholder - in a real implementation, you'd need to handle this differently
-    console.log(`Page deletion requested for ID ${pageId} (migrated pages cannot be deleted)`)
+    // Page deletion not allowed for migrated pages
   } catch (err) {
     console.error('Error deleting page:', err)
   }
@@ -159,7 +159,7 @@ const bulkDelete = async () => {
   if (!confirm(`Are you sure you want to delete ${selectedPages.value.length} pages?`)) return
   
   try {
-    console.log(`Bulk delete requested for pages: ${selectedPages.value.join(', ')}`)
+    // Bulk delete functionality
     clearSelection()
   } catch (err) {
     console.error('Error in bulk delete:', err)
@@ -168,7 +168,7 @@ const bulkDelete = async () => {
 
 const bulkPublish = async () => {
   try {
-    console.log(`Bulk publish requested for pages: ${selectedPages.value.join(', ')}`)
+    // Bulk publish functionality
     clearSelection()
   } catch (err) {
     console.error('Error in bulk publish:', err)
@@ -177,7 +177,7 @@ const bulkPublish = async () => {
 
 const bulkArchive = async () => {
   try {
-    console.log(`Bulk archive requested for pages: ${selectedPages.value.join(', ')}`)
+    // Bulk archive functionality
     clearSelection()
   } catch (err) {
     console.error('Error in bulk archive:', err)
@@ -199,11 +199,11 @@ const editPage = (page: Page) => {
 }
 
 const duplicatePage = (page: Page) => {
-  console.log(`Duplicate page requested: ${page.title}`)
+  // Duplicate page functionality
 }
 
 const previewPage = (page: Page) => {
-  console.log(`Preview page requested: ${page.title}`)
+  // Preview page functionality
 }
 
 const formatDate = (dateString: string) => {

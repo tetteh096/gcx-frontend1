@@ -26,12 +26,10 @@ const showEditPost = (post: BlogPost) => {
 }
 
 const handlePostSaved = (post: BlogPost) => {
-  console.log('Post saved:', post)
   showPostsList()
 }
 
 const handlePostDeleted = (postId: number) => {
-  console.log('Post deleted:', postId)
   showPostsList()
 }
 </script>
