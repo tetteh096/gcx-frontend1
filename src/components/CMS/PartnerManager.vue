@@ -990,7 +990,7 @@ const handleLogoError = (event: Event) => {
   const img = event.target as HTMLImageElement
   console.warn('Failed to load logo:', img.src)
   // You could add a placeholder image here
-  img.src = '/gcx-frontend1/Partners/1-ukaid.jpg'
+  img.src = '/Partners/1-ukaid.jpg'
 }
 
 const handleImageError = (event: Event) => {

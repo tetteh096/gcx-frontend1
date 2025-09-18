@@ -3,12 +3,7 @@ export const getImagePath = (path: string): string => {
   // Remove leading slash if present
   const cleanPath = path.startsWith('/') ? path.slice(1) : path
   
-  // In production (GitHub Pages), we need to prefix with the repository name
-  if (import.meta.env.PROD) {
-    return `/gcx-frontend1/${cleanPath}`
-  }
-  
-  // In development, use the path as-is
+  // Always use root path for both development and production
   return `/${cleanPath}`
 }
 
@@ -17,7 +12,7 @@ export const getPartnerLogo = (logoPath: string): string => {
   if (!logoPath) return getImagePath('Partners/1-ukaid.jpg') // Default fallback
   
   // If it's already a full path, use it as-is
-  if (logoPath.startsWith('http') || logoPath.startsWith('/gcx-frontend1/')) {
+  if (logoPath.startsWith('http') || logoPath.startsWith('/')) {
     return logoPath
   }
   
