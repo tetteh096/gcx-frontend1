@@ -359,14 +359,49 @@ watch(() => route.hash, handleHashChange)
 <template>
   <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
     <!-- Hero Section -->
-    <section class="relative py-14 lg:py-20 overflow-hidden">
+    <section class="relative py-20 lg:py-32 overflow-hidden">
       <div class="absolute inset-0">
         <img src="/Picture3.png" alt="{{ t('navigation.menu.resources') }}" class="w-full h-full object-cover" />
-        <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/40' : 'bg-white/40'"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-slate-900/70"></div>
       </div>
-      <div class="relative max-w-[1600px] mx-auto px-4 text-center">
-        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ t('navigation.menu.resources') }}</h1>
-        <p class="text-lg max-w-3xl mx-auto" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Access our comprehensive library of publications, career opportunities, and commodity information.</p>
+      
+      <!-- Animated Background Elements -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+      
+      <div class="relative max-w-7xl mx-auto px-4 text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-8 animate-fade-in">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Latest Updates Available
+        </div>
+        
+        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-black mb-6 text-white leading-tight animate-slide-up">
+          {{ t('navigation.menu.resources') }}
+        </h1>
+        <p class="text-lg sm:text-xl lg:text-2xl max-w-4xl mx-auto text-white/90 mb-12 leading-relaxed animate-slide-up delay-200 px-4">
+          Access our comprehensive library of publications, career opportunities, and commodity information.
+        </p>
+        
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto animate-slide-up delay-400">
+          <div class="text-center">
+            <div class="text-3xl lg:text-4xl font-bold text-white mb-2">150+</div>
+            <div class="text-white/70">Research Papers</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl lg:text-4xl font-bold text-white mb-2">25+</div>
+            <div class="text-white/70">Annual Reports</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl lg:text-4xl font-bold text-white mb-2">50+</div>
+            <div class="text-white/70">Policy Documents</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -406,23 +441,53 @@ watch(() => route.hash, handleHashChange)
     </section>
 
     <!-- Search and Filters Section -->
-    <section class="py-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
-      <div class="max-w-[1600px] mx-auto px-4">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border dark:border-slate-700">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    <section class="py-12 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border dark:border-slate-700 backdrop-blur-sm">
+          <!-- Enhanced Search Bar -->
+          <div class="mb-8">
+            <div class="relative max-w-4xl mx-auto">
+              <div class="absolute inset-y-0 left-0 pl-4 sm:pl-6 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 sm:h-6 sm:w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                v-model="searchQuery"
+                @keyup.enter="handleSearch"
+                type="text"
+                :placeholder="`Search ${activeSection}...`"
+                class="w-full pl-12 sm:pl-16 pr-20 sm:pr-24 py-3 sm:py-4 text-base sm:text-lg border-2 border-slate-200 dark:border-slate-600 rounded-xl sm:rounded-2xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-500 dark:bg-slate-700 dark:text-white transition-all duration-300 shadow-lg"
+              />
+              <div class="absolute inset-y-0 right-0 pr-2 sm:pr-6 flex items-center">
+                <button
+                  @click="handleSearch"
+                  class="bg-yellow-500 hover:bg-yellow-600 text-black px-3 sm:px-6 py-2 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base"
+                >
+                  <span class="hidden sm:inline">Search</span>
+                  <svg class="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modern Filter Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <!-- Search Input -->
             <div class="lg:col-span-2">
-              <label class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Search</label>
+              <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">Quick Search</label>
               <div class="relative">
                 <input
                   v-model="searchQuery"
                   @keyup.enter="handleSearch"
                   type="text"
                   :placeholder="`Search ${activeSection}...`"
-                  class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full pl-12 pr-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-slate-700 dark:text-white transition-all duration-300"
                 />
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -431,23 +496,30 @@ watch(() => route.hash, handleHashChange)
 
             <!-- Category Filter -->
             <div>
-              <label class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Category</label>
-              <select
-                v-model="selectedCategory"
-                @change="handleCategoryFilter(selectedCategory)"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
-              >
-                <option value="">All Categories</option>
-                <option v-if="activeSection === 'publications'" value="Research Papers">Research Papers</option>
-                <option v-if="activeSection === 'publications'" value="Annual Reports">Annual Reports</option>
-                <option v-if="activeSection === 'publications'" value="Policy Documents">Policy Documents</option>
-                <option v-if="activeSection === 'careers'" value="Job Openings">Job Openings</option>
-                <option v-if="activeSection === 'careers'" value="Internship">Internship</option>
-                <option v-if="activeSection === 'careers'" value="Job Functional Areas">Job Functional Areas</option>
-                <option v-if="activeSection === 'commodities'" value="Grains">Grains</option>
-                <option v-if="activeSection === 'commodities'" value="Oilseeds">Oilseeds</option>
-                <option v-if="activeSection === 'commodities'" value="Legumes">Legumes</option>
-              </select>
+              <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">Category</label>
+              <div class="relative">
+                <select
+                  v-model="selectedCategory"
+                  @change="handleCategoryFilter(selectedCategory)"
+                  class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-slate-700 dark:text-white transition-all duration-300 appearance-none cursor-pointer"
+                >
+                  <option value="">All Categories</option>
+                  <option v-if="activeSection === 'publications'" value="Research Papers">Research Papers</option>
+                  <option v-if="activeSection === 'publications'" value="Annual Reports">Annual Reports</option>
+                  <option v-if="activeSection === 'publications'" value="Policy Documents">Policy Documents</option>
+                  <option v-if="activeSection === 'careers'" value="Job Openings">Job Openings</option>
+                  <option v-if="activeSection === 'careers'" value="Internship">Internship</option>
+                  <option v-if="activeSection === 'careers'" value="Job Functional Areas">Job Functional Areas</option>
+                  <option v-if="activeSection === 'commodities'" value="Grains">Grains</option>
+                  <option v-if="activeSection === 'commodities'" value="Oilseeds">Oilseeds</option>
+                  <option v-if="activeSection === 'commodities'" value="Legumes">Legumes</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             <!-- Status Filter (for careers and commodities) -->
@@ -517,17 +589,23 @@ watch(() => route.hash, handleHashChange)
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap gap-4 justify-center">
             <button
               @click="handleSearch"
-              class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-lg transition-colors duration-300"
+              class="px-8 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
             >
-              Search
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Search Publications
             </button>
             <button
               @click="clearAllFilters"
-              class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors duration-300"
+              class="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
             >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
               Clear Filters
             </button>
           </div>
@@ -578,56 +656,73 @@ watch(() => route.hash, handleHashChange)
             <div
               v-for="item in filteredPublications"
               :key="item.id"
-              class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border dark:border-slate-700 group"
+              class="group bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border dark:border-slate-700 transform hover:-translate-y-2 hover:scale-105"
             >
-              <div class="p-6">
-                <div class="mb-4">
-                  <span class="inline-block px-3 py-1 text-xs font-medium rounded-full" :class="getCategoryBadgeClass(item.category)">
+              <!-- Publication Header with Gradient -->
+              <div class="relative h-32 bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 overflow-hidden">
+                <div class="absolute inset-0 bg-black/20"></div>
+                <div class="absolute top-4 left-4">
+                  <span class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-white/90 text-slate-800 backdrop-blur-sm">
                     {{ item.category }}
                   </span>
                 </div>
-                <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
+                <div class="absolute bottom-4 right-4">
+                  <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors line-clamp-2">
                   {{ item.title }}
                 </h3>
-                <p class="text-sm mb-4 text-slate-600 dark:text-slate-300">
-                  By {{ item.author }} • {{ formatDate(item.publication_date) }}
-                </p>
-                <p class="mb-6 text-slate-600 dark:text-slate-300 line-clamp-3">
+                
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                    <svg class="w-4 h-4 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-slate-900 dark:text-white">{{ item.author }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatDate(item.publication_date) }}</p>
+                  </div>
+                </div>
+
+                <p class="mb-6 text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
                   {{ item.description }}
                 </p>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                    <span class="flex items-center gap-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      {{ item.file_type?.toUpperCase() || 'PDF' }}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {{ formatFileSize(item.file_size) }}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      {{ item.download_count }} downloads
-                    </span>
+
+                <!-- File Info Cards -->
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                  <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Type</div>
+                    <div class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.file_type?.toUpperCase() || 'PDF' }}</div>
                   </div>
-                  <a
-                    :href="item.file_path"
-                    target="_blank"
-                    class="inline-flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 font-medium transition-colors"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download
-                  </a>
+                  <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Size</div>
+                    <div class="text-sm font-semibold text-slate-900 dark:text-white">{{ formatFileSize(item.file_size) }}</div>
+                  </div>
+                  <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Downloads</div>
+                    <div class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.download_count }}</div>
+                  </div>
                 </div>
+
+                <!-- Download Button -->
+                <a
+                  :href="item.file_path"
+                  target="_blank"
+                  class="w-full inline-flex items-center justify-center gap-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Now
+                </a>
               </div>
             </div>
           </div>
@@ -958,3 +1053,96 @@ watch(() => route.hash, handleHashChange)
     </section>
   </div>
 </template>
+
+<style scoped>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s ease-out;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+</style>
