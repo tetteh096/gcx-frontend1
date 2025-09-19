@@ -66,7 +66,7 @@ const { t } = useI18n()
             <li><router-link to="/commodities" class="text-slate-300 hover:text-white transition-colors">Commodities</router-link></li>
             <li><router-link to="/certification" class="text-slate-300 hover:text-white transition-colors">GCX Certification Program</router-link></li>
             <li><router-link to="/careers" class="text-slate-300 hover:text-white transition-colors">Careers</router-link></li>
-            <li><router-link to="/media" class="text-slate-300 hover:text-white transition-colors">{{ t('navigation.menu.media') }}</router-link></li>
+            <li><router-link to="/blog" class="text-slate-300 hover:text-white transition-colors">Media</router-link></li>
             <li><router-link to="/contact" class="text-slate-300 hover:text-white transition-colors">Contact Us</router-link></li>
           </ul>
         </div>
@@ -81,6 +81,7 @@ const { t } = useI18n()
             <li><router-link to="/certification" class="text-slate-300 hover:text-white transition-colors">GCX Certification Program</router-link></li>
             <li><router-link to="/forms" class="text-slate-300 hover:text-white transition-colors">Application Forms</router-link></li>
             <li><router-link to="/resources" class="text-slate-300 hover:text-white transition-colors">GCX Resources</router-link></li>
+            <li><router-link to="/careers" class="text-slate-300 hover:text-white transition-colors">Careers</router-link></li>
             <li><router-link to="/rules" class="text-slate-300 hover:text-white transition-colors">Rules & Regulations</router-link></li>
             <li><router-link to="/procurement" class="text-slate-300 hover:text-white transition-colors">Procurement</router-link></li>
             <li><router-link to="/news" class="text-slate-300 hover:text-white transition-colors">News</router-link></li>

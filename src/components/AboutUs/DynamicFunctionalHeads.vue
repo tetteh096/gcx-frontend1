@@ -22,7 +22,7 @@
         <!-- Clean Image Container -->
         <div class="relative h-[600px] overflow-hidden">
           <img 
-            :src="member.image || '/placeholder-avatar.jpg'" 
+            :src="member.image ? (member.image.startsWith('/uploads') ? getImageUrl(member.image) : member.image) : '/logo_black.png'" 
             :alt="member.name"
             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             @error="handleImageError"
@@ -121,7 +121,7 @@
           <div class="relative mb-8">
             <div class="relative rounded-2xl overflow-hidden shadow-2xl mx-auto" style="width: 300px;">
               <img 
-                :src="selectedMember.image || '/placeholder-avatar.jpg'" 
+                :src="selectedMember.image ? (selectedMember.image.startsWith('/uploads') ? getImageUrl(selectedMember.image) : selectedMember.image) : '/logo_black.png'" 
                 :alt="selectedMember.name"
                 class="w-full h-[400px] object-cover"
               />
@@ -179,6 +179,7 @@
 import { ref, onMounted } from 'vue'
 import { isDarkMode } from '../../utils/darkMode'
 import { usePageContentEditor } from '../../composables/usePageContentEditor'
+import { getImageUrl } from '../../utils/imageUrl'
 import axios from '../../plugins/axios'
 
 interface FunctionalMember {
@@ -239,7 +240,7 @@ const loadFunctionalMembers = async () => {
 
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
-  img.src = '/placeholder-avatar.jpg'
+  img.src = '/logo_black.png'
 }
 
 const hasSocialMedia = (member: FunctionalMember) => {

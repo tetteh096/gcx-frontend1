@@ -68,13 +68,13 @@ const loadPosts = async () => {
       // Transform API posts to match frontend structure
       const transformedPosts = posts.value.map(post => {
         // Handle null/undefined tags
-        let postTags = []
+        let postTags: string[] = []
         if (post.tags) {
           if (typeof post.tags === 'string') {
             try {
               postTags = JSON.parse(post.tags)
             } catch {
-              postTags = post.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+              postTags = (post.tags as string).split(',').map(tag => tag.trim()).filter(tag => tag)
             }
           } else if (Array.isArray(post.tags)) {
             postTags = post.tags
@@ -148,8 +148,8 @@ onMounted(loadPosts)
 
         <div class="flex justify-between items-center mb-12">
           <h2 class="text-3xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-          All Blog Posts
-        </h2>
+            All Blog Posts
+          </h2>
           <button 
             @click="refreshPosts"
             class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -205,4 +205,4 @@ onMounted(loadPosts)
 ::-webkit-scrollbar-thumb:hover {
   background: #ca8a04;
 }
-</style> 
+</style>

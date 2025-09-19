@@ -30,11 +30,12 @@
       <div
         v-for="(image, index) in filteredImages"
         :key="image.id || image.url"
-        class="relative group rounded-lg overflow-hidden border-2 transition-all duration-200 hover:shadow-lg"
+        @click="selectImage(image)"
+        class="relative group rounded-lg overflow-hidden border-2 transition-all duration-200 hover:shadow-lg cursor-pointer"
         :class="[
           selectedImage?.url === image.url
-            ? 'border-blue-500 ring-2 ring-blue-200'
-            : 'border-slate-200 hover:border-blue-300',
+            ? 'border-green-500 ring-2 ring-green-200 shadow-lg'
+            : 'border-slate-200 hover:border-green-300 hover:ring-1 hover:ring-green-100',
           isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'
         ]"
       >
@@ -44,11 +45,11 @@
             :src="image.url"
             :alt="image.alt || 'Gallery image'"
             :data-image-index="index"
-            class="w-full h-full object-cover cursor-pointer transition-opacity duration-200"
-            @click="selectImage(image)"
+            class="w-full h-full object-cover transition-opacity duration-200 hover:opacity-80"
             @error="handleImageError"
             @load="handleImageLoad"
             loading="lazy"
+            title="Click to select this image"
           />
           
           <!-- Loading placeholder -->
@@ -70,9 +71,9 @@
           <!-- Selection Indicator -->
           <div
             v-if="selectedImage?.url === image.url"
-            class="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center z-10"
+            class="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center z-10 shadow-lg"
           >
-            <i class="pi pi-check text-white text-xs"></i>
+            <i class="pi pi-check text-white text-sm"></i>
           </div>
 
           <!-- Action Buttons Overlay -->
@@ -131,12 +132,15 @@
           <p class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
             {{ formatFileSize(selectedImage.size) }}
           </p>
+          <p class="text-xs text-green-600 mt-1">
+            ✓ Image selected and ready to use
+          </p>
         </div>
         <button
           @click="confirmSelection"
-          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
-          Use This Image
+          Confirm Selection
         </button>
       </div>
     </div>
@@ -408,6 +412,8 @@ const loadImages = async () => {
 
 const selectImage = (image: ImageItem) => {
   selectedImage.value = image
+  // Automatically emit selection for better UX
+  emit('imageSelected', image)
 }
 
 const confirmSelection = () => {

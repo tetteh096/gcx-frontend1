@@ -221,6 +221,15 @@ const loadBoardMembers = async () => {
     
     // Backend returns { success: true, data: [...] }
     const apiData = response.data.data || []
+    
+    // Debug: Log the raw data from backend
+    console.log('🔍 Raw board data from backend:', apiData.map(m => ({ 
+      name: m.name, 
+      title: m.title, 
+      type: m.type, 
+      order_index: m.order_index 
+    })))
+    
     boardMembers.value = apiData
     
     console.log(`✅ Loaded ${apiData.length} board members`)

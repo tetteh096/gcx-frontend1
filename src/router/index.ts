@@ -11,7 +11,14 @@ import MembershipView from '../views/MembershipView.vue'
 import MembershipApplicationView from '../views/MembershipApplicationView.vue'
 import MarketDataView from '../views/MarketDataView.vue'
 import ResourcesView from '../views/ResourcesView.vue'
-import MediaView from '../views/MediaView.vue'
+import CareersView from '../views/CareersView.vue'
+import CommoditiesView from '../views/CommoditiesView.vue'
+import VideosView from '../views/VideosView.vue'
+import RTIView from '../views/RTIView.vue'
+import ArchivesView from '../views/ArchivesView.vue'
+import EventArchivesView from '../views/EventArchivesView.vue'
+import EventDetailView from '../views/EventDetailView.vue'
+import GalleryView from '../views/GalleryView.vue'
 import LoginView from '../views/LoginView.vue'
 import CMSView from '../views/CMSView.vue'
 
@@ -80,9 +87,44 @@ const router = createRouter({
       component: ResourcesView
     },
     {
+      path: '/careers',
+      name: 'careers',
+      component: CareersView
+    },
+    {
+      path: '/commodities',
+      name: 'commodities',
+      component: CommoditiesView
+    },
+    {
       path: '/media',
-      name: 'media',
-      component: MediaView
+      redirect: '/blog'
+    },
+    {
+      path: '/media/videos',
+      name: 'videos',
+      component: VideosView
+    },
+    {
+      path: '/media/archives',
+      name: 'media-archives',
+      component: EventArchivesView
+    },
+    {
+      path: '/media/archives/:id',
+      name: 'event-detail',
+      component: EventDetailView,
+      props: true
+    },
+    {
+      path: '/media/gallery',
+      name: 'media-gallery',
+      component: GalleryView
+    },
+    {
+      path: '/rti',
+      name: 'rti',
+      component: RTIView
     },
     {
       path: '/login',

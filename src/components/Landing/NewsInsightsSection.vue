@@ -24,7 +24,7 @@ const newsItems = [
     time: "5 hours ago",
     date: "January 25, 2025",
     author: "GCX International",
-    color: "blue"
+    color: "yellow"
   },
   {
     title: "New Commodity Futures Launched",
@@ -53,7 +53,7 @@ const newsItems = [
         <div 
           v-for="(item, index) in newsItems" 
           :key="index"
-          class="group bg-white rounded-3xl shadow-2xl overflow-hidden transition-all duration-500"
+          class="group rounded-3xl shadow-2xl overflow-hidden transition-all duration-500"
           :class="isDarkMode ? 'bg-slate-800' : 'bg-white'"
         >
           <!-- Image Section -->
@@ -67,7 +67,7 @@ const newsItems = [
             <div class="absolute top-6 left-6">
               <span class="px-4 py-2 rounded-full text-sm font-bold text-white shadow-lg" :class="{
                 'bg-red-500': item.color === 'red',
-                'bg-blue-500': item.color === 'blue',
+                'bg-yellow-500': item.color === 'yellow',
                 'bg-green-500': item.color === 'green'
               }">
                 {{ item.category }}

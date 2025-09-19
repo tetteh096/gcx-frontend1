@@ -11,6 +11,7 @@ import ServicesSection from '../components/Landing/ServicesSection.vue'
 import MarketDataSection from '../components/Landing/MarketDataSection.vue'
 import NewsInsightsSection from '../components/Landing/NewsInsightsSection.vue'
 import EventsSection from '../components/Landing/EventsSection.vue'
+import CommoditiesCarousel from '../components/Landing/CommoditiesCarousel.vue'
 import PartnersSection from '../components/Landing/PartnersSection.vue'
 import Footer from '../components/Footer.vue'
 
@@ -151,16 +152,19 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
      <!-- 6. Join the Exchange Section -->
      <MembershipWidget />
      
-     <!-- 7. Partners Section -->
+     <!-- 7. Commodities Carousel Section -->
+     <CommoditiesCarousel />
+     
+     <!-- 8. Partners Section -->
      <PartnersSection />
      
-     <!-- 8. News & Insights Section -->
+     <!-- 9. News & Insights Section -->
      <NewsInsightsSection />
      
-     <!-- 9. Upcoming Events Section -->
+     <!-- 10. Upcoming Events Section -->
      <EventsSection />
      
-     <!-- 10. CTA Section -->
+     <!-- 11. CTA Section -->
     <section class="py-12 bg-gradient-to-r from-yellow-500 to-yellow-600">
       <div class="max-w-4xl mx-auto px-4 sm:px-6">
         <div class="text-center mb-12">

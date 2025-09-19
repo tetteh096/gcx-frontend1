@@ -9,10 +9,10 @@ const { getContent, getImage, loadPageContent, pageContent } = usePageContentEdi
 // Reactive computed properties for better reactivity
 const aboutTitle = computed(() => getContent('about_title', 'About GCX'))
 const aboutDescription = computed(() => getContent('about_description', 'The Ghana Commodity Exchange is a private company limited by shares, structured as a Public-Private Partnership, with the Government of Ghana currently the sole shareholder. The Exchange aims to establish linkages between agricultural and commodity producers and buyers, secure competitive prices for their products, assure the market quantity and quality, and settle trade promptly.'))
-const ceoName = computed(() => getContent('ceo_name', 'Mr. Robert Dowuona Owoo'))
-const ceoTitle = computed(() => getContent('ceo_title', 'Acting Chief Executive Officer'))
-const ceoImage = computed(() => getImage('ceo_image', '/Mr. Robert Dowuona Owoo.jpeg'))
-const ceoIntro = computed(() => getContent('ceo_intro', 'Ghana Commodity Exchange\'s Management team is led by Mr. Robert Dowuona Owooi, the Acting Chief Executive Officer.'))
+const ceoName = computed(() => getContent('ceo_name', 'Ms. Evelyn Abakah'))
+const ceoTitle = computed(() => getContent('ceo_title', 'Chief Executive Officer'))
+const ceoImage = computed(() => getImage('ceo_image', '/uploads/placeholder-ceo.jpg'))
+const ceoIntro = computed(() => getContent('ceo_intro', 'Ghana Commodity Exchange\'s Management team is led by Ms. Evelyn Abakah, the Chief Executive Officer.'))
 const keyGoalTitle = computed(() => getContent('key_goal_title', 'Our Key Goal'))
 const keyGoalDescription = computed(() => getContent('key_goal_description', 'To link Ghanaian smallholder farmers to agricultural and financial markets in Ghana and across the West Africa Region to ensure Ghana farmers secure competitive prices for their commodities, as well as supply good quality commodities which meet the nutritional needs of the Ghanaian people.'))
 

@@ -22,7 +22,7 @@ const navbarTop = computed(() => {
 const navigation = computed(() => [
   { name: 'Home', href: '/' },
   { 
-    name: t('navigation.menu.about'), 
+    name: 'About', 
     href: '/about',
     dropdown: [
       { 
@@ -53,11 +53,11 @@ const navigation = computed(() => [
     ]
   },
   { 
-    name: t('navigation.menu.services'), 
+    name: 'Services', 
     href: '/services'
   },
   { 
-    name: t('navigation.menu.membership'), 
+    name: 'Membership', 
     href: '/membership',
     dropdown: [
       { 
@@ -80,7 +80,7 @@ const navigation = computed(() => [
     ]
   },
   { 
-    name: t('navigation.menu.marketData'), 
+    name: 'Market Data', 
     href: '/market-data',
     dropdown: [
       { 
@@ -97,18 +97,9 @@ const navigation = computed(() => [
     ]
   },
   { 
-    name: t('navigation.menu.resources'), 
+    name: 'Resources', 
     href: '/resources',
     dropdown: [
-      { 
-        title: 'Educational Materials',
-        items: [
-          { name: 'Trading Guides', href: '/resources', description: 'Comprehensive trading tutorials and guides' },
-          { name: 'Market Analysis', href: '/resources', description: 'In-depth market research and analysis' },
-          { name: 'Best Practices', href: '/resources', description: 'Industry best practices and standards' },
-          { name: 'Training Materials', href: '/resources', description: 'Educational resources for traders' }
-        ]
-      },
       { 
         title: 'Publications & Documents',
         items: [
@@ -120,54 +111,56 @@ const navigation = computed(() => [
       { 
         title: 'Career Opportunities',
         items: [
-          { name: 'Job Openings', href: '/resources#openings', description: 'Current career opportunities at GCX' },
-          { name: 'Internship Programs', href: '/resources#internship', description: 'Student internship and training programs' },
-          { name: 'Functional Areas', href: '/resources#functional', description: 'Available job functions and departments' }
-        ]
-      },
-      { 
-        title: 'Commodity Information',
-        items: [
-          { name: 'Maize Trading', href: '/resources#maize', description: 'Maize commodity trading information' },
-          { name: 'Soya Bean', href: '/resources#soybean', description: 'Soya bean market insights and trading' },
-          { name: 'Sorghum', href: '/resources#sorghum', description: 'Sorghum commodity details and pricing' },
-          { name: 'Sesame', href: '/resources#sesame', description: 'Sesame seed trading and market data' },
-          { name: 'Rice', href: '/resources#rice', description: 'Rice commodity trading information' }
+          { name: 'Job Openings', href: '/careers#openings', description: 'Current career opportunities at GCX' },
+          { name: 'Internship Programs', href: '/careers#internship', description: 'Student internship and training programs' },
+          { name: 'Functional Areas', href: '/careers#functional', description: 'Available job functions and departments' }
         ]
       }
     ]
   },
   { 
-    name: t('navigation.menu.media'), 
-    href: '/media',
+    name: 'Commodities', 
+    href: '/commodities',
     dropdown: [
       { 
-        title: 'News & Updates',
+        title: 'Commodity Markets',
         items: [
-          { name: 'Latest News', href: '/media', description: 'Recent news and announcements' },
-          { name: 'Press Releases', href: '/media', description: 'Official press releases and statements' },
-          { name: 'Media Coverage', href: '/media', description: 'GCX in the news and media' },
-          { name: 'Featured Stories', href: '/blog', description: 'Highlighted stories from the industry' },
-          { name: 'Industry Insights', href: '/blog', description: 'Expert analysis and market insights' }
-        ]
-      },
-      { 
-        title: 'Multimedia Content',
-        items: [
-          { name: 'Photo Gallery', href: '/media#gallery', description: 'Event photos and visual content' },
-          { name: 'Videos', href: '/media#videos', description: 'Video content and presentations' },
-          { name: 'Webinars', href: '/media#webinars', description: 'Educational webinars and events' }
-        ]
-      },
-      { 
-        title: 'External Resources',
-        items: [
-          { name: 'GCX RTI Portal', href: 'https://gcx.com.gh/gcxrti/', description: 'Right to Information portal access', external: true }
+          { name: 'Maize', href: '/commodities#maize', description: 'Maize commodity trading and pricing' },
+          { name: 'Rice', href: '/commodities#rice', description: 'Rice market insights and trading' },
+          { name: 'Sesame', href: '/commodities#sesame', description: 'Sesame seed trading and market data' },
+          { name: 'Sorghum', href: '/commodities#sorghum', description: 'Sorghum commodity details and pricing' },
+          { name: 'Soya Bean', href: '/commodities#soybean', description: 'Soya bean market insights and trading' }
         ]
       }
     ]
   },
-  { name: t('navigation.menu.contact'), href: '/contact' }
+  { 
+    name: 'Media', 
+    href: '/blog',
+    dropdown: [
+      { 
+        title: 'News & Events',
+        items: [
+          { name: 'Latest News', href: '/blog', description: 'Recent news and announcements' },
+          { name: 'Event Archives', href: '/media/archives', description: 'Past events and historical coverage' }
+        ]
+      },
+      { 
+        title: 'Multimedia',
+        items: [
+          { name: 'Videos', href: '/media/videos', description: 'Video content and presentations' },
+          { name: 'Photo Gallery', href: '/media/gallery', description: 'Event photos and visual content' }
+        ]
+      },
+      { 
+        title: 'Information Access',
+        items: [
+          { name: 'RTI Portal', href: '/rti', description: 'Right to Information access and applications' }
+        ]
+      }
+    ]
+  },
+  { name: 'Contact', href: '/contact' }
 ])
 
 // State management
@@ -249,8 +242,8 @@ const navigateToApplication = () => {
         </div>
 
         <!-- Desktop Navigation - Center -->
-        <div class="hidden lg:flex items-center justify-center flex-1">
-          <div class="flex items-center space-x-1 rounded-full px-3 py-1.5 backdrop-blur-sm border"
+        <div class="hidden xl:flex items-center justify-center flex-1">
+          <div class="flex items-center space-x-0.5 rounded-full px-2 py-1.5 backdrop-blur-sm border max-w-4xl"
                :class="isDarkMode ? 'bg-slate-800/90 border-slate-700/50' : 'bg-gray-100/80 border-gray-200/50'">
             <div
               v-for="item in navigation"
@@ -261,13 +254,13 @@ const navigateToApplication = () => {
             >
               <router-link 
                 :to="item.href"
-                class="px-3 py-2 text-sm font-medium rounded-full transition-all flex items-center whitespace-nowrap"
+                class="px-2.5 py-2 text-xs font-medium rounded-full transition-all flex items-center whitespace-nowrap"
                 :class="$route.path === item.href 
                   ? (isDarkMode ? 'bg-slate-700 shadow-sm text-white' : 'bg-white shadow-sm text-black')
                   : (isDarkMode ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-gray-600 hover:text-black hover:bg-white/50')"
               >
                 {{ item.name }}
-                <ChevronDownIcon v-if="item.dropdown" class="ml-1 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <ChevronDownIcon v-if="item.dropdown" class="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M19 9l-7 7-7-7" />
                 </ChevronDownIcon>
               </router-link>
@@ -275,7 +268,7 @@ const navigateToApplication = () => {
               <!-- Large Dropdown Menu -->
               <div
                 v-if="item.dropdown && openDropdown === item.name"
-                class="absolute top-full left-0 mt-2 w-[600px] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
+                class="absolute top-full left-0 mt-2 w-[600px] max-w-[90vw] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
                 :class="isDarkMode ? 'bg-slate-900 border-slate-600' : 'bg-white border-gray-300'"
                 @mouseenter="clearDropdownTimeout()"
                 @mouseleave="closeDropdown"
@@ -381,6 +374,105 @@ const navigateToApplication = () => {
           </div>
         </div>
 
+        <!-- Medium Screen Navigation (Tablets) -->
+        <div class="hidden lg:flex xl:hidden items-center justify-center flex-1">
+          <div class="flex items-center space-x-1 rounded-full px-2 py-1.5 backdrop-blur-sm border max-w-3xl"
+               :class="isDarkMode ? 'bg-slate-800/90 border-slate-700/50' : 'bg-gray-100/80 border-gray-200/50'">
+            <div
+              v-for="item in navigation.slice(0, 5)"
+              :key="item.name"
+              class="relative"
+              @mouseenter="item.dropdown ? (clearDropdownTimeout(), toggleDropdown(item.name)) : null"
+              @mouseleave="closeDropdown"
+            >
+              <router-link 
+                :to="item.href"
+                class="px-2 py-1.5 text-xs font-medium rounded-full transition-all flex items-center whitespace-nowrap"
+                :class="$route.path === item.href 
+                  ? (isDarkMode ? 'bg-slate-700 shadow-sm text-white' : 'bg-white shadow-sm text-black')
+                  : (isDarkMode ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-gray-600 hover:text-black hover:bg-white/50')"
+              >
+                {{ item.name }}
+                <ChevronDownIcon v-if="item.dropdown" class="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M19 9l-7 7-7-7" />
+                </ChevronDownIcon>
+              </router-link>
+              
+              <!-- Medium Dropdown Menu -->
+              <div
+                v-if="item.dropdown && openDropdown === item.name"
+                class="absolute top-full left-0 mt-2 w-[500px] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
+                :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'"
+              >
+                <div class="grid grid-cols-1 gap-6 px-6">
+                  <div v-for="section in item.dropdown" :key="section.title" class="space-y-3">
+                    <h4 class="text-sm font-semibold text-yellow-500 border-b border-yellow-200 pb-2" :class="isDarkMode ? 'border-yellow-700' : 'border-yellow-200'">
+                      {{ section.title }}
+                    </h4>
+                    <div class="space-y-1">
+                      <router-link
+                        v-for="dropdownItem in section.items"
+                        :key="dropdownItem.name"
+                        :to="dropdownItem.href"
+                        class="group block p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:border-gray-200"
+                        :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
+                      >
+                        <div class="flex items-start justify-between">
+                          <div class="flex-1">
+                            <h5 class="font-medium text-sm mb-0.5 transition-colors text-black group-hover:text-yellow-500"
+                                :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-black group-hover:text-yellow-500'">
+                              {{ dropdownItem.name }}
+                            </h5>
+                            <p class="text-xs leading-relaxed text-gray-600 group-hover:text-gray-500"
+                               :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-gray-600 group-hover:text-gray-500'">
+                              {{ dropdownItem.description }}
+                            </p>
+                          </div>
+                          <svg class="w-4 h-4 transition-colors text-gray-400 group-hover:text-yellow-500" 
+                               :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-gray-400 group-hover:text-yellow-500'" 
+                               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                          </svg>
+                        </div>
+                      </router-link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- More button for remaining items -->
+            <div class="relative" @mouseenter="clearDropdownTimeout(); toggleDropdown('more')" @mouseleave="closeDropdown">
+              <button class="px-2 py-1.5 text-xs font-medium rounded-full transition-all flex items-center whitespace-nowrap"
+                      :class="isDarkMode ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-gray-600 hover:text-black hover:bg-white/50'">
+                More
+                <ChevronDownIcon class="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M19 9l-7 7-7-7" />
+                </ChevronDownIcon>
+              </button>
+              
+              <!-- More items dropdown -->
+              <div
+                v-if="openDropdown === 'more'"
+                class="absolute top-full left-0 mt-2 w-[300px] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
+                :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'"
+              >
+                <div class="px-4 space-y-2">
+                  <router-link
+                    v-for="item in navigation.slice(5)"
+                    :key="item.name"
+                    :to="item.href"
+                    class="block px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                    :class="isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+                  >
+                    {{ item.name }}
+                  </router-link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Right side - Actions closer to navigation -->
         <div class="flex items-center justify-end space-x-4 ml-4">
           <!-- Enhanced Search Bar with more space -->
@@ -390,7 +482,7 @@ const navigateToApplication = () => {
                 v-model="searchQuery"
                 @keyup.enter="handleSearch"
                 type="text"
-                :placeholder="t('forms.placeholders.search')"
+                placeholder="Search..."
                 class="w-48 pl-4 pr-10 py-2 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 shadow-sm transition-all duration-300"
                 :class="isDarkMode ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-400 hover:border-slate-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400 hover:border-gray-400'"
               />
@@ -455,7 +547,7 @@ const navigateToApplication = () => {
 
       <!-- Mobile Menu -->
       <div v-show="isMenuOpen" class="lg:hidden">
-        <div class="py-4 space-y-2 backdrop-blur-md rounded-2xl mx-4 mb-4 shadow-xl border transition-all duration-300"
+        <div class="py-4 space-y-2 backdrop-blur-md rounded-2xl mx-2 mb-4 shadow-xl border transition-all duration-300 max-h-[80vh] overflow-y-auto"
              :class="isDarkMode ? 'bg-slate-800/95 border-slate-700/50' : 'bg-white/95 border-gray-200/50'">
           
           <!-- Mobile Search -->
@@ -466,7 +558,7 @@ const navigateToApplication = () => {
                 v-model="searchQuery"
                 @keyup.enter="handleSearch"
                 type="text"
-                :placeholder="t('forms.placeholders.search')"
+                placeholder="Search..."
                 class="w-full pl-9 pr-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
                 :class="isDarkMode ? 'bg-slate-700 text-white placeholder-slate-400 border-slate-600' : 'bg-slate-50 text-slate-900 placeholder-slate-500 border-slate-300'"
               />
@@ -479,19 +571,19 @@ const navigateToApplication = () => {
               <router-link
                 :to="item.href"
                 @click="closeMenu"
-                class="flex items-center justify-between px-3 py-2 text-base font-medium rounded-lg transition-colors duration-200"
+                class="flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
                 :class="$route.path === item.href 
                   ? (isDarkMode ? 'bg-slate-700 text-yellow-400' : 'bg-yellow-50 text-yellow-600')
                   : (isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900')"
               >
-                <span>{{ item.name }}</span>
-                <ChevronDownIcon v-if="item.dropdown" class="h-4 w-4" />
+                <span class="truncate">{{ item.name }}</span>
+                <ChevronDownIcon v-if="item.dropdown" class="h-4 w-4 flex-shrink-0 ml-2" />
               </router-link>
               
               <!-- Mobile Dropdown -->
-              <div v-if="item.dropdown" class="ml-4 mt-2 space-y-1">
-                <div v-for="section in item.dropdown" :key="section.title" class="mb-4">
-                  <h4 class="text-xs font-semibold uppercase tracking-wide mb-2 px-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <div v-if="item.dropdown" class="ml-4 mt-1 space-y-1">
+                <div v-for="section in item.dropdown" :key="section.title" class="mb-3">
+                  <h4 class="text-xs font-semibold uppercase tracking-wide mb-2 px-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                     {{ section.title }}
                   </h4>
                   <router-link
@@ -499,7 +591,7 @@ const navigateToApplication = () => {
                     :key="dropdownItem.name"
                     :to="dropdownItem.href"
                     @click="closeMenu"
-                    class="block px-4 py-2 text-sm transition-colors rounded-lg"
+                    class="block px-3 py-2 text-sm transition-colors rounded-lg truncate"
                     :class="isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'"
                   >
                     {{ dropdownItem.name }}

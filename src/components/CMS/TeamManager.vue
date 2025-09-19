@@ -580,7 +580,7 @@
                 </div>
                 <div class="flex-1">
                   <p class="text-sm text-slate-600 mb-4">
-                    Choose a professional headshot or profile photo for this team member
+                    Choose a professional headshot or profile photo for this team member. Click on any image to select it.
                   </p>
                   <ImageGallery
                     title="Select Profile Image"
