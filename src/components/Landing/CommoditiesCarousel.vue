@@ -10,7 +10,7 @@ const commodities = [
   {
     id: 'maize',
     name: 'Maize',
-    image: '/commodities/miaze.jpg',
+    image: '/maize.jpg',
     description: 'White & Yellow Maize',
     contractCode: 'GAPWM2',
     price: 'GH₵1,880',
@@ -20,7 +20,7 @@ const commodities = [
   {
     id: 'rice',
     name: 'Rice',
-    image: '/commodities/rice.jpg',
+    image: '/crop.jpg',
     description: 'Premium Rice',
     contractCode: 'GAPRM2',
     price: 'GH₵2,450',
@@ -30,7 +30,7 @@ const commodities = [
   {
     id: 'sesame',
     name: 'Sesame',
-    image: '/commodities/seasame.jpg',
+    image: '/crop.jpg',
     description: 'White Sesame',
     contractCode: 'GKUWM2',
     price: 'GH₵4,645',
@@ -40,7 +40,7 @@ const commodities = [
   {
     id: 'sorghum',
     name: 'Sorghum',
-    image: '/commodities/sorghon.jpg',
+    image: '/sorghum.jpg',
     description: 'Red Sorghum',
     contractCode: 'GSAWM2',
     price: 'GH₵4,745',
@@ -50,7 +50,7 @@ const commodities = [
   {
     id: 'soya',
     name: 'Soya Bean',
-    image: '/commodities/soya.jpg',
+    image: '/crop.jpg',
     description: 'Premium Soya Bean',
     contractCode: 'GEJWM2',
     price: 'GH₵4,030',
