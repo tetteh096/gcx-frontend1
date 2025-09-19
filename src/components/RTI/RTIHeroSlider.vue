@@ -84,7 +84,7 @@ onUnmounted(() => {
     <!-- RTI Logo -->
     <div class="absolute top-8 left-8 z-10">
       <img 
-        src="/rtic-logo.png" 
+        :src="'/rtic-logo.png'" 
         alt="RTI Logo" 
         class="h-16 w-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
       />
