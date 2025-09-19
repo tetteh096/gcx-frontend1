@@ -73,7 +73,7 @@ watch(() => route.hash, setActiveFromHash)
         <div class="absolute -bottom-8 left-20 w-72 h-72 bg-yellow-400 dark:bg-yellow-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 animate-pulse delay-500"></div>
       </div>
       
-      <div class="relative max-w-[1600px] mx-auto px-4">
+      <div class="relative max-w-7xl mx-auto px-4">
         <div class="text-center max-w-4xl mx-auto">
           <!-- Badge -->
           <div class="mb-6">
@@ -109,7 +109,7 @@ watch(() => route.hash, setActiveFromHash)
 
     <!-- Horizontal Tab Navigation -->
     <section class="py-8 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
-      <div class="max-w-[1600px] mx-auto px-4">
+      <div class="max-w-7xl mx-auto px-4">
         <div class="flex flex-wrap justify-center gap-2 lg:gap-4">
           <button
             v-for="tab in tabs"
@@ -128,7 +128,7 @@ watch(() => route.hash, setActiveFromHash)
 
     <!-- Tab Content -->
     <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
-      <div class="max-w-[1600px] mx-auto px-4">
+      <div class="max-w-7xl mx-auto px-4">
         <!-- About GCX Tab -->
         <div id="tab-about" :class="activeTab === 'about' ? 'block' : 'hidden'">
           <AboutGCX />

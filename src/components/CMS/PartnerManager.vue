@@ -386,67 +386,36 @@
 
           <form @submit.prevent="savePartner" class="space-y-4">
             <!-- Logo Upload Section -->
-            <div class="mb-6">
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                Partner Logo *
-              </label>
-              
-              <!-- Logo Preview -->
-              <div v-if="form.logo" class="mb-4">
-                <div class="relative inline-block">
-                  <img 
-                    :src="form.logo" 
-                    :alt="form.name || 'Partner Logo'"
-                    class="w-24 h-24 object-contain border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700"
-                    @error="handleLogoError"
-                  />
-                  <button
-                    @click="removeLogo"
-                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                    title="Remove logo"
-                  >
-                    <i class="pi pi-times"></i>
-                  </button>
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+              <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-image mr-2 text-purple-600"></i>
+                Partner Logo
+              </h4>
+              <div class="flex items-start space-x-6">
+                <div class="flex-shrink-0">
+                  <div class="w-32 h-32 rounded-xl overflow-hidden border-4 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-800">
+                    <img
+                      v-if="form.logo"
+                      :src="form.logo"
+                      alt="Logo Preview"
+                      class="w-full h-full object-contain"
+                    />
+                    <div v-else class="w-full h-full flex items-center justify-center">
+                      <i class="pi pi-image text-4xl text-slate-400"></i>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <!-- Upload Options -->
-              <div class="flex flex-col sm:flex-row gap-3">
-                <label class="flex items-center px-4 py-2 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                       :class="isDarkMode ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-300 hover:bg-slate-50'">
-                  <i class="pi pi-upload mr-2"></i>
-                  {{ isUploading ? 'Uploading...' : 'Upload Logo' }}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    @change="handleLogoUpload"
-                    class="hidden"
-                    :disabled="isUploading"
-                  />
-                </label>
-                
-                <button
-                  @click="showImageLibrary = true"
-                  class="px-4 py-2 border rounded-lg transition-colors"
-                  :class="isDarkMode ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-300 hover:bg-slate-50'"
-                >
-                  <i class="pi pi-images mr-2"></i>
-                  Choose from Library
-                </button>
-                
                 <div class="flex-1">
-                  <input
-                    v-model="form.logo"
-                    type="url"
-                    placeholder="Or enter logo URL directly..."
-                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    Choose a logo for this partner. Click on any image to select it.
+                  </p>
+                  <ImageGallery
+                    title="Select Partner Logo"
+                    :current-image="form.logo"
+                    @image-selected="(img) => form.logo = img.url"
                   />
                 </div>
               </div>
-              
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                Recommended: 200x200px or larger, PNG/JPG format, max 5MB
-              </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -565,85 +534,6 @@
       </div>
     </div>
 
-    <!-- Image Library Modal -->
-    <div
-      v-if="showImageLibrary"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      @click="showImageLibrary = false"
-    >
-      <div
-        class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto"
-        @click.stop
-      >
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-slate-900 dark:text-white">
-              Choose Partner Logo
-            </h3>
-            <button
-              @click="showImageLibrary = false"
-              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            >
-              <i class="pi pi-times text-xl"></i>
-            </button>
-          </div>
-
-          <!-- Upload New Image -->
-          <div class="mb-6">
-            <label class="block w-full cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                @change="handleLibraryImageUpload"
-                class="sr-only"
-                :disabled="isUploading"
-              />
-              <div class="flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed rounded-xl transition-colors hover:bg-opacity-50"
-                   :class="isDarkMode 
-                     ? 'border-slate-600 hover:bg-slate-700 text-slate-300' 
-                     : 'border-gray-300 hover:bg-gray-50 text-gray-600'"
-              >
-                <i class="pi pi-upload text-3xl mb-3"></i>
-                <p class="text-lg font-medium">{{ isUploading ? 'Uploading...' : 'Upload New Image' }}</p>
-                <p class="text-sm opacity-75">Click to browse or drag and drop</p>
-                <p class="text-xs opacity-50 mt-1">PNG, JPG, WEBP up to 5MB</p>
-              </div>
-            </label>
-          </div>
-
-          <!-- Image Grid -->
-          <div v-if="mediaFiles.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
-            <div
-              v-for="file in mediaFiles"
-              :key="file.id"
-              @click="selectImage(file.url)"
-              class="relative cursor-pointer group rounded-lg overflow-hidden border-2 transition-all duration-200"
-              :class="form.logo === file.url 
-                ? 'border-green-500 ring-2 ring-green-200' 
-                : 'border-slate-200 dark:border-slate-600 hover:border-green-400'"
-            >
-              <img
-                :src="file.url"
-                :alt="file.original_name"
-                class="w-full h-24 object-cover"
-                @error="handleImageError"
-              />
-              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <i v-if="form.logo === file.url" class="pi pi-check-circle text-green-500 text-xl"></i>
-                <i v-else class="pi pi-plus text-white text-xl opacity-0 group-hover:opacity-100"></i>
-              </div>
-            </div>
-          </div>
-
-          <!-- Empty State -->
-          <div v-else class="text-center py-12">
-            <i class="pi pi-images text-4xl text-slate-400 mb-4"></i>
-            <h3 class="text-lg font-medium text-slate-900 dark:text-white mb-2">No images found</h3>
-            <p class="text-slate-500 dark:text-slate-400">Upload some images to get started.</p>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -651,19 +541,14 @@
 import { ref, onMounted, computed } from 'vue'
 import { getCMSPartners, createPartner, updatePartner, deletePartner, type Partner, type CreatePartnerRequest } from '../../services/partnerService'
 import { isDarkMode } from '../../utils/darkMode'
-import { useMedia } from '../../composables/useMedia'
-import type { MediaFile } from '../../types/cms'
+import ImageGallery from './ImageGallery.vue'
 
-// Media composable
-const { files: mediaFiles, uploadFile, fetchFiles } = useMedia()
 
 // State
 const partners = ref<Partner[]>([])
 const loading = ref(false)
 const saving = ref(false)
-const isUploading = ref(false)
 const showModal = ref(false)
-const showImageLibrary = ref(false)
 const editingPartner = ref<Partner | null>(null)
 const searchQuery = ref('')
 const categoryFilter = ref('')
@@ -905,103 +790,16 @@ const viewPartner = (partner: Partner) => {
   // View partner functionality
 }
 
-// Upload functions
-const handleLogoUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  // Check if it's an image
-  if (!file.type.startsWith('image/')) {
-    alert('Please select an image file')
-    return
-  }
-
-  // Check file size (5MB max)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('⚠️ Image size should be less than 5MB. Please choose a smaller image.')
-    return
-  }
-
-  try {
-    isUploading.value = true
-    const result = await uploadFile(file)
-    if (result.success && result.data) {
-      form.value.logo = result.data.url
-    }
-  } catch (error) {
-    console.error('Logo upload error:', error)
-    alert('Failed to upload logo. Please try again.')
-  } finally {
-    isUploading.value = false
-    // Clear the input
-    if (target) target.value = ''
-  }
-}
-
-const handleLibraryImageUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const files = target.files
-  if (!files || files.length === 0) return
-
-  try {
-    isUploading.value = true
-    
-    // Upload files one by one
-    for (const file of Array.from(files)) {
-      // Check file size and type
-      if (!file.type.startsWith('image/')) {
-        alert(`${file.name} is not an image file`)
-        continue
-      }
-      
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name} is too large (max 5MB)`)
-        continue
-      }
-      
-      await uploadFile(file)
-    }
-    
-    // Refresh the files list
-    await fetchFiles()
-    
-  } catch (error) {
-    console.error('Failed to upload images:', error)
-    alert('Failed to upload some images. Please try again.')
-  } finally {
-    isUploading.value = false
-    // Clear the input
-    if (target) target.value = ''
-  }
-}
-
-const selectImage = (imageUrl: string) => {
-  form.value.logo = imageUrl
-  showImageLibrary.value = false
-}
-
-const removeLogo = () => {
-  form.value.logo = ''
-}
-
 const handleLogoError = (event: Event) => {
   const img = event.target as HTMLImageElement
   // You could add a placeholder image here
   img.src = '/Partners/1-ukaid.jpg'
 }
 
-const handleImageError = (event: Event) => {
-  const img = event.target as HTMLImageElement
-}
-
 
 // Lifecycle
 onMounted(async () => {
-  await Promise.all([
-    loadPartners(),
-    fetchFiles() // Load media files for the image library
-  ])
+  await loadPartners()
 })
 </script>
 

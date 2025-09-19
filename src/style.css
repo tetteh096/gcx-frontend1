@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}
+
 @theme {
   --color-slate-50: #f8fafc;
   --color-slate-100: #f1f5f9;

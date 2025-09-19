@@ -165,6 +165,7 @@ const navigation = computed(() => [
 
 // State management
 const openDropdown = ref<string | null>(null)
+const openMobileDropdown = ref<string | null>(null)
 let dropdownTimeout: number | null = null
 
 // Methods
@@ -174,6 +175,11 @@ const toggleMenu = () => {
 
 const closeMenu = () => {
   isMenuOpen.value = false
+  openMobileDropdown.value = null
+}
+
+const toggleMobileDropdown = (itemName: string) => {
+  openMobileDropdown.value = openMobileDropdown.value === itemName ? null : itemName
 }
 
 const toggleDropdown = (itemName: string) => {
@@ -187,7 +193,7 @@ const toggleDropdown = (itemName: string) => {
 const closeDropdown = () => {
   dropdownTimeout = setTimeout(() => {
     openDropdown.value = null
-  }, 300) // 300ms delay before closing
+  }, 500) // 500ms delay before closing - reduced since gap is fixed
 }
 
 const clearDropdownTimeout = () => {
@@ -254,6 +260,7 @@ const navigateToApplication = () => {
             >
               <router-link 
                 :to="item.href"
+                @click="item.dropdown ? $event.preventDefault() : null"
                 class="px-2.5 py-2 text-xs font-medium rounded-full transition-all flex items-center whitespace-nowrap"
                 :class="$route.path === item.href 
                   ? (isDarkMode ? 'bg-slate-700 shadow-sm text-white' : 'bg-white shadow-sm text-black')
@@ -268,7 +275,7 @@ const navigateToApplication = () => {
               <!-- Large Dropdown Menu -->
               <div
                 v-if="item.dropdown && openDropdown === item.name"
-                class="absolute top-full left-0 mt-2 w-[600px] max-w-[90vw] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
+                class="absolute top-full left-0 mt-0 w-[600px] max-w-[90vw] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
                 :class="isDarkMode ? 'bg-slate-900 border-slate-600' : 'bg-white border-gray-300'"
                 @mouseenter="clearDropdownTimeout()"
                 @mouseleave="closeDropdown"
@@ -383,10 +390,11 @@ const navigateToApplication = () => {
               :key="item.name"
               class="relative"
               @mouseenter="item.dropdown ? (clearDropdownTimeout(), toggleDropdown(item.name)) : null"
-              @mouseleave="closeDropdown"
+              @mouseleave="item.dropdown ? closeDropdown : null"
             >
               <router-link 
                 :to="item.href"
+                @click="item.dropdown ? $event.preventDefault() : null"
                 class="px-2 py-1.5 text-xs font-medium rounded-full transition-all flex items-center whitespace-nowrap"
                 :class="$route.path === item.href 
                   ? (isDarkMode ? 'bg-slate-700 shadow-sm text-white' : 'bg-white shadow-sm text-black')
@@ -401,7 +409,7 @@ const navigateToApplication = () => {
               <!-- Medium Dropdown Menu -->
               <div
                 v-if="item.dropdown && openDropdown === item.name"
-                class="absolute top-full left-0 mt-2 w-[500px] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
+                class="absolute top-full left-0 mt-1 w-[500px] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
                 :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'"
               >
                 <div class="grid grid-cols-1 gap-6 px-6">
@@ -454,7 +462,7 @@ const navigateToApplication = () => {
               <!-- More items dropdown -->
               <div
                 v-if="openDropdown === 'more'"
-                class="absolute top-full left-0 mt-2 w-[300px] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
+                class="absolute top-full left-0 mt-1 w-[300px] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
                 :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'"
               >
                 <div class="px-4 space-y-2">
@@ -568,20 +576,38 @@ const navigateToApplication = () => {
           <!-- Mobile Navigation Links -->
           <div class="px-2">
             <div v-for="item in navigation" :key="item.name" class="mb-1">
-              <router-link
-                :to="item.href"
-                @click="closeMenu"
-                class="flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
-                :class="$route.path === item.href 
-                  ? (isDarkMode ? 'bg-slate-700 text-yellow-400' : 'bg-yellow-50 text-yellow-600')
-                  : (isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900')"
-              >
-                <span class="truncate">{{ item.name }}</span>
-                <ChevronDownIcon v-if="item.dropdown" class="h-4 w-4 flex-shrink-0 ml-2" />
-              </router-link>
+              <!-- Main navigation item -->
+              <div class="flex items-center">
+                <router-link
+                  :to="item.href"
+                  @click="closeMenu"
+                  class="flex-1 px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
+                  :class="$route.path === item.href 
+                    ? (isDarkMode ? 'bg-slate-700 text-yellow-400' : 'bg-yellow-50 text-yellow-600')
+                    : (isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900')"
+                >
+                  <span class="truncate">{{ item.name }}</span>
+                </router-link>
+                
+                <!-- Dropdown toggle button -->
+                <button
+                  v-if="item.dropdown"
+                  @click="toggleMobileDropdown(item.name)"
+                  class="p-2 rounded-lg transition-colors duration-200"
+                  :class="isDarkMode ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'"
+                >
+                  <ChevronDownIcon 
+                    class="h-4 w-4 transition-transform duration-200"
+                    :class="openMobileDropdown === item.name ? 'rotate-180' : ''"
+                  />
+                </button>
+              </div>
               
-              <!-- Mobile Dropdown -->
-              <div v-if="item.dropdown" class="ml-4 mt-1 space-y-1">
+              <!-- Mobile Dropdown (collapsed by default) -->
+              <div 
+                v-if="item.dropdown && openMobileDropdown === item.name" 
+                class="ml-4 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200"
+              >
                 <div v-for="section in item.dropdown" :key="section.title" class="mb-3">
                   <h4 class="text-xs font-semibold uppercase tracking-wide mb-2 px-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                     {{ section.title }}

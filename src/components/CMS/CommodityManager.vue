@@ -91,6 +91,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Current Price</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Change</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Image</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -128,6 +129,14 @@
                       :class="getStatusBadgeClass(commodity.market_status)">
                   {{ commodity.market_status }}
                 </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <div v-if="commodity.image_path && commodity.image_path.trim() !== ''" class="flex items-center">
+                  <i class="pi pi-image text-green-500"></i>
+                </div>
+                <div v-else class="flex items-center">
+                  <i class="pi pi-image text-gray-400"></i>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -388,6 +397,41 @@
               ></textarea>
             </div>
 
+            <!-- Commodity Image Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-image text-blue-600 mr-2"></i>
+                Commodity Image
+              </h4>
+              <div class="flex items-start space-x-6">
+                <div class="flex-shrink-0">
+                  <div class="w-32 h-32 rounded-xl overflow-hidden border-4 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <div v-if="formData.image_path" class="text-center">
+                      <img 
+                        :src="formData.image_path" 
+                        :alt="formData.name"
+                        class="w-full h-full object-cover"
+                        @error="handleImageError"
+                      />
+                    </div>
+                    <div v-else class="text-center">
+                      <i class="pi pi-image text-4xl text-slate-400"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    Choose an image for this commodity. Click on any image to select it.
+                  </p>
+                  <ImageGallery
+                    title="Select Commodity Image"
+                    :current-image="formData.image_path"
+                    @image-selected="(image) => { formData.image_path = image.url }"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div class="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
@@ -416,6 +460,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useCommodities } from '../../composables/useCommodities';
 import type { Commodity } from '../../services/commodityService';
+import ImageGallery from './ImageGallery.vue';
 
 const {
   commodities,
@@ -580,6 +625,16 @@ const getStatusBadgeClass = (status: string) => {
       return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+  }
+};
+
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  img.style.display = 'none';
+  // Show fallback icon
+  const parent = img.parentElement;
+  if (parent) {
+    parent.innerHTML = '<i class="pi pi-image text-4xl text-slate-400"></i>';
   }
 };
 

@@ -1,12 +1,13 @@
 <template>
-  <div class="image-gallery">
-    <!-- Gallery Header -->
+  <div class="file-upload">
+    <!-- Upload Header -->
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-        {{ title || 'Select Image' }}
+        {{ title || 'Select File' }}
       </h3>
       <button
-        @click="showUploadModal = true"
+        @click.stop="openUploadModal"
+        @mousedown.stop
         class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
       >
         <i class="pi pi-upload"></i>
@@ -15,62 +16,49 @@
     </div>
 
     <!-- Search and Filter -->
-    <div class="mb-4">
+    <div v-if="displayFiles.length > 0" class="mb-4">
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Search images..."
+        placeholder="Search files..."
         class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
         :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300'"
       />
     </div>
 
-    <!-- Compact Gallery Grid (3 images max) -->
-    <div class="grid grid-cols-3 gap-4 mb-4">
+    <!-- No Files Message -->
+    <div v-if="displayFiles.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+      <i class="pi pi-file text-4xl mb-2"></i>
+      <p>No files available for this publication.</p>
+      <p class="text-sm">Click "Upload New" to add a file.</p>
+    </div>
+
+    <!-- Compact Files Grid (3 files max) -->
+    <div v-if="displayFiles.length > 0" class="grid grid-cols-3 gap-4 mb-4">
       <div
-        v-for="(image, index) in displayImages"
-        :key="image.id || image.url"
-        @click="selectImage(image)"
+        v-for="(file, index) in displayFiles"
+        :key="file.id || file.url"
+        @click="selectFile(file)"
         class="relative group rounded-lg overflow-hidden border-2 transition-all duration-200 hover:shadow-lg cursor-pointer"
         :class="[
-          selectedImage?.url === image.url
+          selectedFile?.url === file.url
             ? 'border-green-500 ring-2 ring-green-200 shadow-lg'
             : 'border-slate-200 hover:border-green-300 hover:ring-1 hover:ring-green-100',
           isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'
         ]"
       >
-        <!-- Image Container -->
-        <div class="aspect-square relative bg-slate-100 dark:bg-slate-700">
-          <img
-            :src="image.url"
-            :alt="image.alt || 'Gallery image'"
-            :data-image-index="index"
-            class="w-full h-full object-cover transition-opacity duration-200 hover:opacity-80"
-            @error="handleImageError"
-            @load="handleImageLoad"
-            loading="lazy"
-            title="Click to select this image"
-          />
-          
-          <!-- Loading placeholder -->
-          <div v-if="!image.loaded" class="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-700">
-            <div class="text-center">
-              <i class="pi pi-spin pi-spinner text-2xl text-slate-400 mb-2"></i>
-              <p class="text-xs text-slate-500">Loading...</p>
-            </div>
-          </div>
-          
-          <!-- Error placeholder -->
-          <div v-if="image.error" class="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20">
-            <div class="text-center">
-              <i class="pi pi-image text-2xl text-red-400 mb-2"></i>
-              <p class="text-xs text-red-500">Failed to load</p>
-            </div>
+        <!-- File Container -->
+        <div class="aspect-square relative bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+          <div class="text-center p-4">
+            <i :class="[getFileIcon(file.type), getFileIconColor(file.type)]" class="text-4xl mb-2"></i>
+            <p class="text-xs font-medium truncate" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+              {{ getFileName(file.name || file.url) }}
+            </p>
           </div>
           
           <!-- Selection Indicator -->
           <div
-            v-if="selectedImage?.url === image.url"
+            v-if="selectedFile?.url === file.url"
             class="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center z-10 shadow-lg"
           >
             <i class="pi pi-check text-white text-sm"></i>
@@ -80,21 +68,14 @@
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <div class="flex space-x-2">
               <button
-                @click.stop="viewImage(image)"
-                class="p-2 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-lg transition-colors"
-                title="View"
-              >
-                <i class="pi pi-eye text-sm"></i>
-              </button>
-              <button
-                @click.stop="downloadImage(image)"
+                @click.stop="downloadFile(file)"
                 class="p-2 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-lg transition-colors"
                 title="Download"
               >
                 <i class="pi pi-download text-sm"></i>
               </button>
               <button
-                @click.stop="deleteImage(image)"
+                @click.stop="deleteFile(file)"
                 class="p-2 bg-red-500/90 hover:bg-red-500 text-white rounded-full shadow-lg transition-colors"
                 title="Delete"
               >
@@ -104,48 +85,45 @@
           </div>
         </div>
 
-        <!-- Image Info -->
+        <!-- File Info -->
         <div class="p-2">
           <p class="text-xs truncate" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-            {{ getImageName(image.name || image.url) }}
+            {{ getFileName(file.name || file.url) }}
           </p>
           <p class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-            {{ formatFileSize(image.size) }}
+            {{ formatFileSize(file.size) }}
           </p>
         </div>
       </div>
     </div>
 
     <!-- View All Button -->
-    <div v-if="filteredImages.length > 3" class="text-center mb-4">
+    <div v-if="filteredFiles.length > 3" class="text-center mb-4">
       <button
         @click.stop="openFullGallery"
         class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
       >
-        <i class="pi pi-images"></i>
-        <span>View All Images ({{ filteredImages.length }})</span>
+        <i class="pi pi-folder-open"></i>
+        <span>View All Files ({{ filteredFiles.length }})</span>
       </button>
     </div>
 
-
-    <!-- Selected Image Preview -->
-    <div v-if="selectedImage" class="mt-4 p-4 rounded-lg border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'">
-      <h4 class="text-sm font-medium mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Selected Image:</h4>
+    <!-- Selected File Preview -->
+    <div v-if="selectedFile && selectedFile.url" class="mt-4 p-4 rounded-lg border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'">
+      <h4 class="text-sm font-medium mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Selected File:</h4>
       <div class="flex items-center space-x-4">
-        <img
-          :src="selectedImage.url"
-          :alt="selectedImage.alt"
-          class="w-16 h-16 object-cover rounded-lg"
-        />
+        <div class="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+          <i :class="[getFileIcon(selectedFile.type), getFileIconColor(selectedFile.type)]" class="text-2xl"></i>
+        </div>
         <div class="flex-1">
           <p class="text-sm font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-            {{ getImageName(selectedImage.name || selectedImage.url) }}
+            {{ getFileName(selectedFile.name || selectedFile.url) }}
           </p>
           <p class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-            {{ formatFileSize(selectedImage.size) }}
+            {{ formatFileSize(selectedFile.size) }}
           </p>
           <p class="text-xs text-green-600 mt-1">
-            ✓ Image selected and ready to use
+            ✓ File selected and ready to use
           </p>
         </div>
         <button
@@ -154,62 +132,6 @@
         >
           Confirm Selection
         </button>
-      </div>
-    </div>
-
-    <!-- Image Viewer Modal -->
-    <div
-      v-if="showImageViewer"
-      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      @click="closeImageViewer"
-    >
-      <div class="relative max-w-4xl max-h-[90vh] w-full" @click.stop>
-        <!-- Close Button -->
-        <button
-          @click="closeImageViewer"
-          class="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
-        >
-          <i class="pi pi-times text-lg"></i>
-        </button>
-        
-        <!-- Image Container -->
-        <div class="relative bg-white dark:bg-slate-800 rounded-lg overflow-hidden shadow-2xl">
-          <img
-            :src="viewingImage?.url"
-            :alt="viewingImage?.alt || 'Gallery image'"
-            class="w-full h-auto max-h-[80vh] object-contain"
-          />
-          
-          <!-- Image Info -->
-          <div class="p-4 border-t border-slate-200 dark:border-slate-700">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-lg font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                  {{ getImageName(viewingImage?.name || viewingImage?.url || '') }}
-                </h3>
-                <p class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                  {{ formatFileSize(viewingImage?.size) }}
-                </p>
-              </div>
-              <div class="flex space-x-2">
-                <button
-                  @click="downloadImage(viewingImage!)"
-                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <i class="pi pi-download"></i>
-                  <span>Download</span>
-                </button>
-                <button
-                  @click="selectImage(viewingImage!)"
-                  class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <i class="pi pi-check"></i>
-                  <span>Select</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -225,7 +147,7 @@
       >
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-            Upload New Image
+            Upload New File
           </h3>
           <button
             @click="closeUploadModal"
@@ -251,7 +173,7 @@
           <input
             ref="fileInput"
             type="file"
-            accept="image/*"
+            :accept="acceptedTypes"
             @change="handleFileSelect"
             class="hidden"
           />
@@ -260,10 +182,10 @@
             <i class="pi pi-cloud-upload text-4xl" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'"></i>
             <div>
               <p class="text-lg font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                Drop images here or click to browse
+                Drop files here or click to browse
               </p>
               <p class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                Supports JPG, PNG, GIF, WebP (Max 10MB)
+                {{ acceptedTypesText }}
               </p>
             </div>
             <button
@@ -296,7 +218,7 @@
       </div>
     </div>
 
-    <!-- Full Gallery Modal -->
+    <!-- Full Files Modal -->
     <div
       v-if="showFullGallery"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
@@ -311,10 +233,10 @@
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                All Images
+                All Files
               </h3>
               <p class="text-slate-600 dark:text-slate-400 mt-1">
-                Select an image from the gallery
+                Select a file from the gallery
               </p>
             </div>
             <button
@@ -330,60 +252,40 @@
             <input
               v-model="fullGallerySearch"
               type="text"
-              placeholder="Search images..."
+              placeholder="Search files..."
               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300'"
             />
           </div>
         </div>
 
-        <!-- Full Gallery Grid -->
+        <!-- Full Files Grid -->
         <div class="p-6 max-h-[calc(90vh-200px)] overflow-y-auto">
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             <div
-              v-for="(image, index) in fullGalleryImages"
-              :key="image.id || image.url"
-              @click="selectImageFromFullGallery(image)"
+              v-for="(file, index) in fullGalleryFiles"
+              :key="file.id || file.url"
+              @click="selectFileFromFullGallery(file)"
               class="relative group rounded-lg overflow-hidden border-2 transition-all duration-200 hover:shadow-lg cursor-pointer"
               :class="[
-                selectedImage?.url === image.url
+                selectedFile?.url === file.url
                   ? 'border-green-500 ring-2 ring-green-200 shadow-lg'
                   : 'border-slate-200 hover:border-green-300 hover:ring-1 hover:ring-green-100',
                 isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'
               ]"
             >
-              <!-- Image Container -->
-              <div class="aspect-square relative bg-slate-100 dark:bg-slate-700">
-                <img
-                  :src="image.url"
-                  :alt="image.alt || 'Gallery image'"
-                  :data-image-index="index"
-                  class="w-full h-full object-cover transition-opacity duration-200 hover:opacity-80"
-                  @error="handleImageError"
-                  @load="handleImageLoad"
-                  loading="lazy"
-                  title="Click to select this image"
-                />
-                
-                <!-- Loading placeholder -->
-                <div v-if="!image.loaded" class="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-700">
-                  <div class="text-center">
-                    <i class="pi pi-spin pi-spinner text-2xl text-slate-400 mb-2"></i>
-                    <p class="text-xs text-slate-500">Loading...</p>
-                  </div>
-                </div>
-                
-                <!-- Error placeholder -->
-                <div v-if="image.error" class="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20">
-                  <div class="text-center">
-                    <i class="pi pi-image text-2xl text-red-400 mb-2"></i>
-                    <p class="text-xs text-red-500">Failed to load</p>
-                  </div>
+              <!-- File Container -->
+              <div class="aspect-square relative bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                <div class="text-center p-4">
+                  <i :class="[getFileIcon(file.type), getFileIconColor(file.type)]" class="text-4xl mb-2"></i>
+                  <p class="text-xs font-medium truncate" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                    {{ getFileName(file.name || file.url) }}
+                  </p>
                 </div>
                 
                 <!-- Selection Indicator -->
                 <div
-                  v-if="selectedImage?.url === image.url"
+                  v-if="selectedFile?.url === file.url"
                   class="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center z-10 shadow-lg"
                 >
                   <i class="pi pi-check text-white text-sm"></i>
@@ -393,21 +295,14 @@
                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <div class="flex space-x-2">
                     <button
-                      @click.stop="viewImage(image)"
-                      class="p-2 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-lg transition-colors"
-                      title="View"
-                    >
-                      <i class="pi pi-eye text-sm"></i>
-                    </button>
-                    <button
-                      @click.stop="downloadImage(image)"
+                      @click.stop="downloadFile(file)"
                       class="p-2 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-lg transition-colors"
                       title="Download"
                     >
                       <i class="pi pi-download text-sm"></i>
                     </button>
                     <button
-                      @click.stop="deleteImage(image)"
+                      @click.stop="deleteFile(file)"
                       class="p-2 bg-red-500/90 hover:bg-red-500 text-white rounded-full shadow-lg transition-colors"
                       title="Delete"
                     >
@@ -417,23 +312,23 @@
                 </div>
               </div>
 
-              <!-- Image Info -->
+              <!-- File Info -->
               <div class="p-2">
                 <p class="text-xs truncate" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                  {{ getImageName(image.name || image.url) }}
+                  {{ getFileName(file.name || file.url) }}
                 </p>
                 <p class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                  {{ formatFileSize(image.size) }}
+                  {{ formatFileSize(file.size) }}
                 </p>
               </div>
             </div>
           </div>
 
           <!-- Empty State for Full Gallery -->
-          <div v-if="fullGalleryImages.length === 0" class="text-center py-12">
-            <i class="pi pi-images text-4xl text-slate-400 mb-4"></i>
-            <h3 class="text-lg font-medium text-slate-900 dark:text-white mb-2">No images found</h3>
-            <p class="text-slate-500 dark:text-slate-400">Try adjusting your search or upload some images.</p>
+          <div v-if="fullGalleryFiles.length === 0" class="text-center py-12">
+            <i class="pi pi-folder text-4xl text-slate-400 mb-4"></i>
+            <h3 class="text-lg font-medium text-slate-900 dark:text-white mb-2">No files found</h3>
+            <p class="text-slate-500 dark:text-slate-400">Try adjusting your search or upload some files.</p>
           </div>
         </div>
 
@@ -441,7 +336,7 @@
         <div class="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
           <div class="flex justify-between items-center">
             <div class="text-sm text-slate-600 dark:text-slate-400">
-              {{ fullGalleryImages.length }} image{{ fullGalleryImages.length !== 1 ? 's' : '' }} found
+              {{ fullGalleryFiles.length }} file{{ fullGalleryFiles.length !== 1 ? 's' : '' }} found
             </div>
             <div class="flex space-x-3">
               <button
@@ -452,11 +347,11 @@
               </button>
               <button
                 @click="confirmSelectionFromFullGallery"
-                :disabled="!selectedImage"
+                :disabled="!selectedFile"
                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg transition-colors flex items-center space-x-2"
               >
                 <i class="pi pi-check"></i>
-                <span>Select Image</span>
+                <span>Select File</span>
               </button>
             </div>
           </div>
@@ -472,39 +367,42 @@ import { isDarkMode } from '../../utils/darkMode'
 import axios from '../../plugins/axios'
 import { getImageUrl } from '../../utils/imageUrl'
 
-interface ImageItem {
+interface FileItem {
   id?: string
   url: string
   name?: string
-  alt?: string
-  size?: number
   type?: string
+  size?: number
   loaded?: boolean
   error?: boolean
 }
 
 interface Props {
   title?: string
-  currentImage?: string
+  currentFile?: string
   folder?: string
+  acceptedTypes?: string
+  acceptedTypesText?: string
 }
 
 interface Emits {
-  (e: 'imageSelected', image: ImageItem): void
-  (e: 'imageUploaded', image: ImageItem): void
+  (e: 'fileSelected', file: FileItem): void
+  (e: 'fileUploaded', file: FileItem): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: 'Select Image',
-  currentImage: '',
-  folder: 'images'
+  title: 'Select File',
+  currentFile: '',
+  folder: 'documents',
+  acceptedTypes: '.pdf,.doc,.docx,.txt',
+  acceptedTypesText: 'PDF, DOC, DOCX, TXT up to 10MB'
 })
 
 const emit = defineEmits<Emits>()
 
 // State
-const images = ref<ImageItem[]>([])
-const selectedImage = ref<ImageItem | null>(null)
+const files = ref<FileItem[]>([])
+const selectedFile = ref<FileItem | null>(null)
 const searchQuery = ref('')
 const showUploadModal = ref(false)
 const isDragOver = ref(false)
@@ -512,97 +410,67 @@ const uploading = ref(false)
 const uploadProgress = ref(0)
 const uploadError = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
-const showImageViewer = ref(false)
-const viewingImage = ref<ImageItem | null>(null)
 const showFullGallery = ref(false)
 const fullGallerySearch = ref('')
 
 // Computed
-const filteredImages = computed(() => {
-  if (!searchQuery.value) return images.value
+const filteredFiles = computed(() => {
+  if (!searchQuery.value) return files.value
   
-  return images.value.filter(image => {
-    const name = image.name || image.url.split('/').pop() || ''
+  return files.value.filter(file => {
+    const name = file.name || file.url.split('/').pop() || ''
     return name.toLowerCase().includes(searchQuery.value.toLowerCase())
   })
 })
 
-const displayImages = computed(() => {
-  return filteredImages.value.slice(0, 3)
+const displayFiles = computed(() => {
+  return filteredFiles.value.slice(0, 3)
 })
 
-const fullGalleryImages = computed(() => {
-  if (!fullGallerySearch.value) return filteredImages.value
+const fullGalleryFiles = computed(() => {
+  if (!fullGallerySearch.value) return filteredFiles.value
   
-  return filteredImages.value.filter(image => {
-    const name = image.name || image.url.split('/').pop() || ''
+  return filteredFiles.value.filter(file => {
+    const name = file.name || file.url.split('/').pop() || ''
     return name.toLowerCase().includes(fullGallerySearch.value.toLowerCase())
   })
 })
 
 // Methods
-const loadImages = async () => {
-  try {
-    const response = await axios.get('/api/media')
+const loadFiles = async () => {
+  // Always start with empty array
+  files.value = []
+  
+  // Only show the current file if it exists and is not empty
+  if (props.currentFile && 
+      props.currentFile.trim() !== '' && 
+      props.currentFile !== 'null' && 
+      props.currentFile !== 'undefined' &&
+      props.currentFile.includes('/')) {
     
-    if (response.data.success && response.data.data) {
-      images.value = response.data.data.map((item: any) => {
-        // Use the getImageUrl utility to properly construct URLs for Heroku backend
-        const imageUrl = getImageUrl(item.url)
-        
-        
-        return {
-          id: item.id,
-          url: imageUrl,
-          name: item.filename,
-          alt: item.alt_text || item.filename,
-          size: item.size,
-          type: item.mime_type,
-          loaded: false,
-          error: false
-        }
-      })
-    } else {
-      // Add some sample images for testing
-      images.value = [
-        {
-          id: '1',
-          url: getImageUrl('/uploads/images/1755526687_qqqqqqqq.png'),
-          name: '1755526687_qqqqqqqq.png',
-          alt: 'Sample image 1',
-          size: 2200000,
-          type: 'image/png',
-          loaded: false,
-          error: false
-        },
-        {
-          id: '2', 
-          url: getImageUrl('/uploads/images/1755527015_66666666.png'),
-          name: '1755527015_66666666.png',
-          alt: 'Sample image 2',
-          size: 2100000,
-          type: 'image/png',
-          loaded: false,
-          error: false
-        }
-      ]
-    }
-  } catch (error) {
-    console.error('Failed to load images:', error)
-    // Add fallback images
-    images.value = [
-      {
-        id: 'fallback1',
-        url: '/uploads/images/1755526687_qqqqqqqq.png',
-        name: '1755526687_qqqqqqqq.png',
-        alt: 'Fallback image 1',
-        size: 2200000,
-        type: 'image/png',
+    const fileName = props.currentFile.split('/').pop() || ''
+    // Only add if it's a real file path with extension
+    if (fileName.includes('.')) {
+      files.value = [{
+        id: fileName,
+        url: props.currentFile,
+        name: fileName,
+        type: 'application/pdf',
+        size: 0,
         loaded: false,
         error: false
-      }
-    ]
+      }]
+    }
   }
+}
+
+const openUploadModal = (event: Event) => {
+  event.preventDefault()
+  event.stopPropagation()
+  // Add a small delay to prevent immediate closing
+  setTimeout(() => {
+    showUploadModal.value = true
+  }, 10)
 }
 
 const openFullGallery = (event: Event) => {
@@ -611,31 +479,31 @@ const openFullGallery = (event: Event) => {
   showFullGallery.value = true
 }
 
-const selectImage = (image: ImageItem) => {
-  selectedImage.value = image
-  // Automatically emit selection for better UX
-  emit('imageSelected', image)
-}
-
-const selectImageFromFullGallery = (image: ImageItem) => {
-  selectedImage.value = image
-  // Don't emit yet, wait for confirmation
-}
-
-const confirmSelectionFromFullGallery = () => {
-  if (selectedImage.value) {
-    emit('imageSelected', selectedImage.value)
-    showFullGallery.value = false
-  }
-}
-
 const closeFullGallery = () => {
   showFullGallery.value = false
 }
 
+const selectFile = (file: FileItem) => {
+  selectedFile.value = file
+  // Automatically emit selection for better UX
+  emit('fileSelected', file)
+}
+
+const selectFileFromFullGallery = (file: FileItem) => {
+  selectedFile.value = file
+  // Don't emit yet, wait for confirmation
+}
+
+const confirmSelectionFromFullGallery = () => {
+  if (selectedFile.value) {
+    emit('fileSelected', selectedFile.value)
+    showFullGallery.value = false
+  }
+}
+
 const confirmSelection = () => {
-  if (selectedImage.value) {
-    emit('imageSelected', selectedImage.value)
+  if (selectedFile.value) {
+    emit('fileSelected', selectedFile.value)
   }
 }
 
@@ -657,18 +525,21 @@ const handleDrop = (event: DragEvent) => {
   }
 }
 
-const uploadFiles = async (files: File[]) => {
-  if (files.length === 0) return
+const uploadFiles = async (fileList: File[]) => {
+  if (fileList.length === 0) return
   
   uploading.value = true
   uploadError.value = ''
   uploadProgress.value = 0
   
   try {
-    for (const file of files) {
-      // Validate file
-      if (!file.type.startsWith('image/')) {
-        throw new Error(`${file.name} is not an image file`)
+    for (const file of fileList) {
+      // Validate file type
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || ''
+      const acceptedExts = props.acceptedTypes.split(',').map(ext => ext.replace('.', '').toLowerCase())
+      
+      if (!acceptedExts.includes(fileExt)) {
+        throw new Error(`${file.name} is not an accepted file type`)
       }
       
       if (file.size > 10 * 1024 * 1024) { // 10MB
@@ -679,7 +550,7 @@ const uploadFiles = async (files: File[]) => {
       formData.append('file', file)
       formData.append('folder', props.folder)
       
-      const response = await axios.post('/api/media', formData, {
+      const response = await axios.post('/api/documents', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
@@ -691,20 +562,21 @@ const uploadFiles = async (files: File[]) => {
       })
       
       if (response.data.success) {
-        const newImage: ImageItem = {
+        const newFile: FileItem = {
           id: response.data.data.id,
           url: response.data.data.url,
-          name: response.data.data.filename,
-          alt: response.data.data.alt_text,
+          name: response.data.data.name,
+          type: response.data.data.type,
           size: response.data.data.size,
-          type: response.data.data.mime_type
+          loaded: false,
+          error: false
         }
         
-        images.value.unshift(newImage)
-        emit('imageUploaded', newImage)
+        files.value.unshift(newFile)
+        emit('fileUploaded', newFile)
         
-        // Auto-select the newly uploaded image
-        selectedImage.value = newImage
+        // Auto-select the newly uploaded file
+        selectedFile.value = newFile
       }
     }
     
@@ -714,33 +586,6 @@ const uploadFiles = async (files: File[]) => {
   } finally {
     uploading.value = false
     uploadProgress.value = 0
-  }
-}
-
-const handleImageError = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  const imageUrl = img.src
-  const imageIndex = parseInt(img.dataset.imageIndex || '0')
-  
-  
-  // Update the error state using the data attribute index
-  if (imageIndex >= 0 && imageIndex < images.value.length) {
-    images.value[imageIndex].error = true
-    images.value[imageIndex].loaded = false
-  }
-}
-
-const handleImageLoad = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  const imageUrl = img.src
-  const imageIndex = parseInt(img.dataset.imageIndex || '0')
-  
-  
-  // Update the loaded state using the data attribute index
-  if (imageIndex >= 0 && imageIndex < images.value.length) {
-    images.value[imageIndex].loaded = true
-    images.value[imageIndex].error = false
-  } else {
   }
 }
 
@@ -757,89 +602,91 @@ const formatFileSize = (bytes?: number) => {
   return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
 }
 
-// Helper functions for UI
-const getImageName = (filename: string) => {
+const getFileName = (filename: string) => {
   const name = filename.split('/').pop() || filename
   return name.length > 20 ? name.substring(0, 20) + '...' : name
 }
 
-// Action functions
-const viewImage = (image: ImageItem) => {
-  viewingImage.value = image
-  showImageViewer.value = true
+const getFileIcon = (type?: string) => {
+  if (!type) return 'pi pi-file'
+  
+  if (type.includes('pdf')) return 'pi pi-file-pdf'
+  if (type.includes('word') || type.includes('document')) return 'pi pi-file-word'
+  if (type.includes('excel') || type.includes('spreadsheet')) return 'pi pi-file-excel'
+  if (type.includes('powerpoint') || type.includes('presentation')) return 'pi pi-file-powerpoint'
+  if (type.includes('text')) return 'pi pi-file-text'
+  if (type.includes('image')) return 'pi pi-image'
+  
+  return 'pi pi-file'
 }
 
-const closeImageViewer = () => {
-  showImageViewer.value = false
-  viewingImage.value = null
+const getFileIconColor = (type?: string) => {
+  if (!type) return 'text-slate-500'
+  
+  if (type.includes('pdf')) return 'text-red-500'
+  if (type.includes('word') || type.includes('document')) return 'text-blue-500'
+  if (type.includes('excel') || type.includes('spreadsheet')) return 'text-green-500'
+  if (type.includes('powerpoint') || type.includes('presentation')) return 'text-orange-500'
+  if (type.includes('text')) return 'text-slate-500'
+  if (type.includes('image')) return 'text-purple-500'
+  
+  return 'text-slate-500'
 }
 
-const downloadImage = (image: ImageItem) => {
-  // Create download link
+const downloadFile = (file: FileItem) => {
   const link = document.createElement('a')
-  link.href = image.url
-  link.download = image.name || image.url.split('/').pop() || 'image'
+  link.href = file.url
+  link.download = file.name || file.url.split('/').pop() || 'file'
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
 }
 
-const deleteImage = async (image: ImageItem) => {
-  if (confirm(`Are you sure you want to delete "${image.name || image.url.split('/').pop()}"?`)) {
+const deleteFile = async (file: FileItem) => {
+  if (confirm(`Are you sure you want to delete "${file.name || file.url.split('/').pop()}"?`)) {
     try {
-      
-      // Call the delete API
-      await axios.delete(`/api/media/${image.id}`)
-      
-      // Remove the image from the local array immediately for better UX
-      const imageIndex = images.value.findIndex(img => img.id === image.id)
-      if (imageIndex !== -1) {
-        images.value.splice(imageIndex, 1)
+      // Remove from the list
+      const fileIndex = files.value.findIndex(f => f.id === file.id)
+      if (fileIndex !== -1) {
+        files.value.splice(fileIndex, 1)
       }
       
-      // If this was the selected image, clear the selection
-      if (selectedImage.value?.id === image.id) {
-        selectedImage.value = null
+      if (selectedFile.value?.id === file.id) {
+        selectedFile.value = null
+        // Emit empty file to clear the publication's file
+        emit('fileSelected', { url: '', name: '' })
       }
       
     } catch (error) {
-      console.error('Error deleting image:', error)
-      alert('Failed to delete image. Please try again.')
+      console.error('Error deleting file:', error)
+      alert('Failed to delete file. Please try again.')
     }
   }
 }
 
-
-// Keyboard support for image viewer
-const handleKeydown = (event: KeyboardEvent) => {
-  if (showImageViewer.value && event.key === 'Escape') {
-    closeImageViewer()
+// Watch for changes in currentFile
+watch(() => props.currentFile, () => {
+  loadFiles()
+  if (props.currentFile) {
+    const currentFile = files.value.find(f => f.url === props.currentFile)
+    if (currentFile) {
+      selectedFile.value = currentFile
+    } else {
+      selectedFile.value = null
+    }
+  } else {
+    selectedFile.value = null
   }
-}
+}, { immediate: true })
 
 // Lifecycle
 onMounted(() => {
-  loadImages()
-  
-  // Set current image as selected if provided
-  if (props.currentImage) {
-    const currentImg = images.value.find(img => img.url === props.currentImage)
-    if (currentImg) {
-      selectedImage.value = currentImg
-    }
-  }
-
-  // Add keyboard support for image viewer
-  document.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
+  loadFiles()
 })
 </script>
 
 <style scoped>
-.image-gallery {
+.file-upload {
   @apply w-full;
 }
 

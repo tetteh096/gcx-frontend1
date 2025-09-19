@@ -13,8 +13,8 @@ const aboutDescription = computed(() => getContent('about_description', 'The Gha
 const ceoName = computed(() => getContent('ceo_name', 'Ms. Evelyn Abakah'))
 const ceoTitle = computed(() => getContent('ceo_title', 'Chief Executive Officer'))
 const ceoImage = computed(() => {
-  const image = getImage('ceo_image', '/uploads/placeholder-ceo.jpg')
-  return getImageUrl(image)
+  const image = getImage('ceo_image', '/logo_black.png')
+  return image.startsWith('/uploads') ? getImageUrl(image) : image
 })
 const ceoIntro = computed(() => getContent('ceo_intro', 'Ghana Commodity Exchange\'s Management team is led by Ms. Evelyn Abakah, the Chief Executive Officer.'))
 const keyGoalTitle = computed(() => getContent('key_goal_title', 'Our Key Goal'))
@@ -29,7 +29,6 @@ const handleImageError = (event: Event) => {
 // Load CMS content when component mounts
 onMounted(async () => {
   await loadPageContent()
-  console.log('🔍 AboutGCX: CMS content loaded for about page', pageContent)
 })
 </script>
 

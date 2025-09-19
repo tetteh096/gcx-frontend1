@@ -17,6 +17,8 @@ export interface Career {
   start_date: string;
   status: 'Open' | 'Closed' | 'On Hold';
   application_count: number;
+  file_path: string;
+  file_name: string;
   created_at: string;
   updated_at: string;
 }

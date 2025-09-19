@@ -76,6 +76,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Author</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">File</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Downloads</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
@@ -100,6 +101,14 @@
                       :class="getStatusBadgeClass(publication.status)">
                   {{ publication.status }}
                 </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <div v-if="publication.file_path && publication.file_path.trim() !== ''" class="flex items-center">
+                  <i class="pi pi-file-pdf text-red-500"></i>
+                </div>
+                <div v-else class="flex items-center">
+                  <i class="pi pi-file text-gray-400"></i>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                 {{ publication.download_count }}
@@ -183,119 +192,211 @@
     </div>
 
     <!-- Add/Edit Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
-        <div class="mt-3">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              {{ editingPublication ? 'Edit Publication' : 'Add New Publication' }}
-            </h3>
-            <button @click="closeModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-              <i class="pi pi-times text-xl"></i>
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4"
+      @click="closeModal"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+        @click.stop
+      >
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="p-3 bg-white/20 rounded-xl">
+                <i class="pi pi-file-pdf text-2xl text-white"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-bold text-white">
+                  {{ editingPublication ? 'Edit Publication' : 'Add New Publication' }}
+                </h3>
+                <p class="text-blue-100 mt-1">
+                  {{ editingPublication ? 'Update publication information' : 'Create new publication' }}
+                </p>
+              </div>
+            </div>
+            <button
+              @click="closeModal"
+              class="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <i class="pi pi-times text-xl text-white"></i>
             </button>
           </div>
+        </div>
 
-          <form @submit.prevent="savePublication" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Modal Content -->
+        <div class="p-8 max-h-[calc(90vh-120px)] overflow-y-auto">
+
+          <form @submit.prevent="savePublication" class="space-y-8">
+            <!-- Basic Information Section -->
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+              <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-info-circle mr-2 text-blue-600"></i>
+                Basic Information
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                    Title *
+                  </label>
+                  <input
+                    v-model="formData.title"
+                    type="text"
+                    required
+                    class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-slate-800 dark:text-white"
+                    placeholder="Enter publication title"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                    Category *
+                  </label>
+                  <select
+                    v-model="formData.category"
+                    required
+                    class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Research Papers">Research Papers</option>
+                    <option value="Annual Reports">Annual Reports</option>
+                    <option value="Policy Documents">Policy Documents</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description Section -->
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+              <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-file-edit mr-2 text-green-600"></i>
+                Description
+              </h4>
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title *</label>
+                <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                  Publication Description
+                </label>
+                <textarea
+                  v-model="formData.description"
+                  rows="5"
+                  class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none dark:bg-slate-800 dark:text-white"
+                  placeholder="Enter detailed description of the publication..."
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Author and Status Section -->
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+              <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-user mr-2 text-purple-600"></i>
+                Author & Status
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                    Author
+                  </label>
+                  <input
+                    v-model="formData.author"
+                    type="text"
+                    class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-slate-800 dark:text-white"
+                    placeholder="Enter author name"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                    Status
+                  </label>
+                  <select
+                    v-model="formData.status"
+                    class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="Published">Published</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- File Upload Section -->
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+              <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-file-pdf mr-2 text-red-600"></i>
+                Publication File
+              </h4>
+              <div class="flex items-start space-x-6">
+                <div class="flex-shrink-0">
+                  <div class="w-32 h-32 rounded-xl overflow-hidden border-4 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <div v-if="formData.file_path" class="text-center">
+                      <i class="pi pi-file-pdf text-4xl text-red-500 mb-2"></i>
+                      <p class="text-xs font-medium text-slate-600 dark:text-slate-400 truncate">
+                        {{ formData.file_name || 'PDF File' }}
+                      </p>
+                    </div>
+                    <div v-else class="text-center">
+                      <i class="pi pi-file text-4xl text-slate-400"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    Choose a PDF file for this publication. Click on any file to select it.
+                  </p>
+                  <FileUpload
+                    title="Select Publication File"
+                    :current-file="formData.file_path"
+                    folder="publications"
+                    accepted-types=".pdf"
+                    accepted-types-text="PDF files up to 10MB"
+                    @file-selected="(file) => { formData.file_path = file.url; formData.file_name = file.name || file.url.split('/').pop() || '' }"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Tags Section -->
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+              <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-tags mr-2 text-orange-600"></i>
+                Tags
+              </h4>
+              <div>
+                <label class="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                  Publication Tags
+                </label>
                 <input
-                  v-model="formData.title"
+                  v-model="formData.tags"
                   type="text"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  placeholder="Enter comma-separated tags (e.g., research, agriculture, policy)"
+                  class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 dark:bg-slate-800 dark:text-white"
                 />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category *</label>
-                <select
-                  v-model="formData.category"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">Select Category</option>
-                  <option value="Research Papers">Research Papers</option>
-                  <option value="Annual Reports">Annual Reports</option>
-                  <option value="Policy Documents">Policy Documents</option>
-                </select>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                  Separate multiple tags with commas
+                </p>
               </div>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-              <textarea
-                v-model="formData.description"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-              ></textarea>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Author</label>
-                <input
-                  v-model="formData.author"
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                <select
-                  v-model="formData.status"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="Published">Published</option>
-                  <option value="Draft">Draft</option>
-                  <option value="Archived">Archived</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path</label>
-                <input
-                  v-model="formData.file_path"
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Name</label>
-                <input
-                  v-model="formData.file_name"
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags</label>
-              <input
-                v-model="formData.tags"
-                type="text"
-                placeholder="Comma-separated tags"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-
-            <div class="flex justify-end space-x-3 pt-4">
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200 dark:border-slate-700">
               <button
                 type="button"
                 @click="closeModal"
-                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                class="px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-semibold transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 :disabled="saving"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-lg hover:shadow-xl"
               >
-                <i v-if="saving" class="pi pi-spin pi-spinner mr-2"></i>
-                {{ editingPublication ? 'Update' : 'Create' }} Publication
+                <i class="pi pi-spin pi-spinner" v-if="saving"></i>
+                <i v-else class="pi pi-check" v-if="!saving"></i>
+                <span>{{ saving ? 'Saving...' : (editingPublication ? 'Update Publication' : 'Create Publication') }}</span>
               </button>
             </div>
           </form>
@@ -309,6 +410,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { usePublications } from '../../composables/usePublications';
 import type { Publication } from '../../services/publicationService';
+import FileUpload from './FileUpload.vue';
 
 const {
   publications,

@@ -91,6 +91,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Location</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Applications</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">File</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -120,6 +121,14 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                 {{ career.application_count }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <div v-if="career.file_path && career.file_path.trim() !== ''" class="flex items-center">
+                  <i class="pi pi-file-pdf text-red-500"></i>
+                </div>
+                <div v-else class="flex items-center">
+                  <i class="pi pi-file text-gray-400"></i>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -358,6 +367,40 @@
               ></textarea>
             </div>
 
+            <!-- Career File Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <i class="pi pi-file-pdf text-blue-600 mr-2"></i>
+                Career Flyer/Document
+              </h4>
+              <div class="flex items-start space-x-6">
+                <div class="flex-shrink-0">
+                  <div class="w-32 h-32 rounded-xl overflow-hidden border-4 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <div v-if="formData.file_path" class="text-center">
+                      <i class="pi pi-file-pdf text-4xl text-red-500"></i>
+                      <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">{{ formData.file_name || 'Document' }}</p>
+                    </div>
+                    <div v-else class="text-center">
+                      <i class="pi pi-file text-4xl text-slate-400"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    Upload a flyer or document for this career opportunity. Click on any file to select it.
+                  </p>
+                  <FileUpload
+                    title="Select Career Document"
+                    :current-file="formData.file_path"
+                    folder="careers"
+                    accepted-types=".pdf,.doc,.docx,.txt"
+                    accepted-types-text="PDF, DOC, DOCX, TXT files"
+                    @file-selected="(file) => { formData.file_path = file.url; formData.file_name = file.name }"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div class="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
@@ -386,6 +429,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useCareers } from '../../composables/useCareers';
 import type { Career } from '../../services/careerService';
+import FileUpload from './FileUpload.vue';
 
 const {
   careers,
@@ -429,7 +473,9 @@ const formData = ref({
   salary_range: '',
   application_deadline: '',
   start_date: '',
-  status: 'Open'
+  status: 'Open',
+  file_path: '',
+  file_name: ''
 });
 
 // Computed
@@ -461,7 +507,9 @@ const openAddModal = () => {
     salary_range: '',
     application_deadline: '',
     start_date: '',
-    status: 'Open'
+    status: 'Open',
+    file_path: '',
+    file_name: ''
   };
   showModal.value = true;
 };
@@ -482,7 +530,9 @@ const editCareer = (career: Career) => {
     salary_range: career.salary_range,
     application_deadline: career.application_deadline ? career.application_deadline.split('T')[0] : '',
     start_date: career.start_date ? career.start_date.split('T')[0] : '',
-    status: career.status
+    status: career.status,
+    file_path: career.file_path || '',
+    file_name: career.file_name || ''
   };
   showModal.value = true;
 };
