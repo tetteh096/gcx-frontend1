@@ -1,64 +1,161 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
+import { marketDataService, type ProcessedMarketData } from '../../services/marketDataService'
+
+interface TickerCommodity {
+  symbol: string
+  name: string
+  price: number
+  change: number
+  changePercent: number
+  volume: string
+  avatar: string
+  color: string
+}
 
 // Real GCX commodity data with custom avatars
 const { t } = useI18n()
 
-const commodities = ref([
-  {
-    symbol: 'GAPWM2',
-    name: 'White Maize',
-    price: 1880.00,
-    change: 30.00,
-    changePercent: 1.62,
-    volume: '2.4M MT',
-    avatar: '🌽',
-    color: 'bg-yellow-500'
-  },
-  {
-    symbol: 'GAPYM2',
-    name: 'Yellow Maize',
-    price: 1200.00,
-    change: -20.00,
-    changePercent: -1.64,
-    volume: '2.1M MT',
-    avatar: '🌽',
-    color: 'bg-yellow-400'
-  },
-  {
-    symbol: 'GEJWM2',
-    name: 'Soya Bean',
-    price: 4030.00,
-    change: 50.00,
-    changePercent: 1.26,
-    volume: '1.8M MT',
-    avatar: '🫘',
-    color: 'bg-green-500'
-  },
-  {
-    symbol: 'GSAWM2',
-    name: 'Sorghum',
-    price: 4745.00,
-    change: 25.00,
-    changePercent: 0.53,
-    volume: '890K MT',
-    avatar: '🌾',
-    color: 'bg-amber-500'
-  },
-  {
-    symbol: 'GKUWM2',
-    name: 'Sesame',
-    price: 4645.00,
-    change: 45.00,
-    changePercent: 0.98,
-    volume: '950K MT',
-    avatar: '⚪',
-    color: 'bg-slate-400'
+const commodities = ref<TickerCommodity[]>([])
+const isLoading = ref(true)
+const error = ref<string | null>(null)
+
+// Commodity avatar mapping
+const commodityAvatars: Record<string, { avatar: string; color: string }> = {
+  'White Maize': { avatar: '🌽', color: 'bg-yellow-500' },
+  'Yellow Maize': { avatar: '🌽', color: 'bg-yellow-400' },
+  'Yellow Soya Bean': { avatar: '🫘', color: 'bg-green-500' },
+  'White Soya Bean': { avatar: '🫘', color: 'bg-green-400' },
+  'Aromatic Straight Millled Rice': { avatar: '🍚', color: 'bg-blue-500' },
+  'White Sesame Seed': { avatar: '⚪', color: 'bg-slate-400' },
+  'Sorghum': { avatar: '🌾', color: 'bg-amber-500' }
+}
+
+// Default avatar for unmapped commodities
+const getDefaultAvatar = (commodity: string): { avatar: string; color: string } => {
+  if (commodity.toLowerCase().includes('maize')) return { avatar: '🌽', color: 'bg-yellow-500' }
+  if (commodity.toLowerCase().includes('soya')) return { avatar: '🫘', color: 'bg-green-500' }
+  if (commodity.toLowerCase().includes('rice')) return { avatar: '�', color: 'bg-blue-500' }
+  if (commodity.toLowerCase().includes('sesame')) return { avatar: '⚪', color: 'bg-slate-400' }
+  if (commodity.toLowerCase().includes('sorghum')) return { avatar: '🌾', color: 'bg-amber-500' }
+  return { avatar: '📦', color: 'bg-gray-500' }
+}
+
+// Convert Firebase data to ticker format
+const convertToTickerFormat = (data: ProcessedMarketData[]): TickerCommodity[] => {
+  // Get the most recent and actively traded commodities
+  const prioritySymbols = ['GAPWM2', 'GAPYM2', 'GEJWM2', 'GSAWM2', 'GKUWM2', 'GKUYM2', 'GTAYSB2', 'GWAYSB2']
+  
+  // Filter and prioritize the data
+  const priorityData = data.filter(item => prioritySymbols.includes(item.Symbol))
+  const remainingData = data.filter(item => !prioritySymbols.includes(item.Symbol))
+  
+  // Combine priority items first, then fill with remaining
+  const selectedData = [...priorityData, ...remainingData].slice(0, 8)
+  
+  return selectedData.map(item => {
+    const avatarInfo = commodityAvatars[item.Commodity] || getDefaultAvatar(item.Commodity)
+    
+    return {
+      symbol: item.Symbol,
+      name: item.Commodity,
+      price: parseFloat(item.ClosingPrice) || 0,
+      change: parseFloat(item.PriceChange) || 0,
+      changePercent: item.priceChangePercent || 0,
+      volume: formatVolume(item.Symbol),
+      avatar: avatarInfo.avatar,
+      color: avatarInfo.color
+    }
+  })
+}
+
+// Format volume (simplified since Firebase doesn't provide volume data)
+const formatVolume = (symbol: string): string => {
+  const baseVolumes: Record<string, string> = {
+    'GAPWM2': '2.4M MT',
+    'GAPYM2': '1.8M MT', 
+    'GEJWM2': '3.1M MT',
+    'GSAWM2': '890K MT',
+    'GKUWM2': '1.2M MT',
+    'GKUYM2': '950K MT',
+    'GTAYSB2': '1.5M MT',
+    'GWAYSB2': '1.1M MT'
   }
-])
+  
+  return baseVolumes[symbol] || '500K MT'
+}
+
+// Load market data
+const loadMarketData = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+    
+    const data = await marketDataService.getCombinedMarketData()
+    commodities.value = convertToTickerFormat(data)
+    
+    console.log('✅ Ticker data loaded:', commodities.value.length, 'items')
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to load market data'
+    console.error('❌ Ticker data loading error:', err)
+    
+    // Fallback to mock data on error
+    commodities.value = [
+      {
+        symbol: 'GAPWM2',
+        name: 'White Maize',
+        price: 1880.00,
+        change: 30.00,
+        changePercent: 1.62,
+        volume: '2.4M MT',
+        avatar: '🌽',
+        color: 'bg-yellow-500'
+      },
+      {
+        symbol: 'GAPYM2', 
+        name: 'Yellow Maize',
+        price: 1200.00,
+        change: -20.00,
+        changePercent: -1.64,
+        volume: '2.1M MT',
+        avatar: '�',
+        color: 'bg-yellow-400'
+      },
+      {
+        symbol: 'GEJWM2',
+        name: 'White Maize',
+        price: 4030.00,
+        change: 50.00,
+        changePercent: 1.26,
+        volume: '1.8M MT',
+        avatar: '🌽',
+        color: 'bg-yellow-500'
+      }
+    ]
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Auto-refresh data
+let refreshInterval: number | null = null
+
+const startAutoRefresh = () => {
+  // Refresh every 2 minutes
+  refreshInterval = setInterval(async () => {
+    await loadMarketData()
+  }, 2 * 60 * 1000)
+}
+
+const stopAutoRefresh = () => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+    refreshInterval = null
+  }
+}
 
 const isPaused = ref(false)
 const { isTickerVisible: isVisible } = useTickerVisibility()
@@ -95,6 +192,16 @@ const formatPrice = (price: number) => {
     minimumFractionDigits: 2
   }).format(price)
 }
+
+// Lifecycle hooks
+onMounted(async () => {
+  await loadMarketData()
+  startAutoRefresh()
+})
+
+onUnmounted(() => {
+  stopAutoRefresh()
+})
 </script>
 
 <template>
@@ -107,8 +214,29 @@ const formatPrice = (price: number) => {
   >
     <!-- Custom Commodity Ticker -->
     <div class="relative overflow-hidden h-10 md:h-12">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="flex items-center h-full px-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+          <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+            Loading market data...
+          </span>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="flex items-center h-full px-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+          <span class="text-sm" :class="isDarkMode ? 'text-red-300' : 'text-red-600'">
+            {{ error }}
+          </span>
+        </div>
+      </div>
+
       <!-- Ticker Container -->
       <div 
+        v-else-if="commodities.length > 0"
         class="flex items-center py-1 px-4 space-x-4 md:space-x-6 ticker-scroll h-full"
         :class="{ 'ticker-paused': isPaused }"
         @mouseenter="pauseScrolling"

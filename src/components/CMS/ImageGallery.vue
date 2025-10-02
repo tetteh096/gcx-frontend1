@@ -548,16 +548,16 @@ const loadImages = async () => {
     if (response.data.success && response.data.data) {
       images.value = response.data.data.map((item: any) => {
         // Use the getImageUrl utility to properly construct URLs for Heroku backend
-        const imageUrl = getImageUrl(item.url)
+        const imageUrl = getImageUrl(item.URL || item.url)
         
         
         return {
-          id: item.id,
+          id: item.ID || item.id,
           url: imageUrl,
-          name: item.filename,
-          alt: item.alt_text || item.filename,
-          size: item.size,
-          type: item.mime_type,
+          name: item.Name || item.name || item.filename,
+          alt: item.alt_text || item.Name || item.name || item.filename,
+          size: item.Size || item.size,
+          type: item.Type || item.type || item.mime_type,
           loaded: false,
           error: false
         }
@@ -690,14 +690,17 @@ const uploadFiles = async (files: File[]) => {
         }
       })
       
-      if (response.data.success) {
+      if (response.data.success && response.data.data && response.data.data.length > 0) {
+        const uploadedItem = response.data.data[0] // Get first item from array
         const newImage: ImageItem = {
-          id: response.data.data.id,
-          url: response.data.data.url,
-          name: response.data.data.filename,
-          alt: response.data.data.alt_text,
-          size: response.data.data.size,
-          type: response.data.data.mime_type
+          id: uploadedItem.ID || uploadedItem.id,
+          url: getImageUrl(uploadedItem.URL || uploadedItem.url),
+          name: uploadedItem.Name || uploadedItem.name || uploadedItem.filename,
+          alt: uploadedItem.alt_text || uploadedItem.Name || uploadedItem.name || uploadedItem.filename,
+          size: uploadedItem.Size || uploadedItem.size,
+          type: uploadedItem.Type || uploadedItem.type || uploadedItem.mime_type,
+          loaded: true, // Set as loaded since upload was successful
+          error: false
         }
         
         images.value.unshift(newImage)
@@ -788,8 +791,8 @@ const deleteImage = async (image: ImageItem) => {
   if (confirm(`Are you sure you want to delete "${image.name || image.url.split('/').pop()}"?`)) {
     try {
       
-      // Call the delete API
-      await axios.delete(`/api/media/${image.id}`)
+      // Call the delete API - URL encode the image ID to handle special characters like #
+      await axios.delete(`/api/media/${encodeURIComponent(image.id)}`)
       
       // Remove the image from the local array immediately for better UX
       const imageIndex = images.value.findIndex(img => img.id === image.id)

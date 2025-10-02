@@ -86,12 +86,17 @@ const navigation = computed(() => [
       { 
         title: 'Market Information',
         items: [
-          { name: 'Live Prices', href: '/market-data#prices', description: 'Real-time commodity price updates' },
           { name: 'Market Overview', href: '/market-data#overview', description: 'Comprehensive market analysis and statistics' },
-          { name: 'Price Charts', href: '/market-data#charts', description: 'Technical analysis and price charts' },
-          { name: 'Market Reports', href: '/market-data#reports', description: 'Detailed market reports and analysis' },
-          { name: 'Trading Statistics', href: '/market-data#stats', description: 'Trading performance and volume data' },
-          { name: 'Price History', href: '/market-data#history', description: 'Historical price trends and analysis' }
+          { name: 'Market Reports', href: '/market-data#reports', description: 'Detailed market reports and analysis' }
+        ]
+      },
+      { 
+        title: 'Useful Links',
+        items: [
+          { name: 'MCX', href: 'https://www.mcxindia.com/', description: 'Multi Commodity Exchange of India', external: true },
+          { name: 'NASDAQ', href: 'https://www.nasdaq.com/', description: 'NASDAQ Stock Exchange', external: true },
+          { name: 'ICE', href: 'https://www.ice.com/', description: 'Intercontinental Exchange', external: true },
+          { name: 'SAFEX', href: 'https://www.jse.co.za/derivatives/commodity-derivatives-market', description: 'South African Futures Exchange', external: true }
         ]
       }
     ]
@@ -289,10 +294,14 @@ const navigateToApplication = () => {
                         {{ section.title }}
                       </h4>
                       <div class="space-y-1">
-                          <router-link
+                          <component
+                            :is="(dropdownItem as any).external ? 'a' : 'router-link'"
                         v-for="dropdownItem in section.items"
                         :key="dropdownItem.name"
-                            :to="dropdownItem.href"
+                            :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
+                            :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
+                            :target="(dropdownItem as any).external ? '_blank' : undefined"
+                            :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
                             class="group block p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:border-gray-200"
                             :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
                           >
@@ -313,7 +322,7 @@ const navigateToApplication = () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                               </svg>
                             </div>
-                          </router-link>
+                          </component>
                     </div>
                     </div>
                   </div>
@@ -326,10 +335,14 @@ const navigateToApplication = () => {
                         {{ section.title }}
                       </h4>
                       <div class="space-y-1">
-                          <router-link
+                          <component
+                            :is="(dropdownItem as any).external ? 'a' : 'router-link'"
                         v-for="dropdownItem in section.items"
                         :key="dropdownItem.name"
-                            :to="dropdownItem.href"
+                            :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
+                            :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
+                            :target="(dropdownItem as any).external ? '_blank' : undefined"
+                            :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
                             class="group block p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:border-gray-200"
                             :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
                           >
@@ -350,7 +363,7 @@ const navigateToApplication = () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                               </svg>
                             </div>
-                          </router-link>
+                          </component>
                     </div>
                     </div>
                   </div>
@@ -418,10 +431,14 @@ const navigateToApplication = () => {
                       {{ section.title }}
                     </h4>
                     <div class="space-y-1">
-                      <router-link
-                        v-for="dropdownItem in section.items"
-                        :key="dropdownItem.name"
-                        :to="dropdownItem.href"
+                      <component
+                        :is="(dropdownItem as any).external ? 'a' : 'router-link'"
+                    v-for="dropdownItem in section.items"
+                    :key="dropdownItem.name"
+                        :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
+                        :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
+                        :target="(dropdownItem as any).external ? '_blank' : undefined"
+                        :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
                         class="group block p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:border-gray-200"
                         :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
                       >
@@ -442,7 +459,7 @@ const navigateToApplication = () => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                           </svg>
                         </div>
-                      </router-link>
+                      </component>
                     </div>
                   </div>
                 </div>
@@ -612,16 +629,20 @@ const navigateToApplication = () => {
                   <h4 class="text-xs font-semibold uppercase tracking-wide mb-2 px-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                     {{ section.title }}
                   </h4>
-                  <router-link
+                      <component
+                        :is="(dropdownItem as any).external ? 'a' : 'router-link'"
                     v-for="dropdownItem in section.items"
                     :key="dropdownItem.name"
-                    :to="dropdownItem.href"
+                        :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
+                        :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
+                        :target="(dropdownItem as any).external ? '_blank' : undefined"
+                        :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
                     @click="closeMenu"
                     class="block px-3 py-2 text-sm transition-colors rounded-lg truncate"
                     :class="isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'"
                   >
                     {{ dropdownItem.name }}
-                  </router-link>
+                  </component>
                 </div>
               </div>
             </div>

@@ -2,15 +2,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
+import { marketDataService, type ProcessedMarketData } from '../../services/marketDataService'
 
 interface Commodity {
   symbol: string
   name: string
   price: number
   change: number
-  volume: string
-  status: 'active' | 'inactive'
   trend: 'up' | 'down' | 'neutral'
+  deliveryCentre?: string
+  grade?: string
 }
 
 interface MarketCategory {
@@ -18,79 +19,59 @@ interface MarketCategory {
   commodities: Commodity[]
 }
 
-// Mock market data based on GCX commodities
 const { t } = useI18n()
 
-const marketData = ref<MarketCategory[]>([
-  {
-    category: 'Soya Bean',
-    commodities: [
-      { symbol: 'GAPWM2', name: 'White Soya Bean', price: 1880.00, change: 45.50, volume: '1,250 MT', status: 'active', trend: 'up' },
-      { symbol: 'GAPWM3', name: 'White Soya Bean', price: 1240.00, change: -12.30, volume: '890 MT', status: 'active', trend: 'down' },
-      { symbol: 'GAPYM2', name: 'Yellow Soya Bean', price: 1200.00, change: 28.75, volume: '1,100 MT', status: 'active', trend: 'up' },
-      { symbol: 'GAPYM4', name: 'Yellow Soya Bean', price: 1160.00, change: -5.20, volume: '750 MT', status: 'active', trend: 'down' }
-    ]
-  },
-  {
-    category: 'Sorghum',
-    commodities: [
-      { symbol: 'GEJWM1', name: 'White Sorghum', price: 2622.00, change: 67.80, volume: '2,340 MT', status: 'active', trend: 'up' },
-      { symbol: 'GEJWM2', name: 'White Sorghum', price: 4030.00, change: -23.45, volume: '1,890 MT', status: 'active', trend: 'down' },
-      { symbol: 'GEJWM3', name: 'White Sorghum', price: 2756.00, change: 34.20, volume: '1,650 MT', status: 'active', trend: 'up' },
-      { symbol: 'GEJWM4', name: 'White Sorghum', price: 2560.00, change: -8.90, volume: '980 MT', status: 'active', trend: 'down' },
-      { symbol: 'GEJYM2', name: 'Yellow Sorghum', price: 1200.00, change: 15.60, volume: '1,200 MT', status: 'active', trend: 'up' },
-      { symbol: 'GEJYM3', name: 'Yellow Sorghum', price: 1000.00, change: -18.30, volume: '850 MT', status: 'active', trend: 'down' }
-    ]
-  },
-  {
-    category: 'Sesame',
-    commodities: [
-      { symbol: 'GSAWM1', name: 'White Sesame', price: 3145.00, change: 89.25, volume: '560 MT', status: 'active', trend: 'up' },
-      { symbol: 'GSAWM2', name: 'White Sesame', price: 4745.00, change: -45.80, volume: '420 MT', status: 'active', trend: 'down' },
-      { symbol: 'GSAWM3', name: 'White Sesame', price: 2684.00, change: 12.40, volume: '380 MT', status: 'active', trend: 'up' },
-      { symbol: 'GSAYM1', name: 'Yellow Sesame', price: 3145.00, change: 56.70, volume: '320 MT', status: 'active', trend: 'up' },
-      { symbol: 'GSAYM2', name: 'Yellow Sesame', price: 6290.00, change: -67.90, volume: '280 MT', status: 'active', trend: 'down' },
-      { symbol: 'GSAYM3', name: 'Yellow Sesame', price: 2516.00, change: 23.15, volume: '240 MT', status: 'active', trend: 'up' }
-    ]
-  },
-  {
-    category: 'Milled Rice',
-    commodities: [
-      { symbol: 'GTAWM1', name: 'White Rice', price: 4440.00, change: 78.90, volume: '3,200 MT', status: 'active', trend: 'up' },
-      { symbol: 'GTAWM2', name: 'White Rice', price: 4405.00, change: -34.20, volume: '2,800 MT', status: 'active', trend: 'down' },
-      { symbol: 'GTAWM3', name: 'White Rice', price: 1920.00, change: 45.60, volume: '1,950 MT', status: 'active', trend: 'up' },
-      { symbol: 'GTAWM4', name: 'White Rice', price: 1100.00, change: -12.80, volume: '1,600 MT', status: 'active', trend: 'down' },
-      { symbol: 'GTAYM1', name: 'Yellow Rice', price: 1480.00, change: 67.30, volume: '1,400 MT', status: 'active', trend: 'up' },
-      { symbol: 'GTAYM2', name: 'Yellow Rice', price: 5929.00, change: -89.45, volume: '1,200 MT', status: 'active', trend: 'down' },
-      { symbol: 'GTAYM3', name: 'Yellow Rice', price: 1120.00, change: 23.90, volume: '1,000 MT', status: 'active', trend: 'up' },
-      { symbol: 'GTUWM2', name: 'White Rice', price: 5995.00, change: 123.40, volume: '1,450 MT', status: 'active', trend: 'up' },
-      { symbol: 'GTUYM2', name: 'Yellow Rice', price: 6090.00, change: -56.70, volume: '1,300 MT', status: 'active', trend: 'down' }
-    ]
-  }
-])
+const marketData = ref<MarketCategory[]>([])
+const loading = ref(true)
+const error = ref<string | null>(null)
+const lastUpdated = ref<string>('')
 
 const selectedCategory = ref('all')
 const searchTerm = ref('')
 const isUpdating = ref(false)
+const selectedCommodity = ref<Commodity | null>(null)
 
 // Market statistics
 const marketStats = computed(() => {
   const allCommodities = marketData.value.flatMap(cat => cat.commodities)
-  const totalVolume = allCommodities.reduce((sum, item) => sum + parseInt(item.volume.replace(',', '')), 0)
-  const avgPrice = allCommodities.reduce((sum, item) => sum + item.price, 0) / allCommodities.length
-  const activeContracts = allCommodities.filter(item => item.status === 'active').length
+  const avgPrice = allCommodities.length > 0 
+    ? allCommodities.reduce((sum, item) => sum + item.price, 0) / allCommodities.length 
+    : 0
   const totalChange = allCommodities.reduce((sum, item) => sum + item.change, 0)
   
   return {
-    totalVolume: totalVolume.toLocaleString(),
     avgPrice: avgPrice.toFixed(2),
-    activeContracts,
+    totalContracts: allCommodities.length,
     totalCommodities: allCommodities.length,
     totalChange: totalChange.toFixed(2)
   }
 })
 
-// Filtered data
+// All commodities in a single array
+const allCommodities = computed(() => {
+  let commodities = marketData.value.flatMap(cat => cat.commodities)
+  
+  // Filter by category if selected
+  if (selectedCategory.value !== 'all') {
+    commodities = commodities.filter(item => 
+      getCommodityCategory(item.name) === selectedCategory.value
+    )
+  }
+  
+  // Filter by search term
+  if (searchTerm.value) {
+    const term = searchTerm.value.toLowerCase()
+    commodities = commodities.filter(item => 
+      item.symbol.toLowerCase().includes(term) ||
+      item.name.toLowerCase().includes(term) ||
+      item.deliveryCentre?.toLowerCase().includes(term)
+    )
+  }
+  
+  return commodities.sort((a, b) => a.symbol.localeCompare(b.symbol))
+})
+
+// Filtered data (for backward compatibility)
 const filteredData = computed(() => {
   let data = marketData.value
   
@@ -111,38 +92,57 @@ const filteredData = computed(() => {
   return data
 })
 
-// Top performers
+// Top performers (by price)
 const topPerformers = computed(() => {
   const allCommodities = marketData.value.flatMap(cat => cat.commodities)
   return allCommodities
-    .sort((a, b) => b.volume.localeCompare(a.volume, undefined, { numeric: true }))
+    .sort((a, b) => b.price - a.price)
     .slice(0, 5)
 })
 
 // Market highlights
-const marketHighlights = ref([
-  {
-    title: 'Soya Bean Prices Stable',
-    description: 'White and yellow soya bean prices remain stable with consistent trading volumes.',
+const marketHighlights = computed(() => {
+  const allCommodities = marketData.value.flatMap(cat => cat.commodities)
+  
+  if (allCommodities.length === 0) {
+    return [
+      {
+        title: 'Market Data Available',
+        description: 'Real-time commodity prices from multiple delivery centres across Ghana.',
+        type: 'info',
+        date: new Date().toLocaleDateString('en-GH'),
+        icon: '📊'
+      }
+    ]
+  }
+  
+  const highestPriced = allCommodities.reduce((max, item) => item.price > max.price ? item : max, allCommodities[0])
+  const lowestPriced = allCommodities.reduce((min, item) => item.price < min.price ? item : min, allCommodities[0])
+  
+  return [
+    {
+      title: `${marketData.value.length} Commodity Categories`,
+      description: `Trading data available for ${allCommodities.length} contracts across ${marketData.value.length} commodity types.`,
     type: 'info',
-    date: '2025-01-25',
+      date: new Date().toLocaleDateString('en-GH'),
     icon: '📊'
   },
   {
-    title: 'Rice Trading Volume Increases',
-    description: 'Milled rice trading volume shows 15% increase compared to last week.',
+      title: `Highest: ${highestPriced.symbol}`,
+      description: `${highestPriced.name} at GHC ${highestPriced.price.toLocaleString()} per MT from ${highestPriced.deliveryCentre || 'various centres'}.`,
     type: 'positive',
-    date: '2025-01-25',
+      date: new Date().toLocaleDateString('en-GH'),
     icon: '📈'
   },
   {
-    title: 'New Sorghum Contracts',
-    description: 'New sorghum contracts to be introduced next month.',
+      title: 'Multi-Centre Trading',
+      description: 'Commodity prices available from delivery centres including Ejura, Kumasi, Techiman, and more.',
     type: 'announcement',
-    date: '2025-01-24',
+      date: new Date().toLocaleDateString('en-GH'),
     icon: '🎯'
   }
-])
+  ]
+})
 
 const getChangeClass = (change: number) => {
   if (change > 0) return 'text-green-500 bg-green-500/10 border-green-500/20'
@@ -162,43 +162,154 @@ const getTrendColor = (trend: 'up' | 'down' | 'neutral') => {
   return 'text-slate-500'
 }
 
-// Simulate real-time updates
-onMounted(() => {
-  setInterval(() => {
-    isUpdating.value = true
-    marketData.value = marketData.value.map(category => ({
-      ...category,
-      commodities: category.commodities.map(item => {
-        const change = (Math.random() - 0.5) * 200
-        const newPrice = item.price + change
-        const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'
+const selectCommodity = (commodity: Commodity) => {
+  selectedCommodity.value = commodity
+}
+
+// Convert Firebase data to our Commodity interface
+const convertToCommodity = (data: ProcessedMarketData): Commodity => {
+  const price = parseFloat(data.ClosingPrice) || 0
+  const priceChange = parseFloat(data.PriceChange) || 0
+  const trend = priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'neutral'
         
         return {
-          ...item,
-          price: newPrice,
-          change: change,
-          trend: trend
-        }
-      })
-    }))
+    symbol: data.Symbol,
+    name: data.Commodity,
+    price,
+    change: priceChange,
+    trend,
+    deliveryCentre: data.DeliveryCentre,
+    grade: data.Grade
+  }
+}
+
+// Helper function to determine commodity category
+const getCommodityCategory = (commodityName: string): string => {
+  const name = commodityName.toLowerCase()
+  
+  // Check for specific commodity types
+  if (name.includes('maize')) return 'Maize'
+  if (name.includes('soya') || name.includes('soybean')) return 'Soya Bean'
+  if (name.includes('rice')) return 'Rice'
+  if (name.includes('sesame')) return 'Sesame Seed'
+  if (name.includes('sorghum')) return 'Sorghum'
+  
+  // Default to the commodity name itself
+  return commodityName
+}
+
+// Group commodities by category
+const groupCommoditiesByCategory = (commodities: Commodity[]): MarketCategory[] => {
+  const grouped = commodities.reduce((acc, commodity) => {
+    const category = getCommodityCategory(commodity.name)
+    if (!acc[category]) {
+      acc[category] = []
+    }
+    acc[category].push(commodity)
+    return acc
+  }, {} as Record<string, Commodity[]>)
+  
+  // Sort categories and commodities
+  const sortedEntries = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b))
+  
+  return sortedEntries.map(([category, commodities]) => ({
+    category,
+    commodities: commodities.sort((a, b) => a.symbol.localeCompare(b.symbol))
+  }))
+}
+
+// Load market data from Firebase
+const loadMarketData = async () => {
+  try {
+    loading.value = true
+    error.value = null
     
-    setTimeout(() => {
-      isUpdating.value = false
-    }, 500)
-  }, 10000)
+    const [data, statistics] = await Promise.all([
+      marketDataService.getCombinedMarketData(),
+      marketDataService.getMarketStatistics()
+    ])
+    
+    const commodities = data.map(convertToCommodity)
+    marketData.value = groupCommoditiesByCategory(commodities)
+    lastUpdated.value = statistics.lastUpdated
+    
+    console.log(`✅ Loaded ${commodities.length} commodities for market overview`)
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to load market data'
+    console.error('❌ Market overview loading error:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Refresh data
+const refreshData = async () => {
+  await loadMarketData()
+}
+
+// Load data on mount and set up auto-refresh
+onMounted(async () => {
+  await loadMarketData()
+  
+  // Auto-refresh every 5 minutes
+  setInterval(async () => {
+    if (!loading.value) {
+      await refreshData()
+    }
+  }, 5 * 60 * 1000)
 })
 </script>
 
 <template>
   <div class="space-y-6">
+    <!-- Loading State -->
+    <div v-if="loading && !marketData.length" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div v-for="i in 4" :key="i" class="p-6 rounded-xl border animate-pulse" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="h-4 bg-slate-300 rounded w-20 mb-2"></div>
+              <div class="h-8 bg-slate-300 rounded w-24"></div>
+            </div>
+            <div class="w-12 h-12 bg-slate-300 rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center py-12">
+        <div class="inline-flex items-center gap-2">
+          <svg class="animate-spin w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-lg font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Loading market overview...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-12">
+      <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto" :class="isDarkMode ? 'bg-red-900/20 border-red-800' : ''">
+        <div class="flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-red-800 mb-2" :class="isDarkMode ? 'text-red-400' : ''">Failed to load market overview</h3>
+        <p class="text-red-600 mb-4" :class="isDarkMode ? 'text-red-300' : ''">{{ error }}</p>
+        <button @click="refreshData" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+          Try Again
+        </button>
+      </div>
+    </div>
+
     <!-- Market Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Volume</div>
+            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Contracts</div>
             <div class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-              {{ marketStats.totalVolume }} MT
+              {{ marketStats.totalCommodities }}
             </div>
           </div>
           <div class="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
@@ -228,9 +339,9 @@ onMounted(() => {
       <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Active Contracts</div>
+            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Contracts</div>
             <div class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-              {{ marketStats.activeContracts }}
+              {{ marketStats.totalContracts }}
             </div>
           </div>
           <div class="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white">
@@ -255,7 +366,7 @@ onMounted(() => {
     </div>
 
     <!-- Filters and Search -->
-    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+    <div v-if="!loading && !error" class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
       <div class="flex items-center gap-4">
         <!-- Category Filter -->
         <select
@@ -268,6 +379,27 @@ onMounted(() => {
             {{ category.category }}
           </option>
         </select>
+        
+        <!-- Refresh Button -->
+        <button
+          @click="refreshData"
+          :disabled="loading"
+          class="p-3 rounded-xl border transition-all duration-200 hover:shadow-lg disabled:opacity-50"
+          :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-700' : 'border-slate-200 bg-white hover:bg-slate-50'"
+        >
+          <svg 
+            class="w-5 h-5" 
+            :class="[
+              isDarkMode ? 'text-slate-300' : 'text-slate-600',
+              { 'animate-spin': loading }
+            ]"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
       </div>
 
       <!-- Search -->
@@ -285,20 +417,14 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Commodity Categories -->
-    <div class="space-y-6">
-      <div
-        v-for="category in filteredData"
-        :key="category.category"
-        class="rounded-xl border overflow-hidden shadow-lg"
-        :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'"
-      >
+    <!-- Unified Commodity Table -->
+    <div v-if="!loading && !error && allCommodities.length" class="rounded-xl border overflow-hidden shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
         <div class="px-6 py-4 border-b" :class="isDarkMode ? 'border-slate-700 bg-gradient-to-r from-slate-900 to-slate-800' : 'border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100'">
           <h3 class="text-lg font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-            {{ category.category }}
+          All Commodities
           </h3>
           <p class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-            {{ category.commodities.length }} active contracts
+          {{ allCommodities.length }} active contracts across {{ marketData.length }} commodity categories
           </p>
         </div>
 
@@ -307,22 +433,23 @@ onMounted(() => {
             <thead>
               <tr :class="isDarkMode ? 'bg-slate-900 border-b border-slate-700' : 'bg-slate-50 border-b border-slate-200'">
                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Symbol</th>
-                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Name</th>
+              <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Commodity</th>
+              <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Grade</th>
+              <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Delivery Centre</th>
                 <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Price (GHC)</th>
                 <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Change</th>
-                <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Volume</th>
                 <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Trend</th>
-                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Status</th>
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="item in category.commodities"
+              v-for="item in allCommodities"
                 :key="item.symbol"
-                class="border-b transition-all duration-200 group"
+              @click="selectCommodity(item)"
+              class="cursor-pointer border-b transition-all duration-200 group"
                         :class="[
               isDarkMode ? 'border-slate-700 hover:bg-slate-700' : 'border-slate-200 hover:bg-slate-200',
-              isUpdating ? 'animate-pulse' : ''
+                loading ? 'animate-pulse' : ''
             ]"
               >
                 <td class="px-6 py-4">
@@ -335,9 +462,19 @@ onMounted(() => {
                     {{ item.name }}
                   </span>
                 </td>
+              <td class="px-6 py-4 text-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800" :class="isDarkMode ? 'bg-blue-900/20 text-blue-400' : ''">
+                  {{ item.grade || 'N/A' }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+                  {{ item.deliveryCentre || 'N/A' }}
+                  </span>
+                </td>
                 <td class="px-6 py-4 text-right">
                   <span class="text-sm font-mono font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                    {{ item.price.toLocaleString() }}
+                  GHC {{ item.price.toLocaleString() }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right">
@@ -350,11 +487,6 @@ onMounted(() => {
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-right">
-                  <span class="text-sm font-semibold" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                    {{ item.volume }}
-                  </span>
-                </td>
                 <td class="px-6 py-4 text-center">
                   <span 
                     class="text-lg font-bold"
@@ -363,20 +495,9 @@ onMounted(() => {
                     {{ getTrendIcon(item.trend) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-center">
-                  <span 
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="item.status === 'active' 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'"
-                  >
-                    {{ item.status }}
-                  </span>
-                </td>
               </tr>
             </tbody>
           </table>
-        </div>
       </div>
     </div>
 
@@ -441,11 +562,64 @@ onMounted(() => {
             </div>
             <div class="text-right">
               <div class="text-sm font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                {{ item.volume }}
+                  GHC {{ item.price.toLocaleString() }}
               </div>
               <div class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-                GHC {{ item.price.toLocaleString() }}
+                  {{ item.deliveryCentre || 'N/A' }}
+                </div>
               </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Commodity Details -->
+    <div v-if="selectedCommodity" class="mt-6">
+      <div class="rounded-xl p-6 border shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div>
+              <h3 class="text-xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+                {{ selectedCommodity.symbol }} - {{ selectedCommodity.name }}
+              </h3>
+              <p class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                {{ selectedCommodity.deliveryCentre || 'Various Centres' }} • Grade {{ selectedCommodity.grade || 'N/A' }}
+              </p>
+            </div>
+          </div>
+          <button 
+            @click="selectedCommodity = null"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Current Price</div>
+            <div class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              GHC {{ selectedCommodity.price.toLocaleString() }}
+            </div>
+          </div>
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Price Change</div>
+            <div class="text-2xl font-bold" :class="selectedCommodity.change >= 0 ? 'text-green-600' : 'text-red-600'">
+              {{ selectedCommodity.change >= 0 ? '+' : '' }}{{ selectedCommodity.change.toFixed(2) }}
+            </div>
+          </div>
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Grade</div>
+            <div class="text-lg font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              {{ selectedCommodity.grade || 'N/A' }}
+            </div>
+          </div>
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+            <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Delivery Centre</div>
+            <div class="text-sm font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              {{ selectedCommodity.deliveryCentre || 'N/A' }}
             </div>
           </div>
         </div>

@@ -62,6 +62,7 @@ export interface MediaFile {
   created_at: string
 }
 
+// Legacy MarketData interface (for CMS)
 export interface MarketData {
   id: number
   commodity: string
@@ -73,6 +74,48 @@ export interface MarketData {
   high: number
   low: number
   last_updated: string
+}
+
+// Firebase Market Data Types
+export interface FirebaseClosingPriceData {
+  ClosingPrice: string
+  Commodity: string
+  HighPrice: string
+  LastTradeDate: string
+  LowPrice: string
+  OpeningPrice: string
+  PriceChange: string
+  Symbol: string
+}
+
+export interface FirebaseCommoditySymbolData {
+  Commodity: string
+  DeliveryCentre: string
+  Grade: string
+}
+
+export interface FirebaseMarketDataResponse {
+  data: Record<string, FirebaseClosingPriceData>
+  header: {
+    timestamp: string
+  }
+}
+
+export interface ProcessedMarketData extends FirebaseClosingPriceData {
+  DeliveryCentre?: string
+  Grade?: string
+  priceChangePercent?: number
+  formattedPrice?: string
+  isPositiveChange?: boolean
+}
+
+export interface MarketStatistics {
+  totalSymbols: number
+  totalCommodities: number
+  totalDeliveryCentres: number
+  lastUpdated: string
+  topPerformers: ProcessedMarketData[]
+  bottomPerformers: ProcessedMarketData[]
 }
 
 export interface ApiResponse<T> {

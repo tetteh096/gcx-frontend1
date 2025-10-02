@@ -10,7 +10,7 @@ const BACKEND_CONFIG = {
   GO_BACKEND_URL_NGROK: 'https://8f5e6659a95f.ngrok-free.app',
   GO_BACKEND_URL_HEROKU: 'https://gcx-backend-api-e4d0fabe07d7.herokuapp.com',
   GO_USE_NGROK: false, // Set to true for ngrok, false for local
-  GO_USE_HEROKU: true, // Set to true for Heroku, false for local/ngrok
+  GO_USE_HEROKU: false, // Set to true for Heroku, false for local/ngrok
   
   LARAVEL_BACKEND_URL: 'http://localhost:8000'
 }
