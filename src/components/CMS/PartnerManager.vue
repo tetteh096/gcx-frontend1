@@ -1,25 +1,25 @@
 <template>
-  <div class="space-y-6 animate-fade-in">
+  <div class="space-y-6 animate-fade-in transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50'">
     <!-- Enhanced Header -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+    <div class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-green-200 shadow-green-100'">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
             <i class="pi pi-handshake text-white text-xl"></i>
           </div>
           <div>
-            <h2 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent dark:from-green-400 dark:to-emerald-400">
+            <h2 class="text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-colors duration-300" :class="isDarkMode ? 'from-green-400 to-emerald-400' : 'from-green-600 to-emerald-600'">
               Partner Management
             </h2>
-            <p class="text-slate-600 dark:text-slate-400 mt-1">Manage strategic partnerships and collaborations</p>
+            <p class="mt-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Manage strategic partnerships and collaborations</p>
           </div>
         </div>
         
         <div class="flex gap-3">
           <button
             @click="exportPartners"
-            class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg font-medium transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700"
-            :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'"
+            class="px-4 py-2 border font-medium transition-all duration-200"
+            :class="isDarkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-green-300 text-green-700 hover:bg-green-50 shadow-sm'"
           >
             <i class="pi pi-download mr-2"></i>
             Export
@@ -36,7 +36,7 @@
     </div>
 
     <!-- Enhanced Search and Filters -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+    <div class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-green-200 shadow-green-100'">
       <div class="flex flex-col lg:flex-row gap-4 items-center">
         <div class="flex-1 relative">
           <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -46,8 +46,8 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search partners by name, description, or email..."
-            class="w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-slate-700 dark:text-white transition-all duration-200"
-            :class="isDarkMode ? 'placeholder-slate-400' : 'placeholder-slate-500'"
+            class="w-full pl-12 pr-4 py-3 border focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+            :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white/90 border-green-300 text-slate-800 placeholder-slate-500 shadow-sm'"
             @input="debouncedSearch"
           />
         </div>
@@ -56,7 +56,8 @@
           <select
             v-model="categoryFilter"
             @change="loadPartners"
-            class="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-slate-700 dark:text-white transition-all duration-200"
+            class="px-4 py-3 border focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+            :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
           >
             <option value="">All Categories</option>
             <option value="financial">Financial Institutions</option>
@@ -70,7 +71,8 @@
           <select
             v-model="statusFilter"
             @change="loadPartners"
-            class="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-slate-700 dark:text-white transition-all duration-200"
+            class="px-4 py-3 border focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+            :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
           >
             <option value="">All Status</option>
             <option value="active">Active</option>
@@ -80,8 +82,8 @@
           
           <button
             @click="toggleFilters"
-            class="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200"
-            :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'"
+            class="px-4 py-3 border transition-all duration-200"
+            :class="isDarkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-green-300 text-green-700 hover:bg-green-50 shadow-sm'"
           >
             <i class="pi pi-filter mr-2"></i>
             Filters
@@ -91,41 +93,41 @@
       
       <!-- Stats Row -->
       <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-green-50/50 border-green-200 shadow-green-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Total Partners</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ partners.length }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Partners</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ partners.length }}</p>
             </div>
             <i class="pi pi-handshake text-2xl text-green-500 dark:text-green-400"></i>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-green-50/50 border-green-200 shadow-green-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Active</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ activePartners }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Active</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ activePartners }}</p>
             </div>
             <i class="pi pi-check-circle text-2xl text-green-500 dark:text-green-400"></i>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-green-50/50 border-green-200 shadow-green-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Inactive</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ inactivePartners }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Inactive</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ inactivePartners }}</p>
             </div>
             <i class="pi pi-clock text-2xl text-orange-500 dark:text-orange-400"></i>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-green-50/50 border-green-200 shadow-green-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Suspended</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ suspendedPartners }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Suspended</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ suspendedPartners }}</p>
             </div>
             <i class="pi pi-ban text-2xl text-red-500 dark:text-red-400"></i>
           </div>
@@ -134,12 +136,12 @@
     </div>
 
     <!-- Enhanced Partners Table -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="shadow-lg border overflow-hidden transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/90 backdrop-blur-sm border-green-200 shadow-green-100'">
       <div class="overflow-x-auto">
         <table class="w-full table-fixed">
-          <thead class="bg-slate-50 dark:bg-slate-700">
+          <thead class="transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-gradient-to-r from-green-50 to-emerald-50'">
             <tr>
-              <th class="w-80 px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+              <th class="w-80 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-building text-slate-500 dark:text-slate-400"></i>
                   Partner & Logo
@@ -178,7 +180,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-            <tr v-for="partner in partners" :key="partner.id" class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200 group">
+            <tr v-for="partner in partners" :key="partner.id" class="transition-all duration-200 group" :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-green-50/50'">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-3">
                   <!-- Partner Logo -->
@@ -198,8 +200,8 @@
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ partner.name }}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                    <div class="text-sm font-medium truncate transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ partner.name }}</div>
+                    <div class="text-xs line-clamp-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                       {{ partner.description ? (partner.description.length > 60 ? partner.description.substring(0, 60) + '...' : partner.description) : 'No description' }}
                     </div>
                   </div>
@@ -226,7 +228,7 @@
                 </div>
               </td>
               <td class="px-4 py-3">
-                <div class="text-xs text-slate-900 dark:text-white">
+                <div class="text-xs transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                   <div v-if="partner.email" class="truncate" :title="partner.email">
                     <i class="pi pi-envelope text-slate-400 text-xs mr-1"></i>
                     {{ partner.email.length > 20 ? partner.email.substring(0, 20) + '...' : partner.email }}
@@ -245,27 +247,22 @@
                 </span>
               </td>
               <td class="px-4 py-3">
-                <div class="flex gap-1">
+                <div class="flex gap-2">
                   <button
                     @click="editPartner(partner)"
-                    class="p-1.5 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all duration-200"
+                    class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-medium transition-colors"
                     title="Edit Partner"
                   >
-                    <i class="pi pi-pencil text-xs"></i>
-                  </button>
-                  <button
-                    @click="viewPartner(partner)"
-                    class="p-1.5 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-all duration-200"
-                    title="View Details"
-                  >
-                    <i class="pi pi-eye text-xs"></i>
+                    <i class="pi pi-pencil mr-1"></i>
+                    Edit
                   </button>
                   <button
                     @click="deletePartner(partner.id)"
-                    class="p-1.5 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all duration-200"
+                    class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-colors"
                     title="Delete Partner"
                   >
-                    <i class="pi pi-trash text-xs"></i>
+                    <i class="pi pi-trash mr-1"></i>
+                    Delete
                   </button>
                 </div>
               </td>
@@ -279,8 +276,8 @@
         <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 flex items-center justify-center">
           <i class="pi pi-handshake text-3xl text-green-500 dark:text-green-400"></i>
         </div>
-        <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-2">No partners found</h3>
-        <p class="text-slate-500 dark:text-slate-400 mb-6">Get started by adding your first partner to the system.</p>
+        <h3 class="text-xl font-semibold mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">No partners found</h3>
+        <p class="mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">Get started by adding your first partner to the system.</p>
         <button
           @click="openAddModal"
           class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 flex items-center gap-2 mx-auto"
@@ -292,18 +289,18 @@
     </div>
 
     <!-- Enhanced Pagination -->
-    <div v-if="(pagination && pagination.totalPages > 1) || partners.length > 0" class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+    <div v-if="(pagination && pagination.totalPages > 1) || partners.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-green-200 shadow-green-100'">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div class="text-sm text-slate-700 dark:text-slate-300">
+        <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
           <template v-if="pagination">
-            Showing <span class="font-semibold text-slate-900 dark:text-white">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ pagination.total }}</span> results
+            Showing             <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
           </template>
           <template v-else>
-            Showing <span class="font-semibold text-slate-900 dark:text-white">1</span> to 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ partners.length }}</span> of 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ partners.length }}</span> results
+            Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">1</span> to 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ partners.length }}</span> of 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ partners.length }}</span> results
           </template>
         </div>
         
@@ -358,7 +355,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
       <i class="pi pi-spin pi-spinner text-2xl text-green-600"></i>
-      <p class="mt-2 text-slate-600 dark:text-slate-400">Loading partners...</p>
+      <p class="mt-2 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading partners...</p>
     </div>
 
     <!-- Add/Edit Modal -->
@@ -368,17 +365,17 @@
       @click="closeModal"
     >
       <div
-        class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        class="shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white/95 backdrop-blur-sm border border-green-200'"
         @click.stop
       >
         <div class="p-6">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-slate-900 dark:text-white">
+            <h3 class="text-xl font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
               {{ editingPartner ? 'Edit Partner' : 'Add New Partner' }}
             </h3>
             <button
               @click="closeModal"
-              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              class="transition-colors duration-300" :class="isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'"
             >
               <i class="pi pi-times text-xl"></i>
             </button>
@@ -420,24 +417,26 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Name *
                 </label>
                 <input
                   v-model="form.name"
                   type="text"
                   required
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Category *
                 </label>
                 <select
                   v-model="form.category"
                   required
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
                 >
                   <option value="financial">Financial Institutions</option>
                   <option value="donor">Donor Agencies</option>
@@ -448,42 +447,46 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Website
                 </label>
                 <input
                   v-model="form.website"
                   type="url"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Email
                 </label>
                 <input
                   v-model="form.email"
                   type="email"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Phone
                 </label>
                 <input
                   v-model="form.phone"
                   type="tel"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Status
                 </label>
                 <select
                   v-model="form.status"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-green-300 text-slate-800 shadow-sm'"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -516,7 +519,8 @@
               <button
                 type="button"
                 @click="closeModal"
-                class="px-4 py-2 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                class="px-4 py-2 border transition-colors"
+                :class="isDarkMode ? 'text-slate-300 border-slate-600 hover:bg-slate-700' : 'text-green-700 border-green-300 hover:bg-green-50 shadow-sm'"
               >
                 Cancel
               </button>

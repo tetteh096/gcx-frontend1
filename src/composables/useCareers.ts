@@ -126,6 +126,43 @@ export function useCareers() {
     }
   };
 
+  // CRUD operations
+  const createCareer = async (careerData: any) => {
+    try {
+      const response = await careerService.createCareer(careerData);
+      await fetchCareers(); // Refresh the list
+      return response;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to create career';
+      console.error('Error creating career:', err);
+      throw err;
+    }
+  };
+
+  const updateCareer = async (id: number, careerData: any) => {
+    try {
+      const response = await careerService.updateCareer(id, careerData);
+      await fetchCareers(); // Refresh the list
+      return response;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to update career';
+      console.error('Error updating career:', err);
+      throw err;
+    }
+  };
+
+  const deleteCareer = async (id: number) => {
+    try {
+      const response = await careerService.deleteCareer(id);
+      await fetchCareers(); // Refresh the list
+      return response;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to delete career';
+      console.error('Error deleting career:', err);
+      throw err;
+    }
+  };
+
   return {
     // State
     careers,
@@ -155,6 +192,11 @@ export function useCareers() {
     clearFilters,
     goToPage,
     nextPage,
-    prevPage
+    prevPage,
+    
+    // CRUD operations
+    createCareer,
+    updateCareer,
+    deleteCareer
   };
 }

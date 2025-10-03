@@ -1,21 +1,21 @@
 <template>
-  <div class="team-manager bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+  <div class="team-manager min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'">
     <!-- Header Section -->
-    <div class="bg-white shadow-sm border-b border-slate-200">
+    <div class="shadow-sm border-b transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
       <div class="px-6 py-8">
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Team Management
             </h1>
-            <p class="text-slate-600 mt-2 text-lg">
+            <p class="mt-2 text-lg transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
               Manage your organization's leadership and team members
             </p>
           </div>
           <div class="flex items-center space-x-4">
-            <div class="bg-blue-50 px-4 py-2 rounded-lg">
-              <span class="text-sm font-medium text-blue-700">Total Members</span>
-              <div class="text-2xl font-bold text-blue-600">
+            <div class="px-4 py-2 rounded-lg transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-blue-50'">
+              <span class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-blue-300' : 'text-blue-700'">Total Members</span>
+              <div class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-blue-400' : 'text-blue-600'">
                 {{ getTotalMembers() }}
               </div>
             </div>
@@ -25,7 +25,7 @@
     </div>
 
     <!-- Tab Navigation -->
-    <div class="bg-white shadow-sm border-b border-slate-200">
+    <div class="shadow-sm border-b transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
       <div class="px-6">
         <nav class="flex space-x-8">
           <button
@@ -36,12 +36,18 @@
             :class="[
               activeTab === tab.id
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                : isDarkMode 
+                  ? 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-500'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             ]"
           >
             <div class="flex items-center space-x-3">
               <div class="p-2 rounded-lg transition-colors duration-200"
-                   :class="activeTab === tab.id ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200'">
+                   :class="activeTab === tab.id 
+                     ? 'bg-blue-100' 
+                     : isDarkMode 
+                       ? 'bg-slate-700 group-hover:bg-slate-600' 
+                       : 'bg-slate-100 group-hover:bg-slate-200'">
                 <i :class="tab.icon" class="text-lg"></i>
               </div>
               <div class="text-left">
@@ -58,12 +64,12 @@
     <div v-if="activeTab === 'board'" class="p-6">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h3 class="text-2xl font-bold text-slate-900">Board of Directors</h3>
-          <p class="text-slate-600 mt-1">Governance and strategic oversight leadership</p>
+          <h3 class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Board of Directors</h3>
+          <p class="mt-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Governance and strategic oversight leadership</p>
         </div>
         <button
           @click="openAddModal('board')"
-          class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           <i class="pi pi-plus text-lg"></i>
           <span class="font-semibold">Add Board Member</span>
@@ -74,7 +80,10 @@
         <div
           v-for="member in boardMembers"
           :key="member.id"
-          class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 hover:border-blue-300 transform hover:-translate-y-1"
+          class="group shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border transform hover:-translate-y-1"
+          :class="isDarkMode 
+            ? 'bg-slate-800 border-slate-700 hover:border-blue-500' 
+            : 'bg-white border-slate-200 hover:border-blue-300'"
         >
           <!-- Image Section - Increased Height -->
           <div class="relative h-64 overflow-hidden">
@@ -106,7 +115,7 @@
           <!-- Content Section - More Compact -->
           <div class="p-5">
             <div class="mb-3">
-              <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+              <h4 class="text-lg font-bold mb-2 group-hover:text-blue-600 transition-colors" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ member.name }}
               </h4>
               <div class="flex items-center space-x-2 mb-3">
@@ -116,7 +125,7 @@
               </div>
             </div>
             
-            <p class="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-2">
+            <p class="text-sm leading-relaxed mb-4 line-clamp-2 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
               {{ member.description }}
             </p>
 
@@ -171,14 +180,14 @@
               <div class="flex space-x-2">
                 <button
                   @click="editMember('board', member)"
-                  class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors"
+                  class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
                 >
                   <i class="pi pi-pencil mr-1"></i>
                   Edit
                 </button>
                 <button
                   @click="deleteMember('board', member.id)"
-                  class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-colors"
+                  class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium transition-colors"
                 >
                   <i class="pi pi-trash mr-1"></i>
                   Delete
@@ -194,12 +203,12 @@
     <div v-if="activeTab === 'executive'" class="p-6">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h3 class="text-2xl font-bold text-slate-900">Executive Heads</h3>
-          <p class="text-slate-600 mt-1">Senior leadership and strategic management</p>
+          <h3 class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Executive Heads</h3>
+          <p class="mt-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Senior leadership and strategic management</p>
         </div>
         <button
           @click="openAddModal('executive')"
-          class="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          class="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           <i class="pi pi-plus text-lg"></i>
           <span class="font-semibold">Add Executive</span>
@@ -210,7 +219,10 @@
         <div
           v-for="member in executiveMembers"
           :key="member.id"
-          class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 hover:border-green-300 transform hover:-translate-y-1"
+          class="group shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border transform hover:-translate-y-1"
+          :class="isDarkMode 
+            ? 'bg-slate-800 border-slate-700 hover:border-green-500' 
+            : 'bg-white border-slate-200 hover:border-green-300'"
         >
           <!-- Image Section - Increased Height -->
           <div class="relative h-64 overflow-hidden">
@@ -242,7 +254,7 @@
           <!-- Content Section - More Compact -->
           <div class="p-5">
             <div class="mb-3">
-              <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-green-600 transition-colors">
+              <h4 class="text-lg font-bold mb-2 group-hover:text-green-600 transition-colors" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ member.name }}
               </h4>
               <div class="flex items-center space-x-2 mb-3">
@@ -252,7 +264,7 @@
               </div>
             </div>
             
-            <p class="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-2">
+            <p class="text-sm leading-relaxed mb-4 line-clamp-2 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
               {{ member.description }}
             </p>
 
@@ -307,14 +319,14 @@
               <div class="flex space-x-2">
                 <button
                   @click="editMember('executive', member)"
-                  class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors"
+                  class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
                 >
                   <i class="pi pi-pencil mr-1"></i>
                   Edit
                 </button>
                 <button
                   @click="deleteMember('executive', member.id)"
-                  class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-colors"
+                  class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium transition-colors"
                 >
                   <i class="pi pi-trash mr-1"></i>
                   Delete
@@ -330,12 +342,12 @@
     <div v-if="activeTab === 'functional'" class="p-6">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h3 class="text-2xl font-bold text-slate-900">Functional Heads</h3>
-          <p class="text-slate-600 mt-1">Department leaders and operational managers</p>
+          <h3 class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Functional Heads</h3>
+          <p class="mt-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Department leaders and operational managers</p>
         </div>
         <button
           @click="openAddModal('functional')"
-          class="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          class="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           <i class="pi pi-plus text-lg"></i>
           <span class="font-semibold">Add Functional Head</span>
@@ -346,7 +358,10 @@
         <div
           v-for="member in functionalMembers"
           :key="member.id"
-          class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 hover:border-purple-300 transform hover:-translate-y-1"
+          class="group shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border transform hover:-translate-y-1"
+          :class="isDarkMode 
+            ? 'bg-slate-800 border-slate-700 hover:border-purple-500' 
+            : 'bg-white border-slate-200 hover:border-purple-300'"
         >
           <!-- Image Section - Increased Height -->
           <div class="relative h-64 overflow-hidden">
@@ -378,7 +393,7 @@
           <!-- Content Section - More Compact -->
           <div class="p-5">
             <div class="mb-3">
-              <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-purple-600 transition-colors">
+              <h4 class="text-lg font-bold mb-2 group-hover:text-purple-600 transition-colors" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ member.name }}
               </h4>
               <div class="flex items-center space-x-2 mb-3">
@@ -388,7 +403,7 @@
               </div>
             </div>
             
-            <p class="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-2">
+            <p class="text-sm leading-relaxed mb-4 line-clamp-2 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
               {{ member.description }}
             </p>
 
@@ -443,14 +458,14 @@
               <div class="flex space-x-2">
                 <button
                   @click="editMember('functional', member)"
-                  class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors"
+                  class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
                 >
                   <i class="pi pi-pencil mr-1"></i>
                   Edit
                 </button>
                 <button
                   @click="deleteMember('functional', member.id)"
-                  class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-colors"
+                  class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium transition-colors"
                 >
                   <i class="pi pi-trash mr-1"></i>
                   Delete
@@ -469,7 +484,7 @@
       @click="closeModal"
     >
       <div
-        class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+        class="shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'"
         @click.stop
       >
         <!-- Modal Header -->
@@ -501,34 +516,36 @@
         <div class="p-8 max-h-[calc(90vh-120px)] overflow-y-auto">
           <form @submit.prevent="saveMember" class="space-y-8">
             <!-- Basic Information Section -->
-            <div class="bg-slate-50 rounded-xl p-6">
-              <h4 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+            <div class="p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-slate-50'">
+              <h4 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 <i class="pi pi-info-circle mr-2 text-blue-600"></i>
                 Basic Information
               </h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label class="block text-sm font-semibold mb-3 text-slate-700">
+                  <label class="block text-sm font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                     Full Name *
                   </label>
                   <input
                     v-model="memberForm.name"
                     type="text"
                     required
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    class="w-full px-4 py-3 border-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    :class="isDarkMode ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-200 text-slate-900'"
                     placeholder="Enter full name"
                   />
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-semibold mb-3 text-slate-700">
+                  <label class="block text-sm font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                     Job Title *
                   </label>
                   <input
                     v-model="memberForm.title"
                     type="text"
                     required
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    class="w-full px-4 py-3 border-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    :class="isDarkMode ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-200 text-slate-900'"
                     placeholder="Enter job title"
                   />
                 </div>
@@ -536,8 +553,8 @@
             </div>
 
             <!-- Description Section -->
-            <div class="bg-slate-50 rounded-xl p-6">
-              <h4 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+            <div class="p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-slate-50'">
+              <h4 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 <i class="pi pi-file-edit mr-2 text-green-600"></i>
                 Biography & Description
               </h4>
@@ -549,24 +566,25 @@
                   v-model="memberForm.description"
                   rows="5"
                   required
-                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                  class="w-full px-4 py-3 border-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                  :class="isDarkMode ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-200 text-slate-900'"
                   placeholder="Enter detailed professional biography and description..."
                 ></textarea>
-                <p class="text-xs text-slate-500 mt-2">
+                <p class="text-xs mt-2 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                   This will be displayed on the website as the member's bio
                 </p>
               </div>
             </div>
 
             <!-- Profile Image Section -->
-            <div class="bg-slate-50 rounded-xl p-6">
-              <h4 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+            <div class="p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-slate-50'">
+              <h4 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 <i class="pi pi-image mr-2 text-purple-600"></i>
                 Profile Image
               </h4>
               <div class="flex items-start space-x-6">
                 <div class="flex-shrink-0">
-                  <div class="w-32 h-32 rounded-xl overflow-hidden border-4 border-slate-200 bg-slate-100">
+                  <div class="w-32 h-32 overflow-hidden border-4 transition-colors duration-300" :class="isDarkMode ? 'border-slate-600 bg-slate-600' : 'border-slate-200 bg-slate-100'">
                     <img
                       v-if="memberForm.image"
                       :src="memberForm.image"
@@ -579,7 +597,7 @@
                   </div>
                 </div>
                 <div class="flex-1">
-                  <p class="text-sm text-slate-600 mb-4">
+                  <p class="text-sm mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
                     Choose a professional headshot or profile photo for this team member. Click on any image to select it.
                   </p>
                   <ImageGallery
@@ -592,56 +610,60 @@
             </div>
 
             <!-- Social Media Section -->
-            <div class="bg-slate-50 rounded-xl p-6">
-              <h4 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+            <div class="p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-slate-50'">
+              <h4 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 <i class="pi pi-share-alt mr-2 text-orange-600"></i>
                 Social Media Profiles
               </h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label class="block text-sm font-semibold mb-3 text-slate-700">
+                  <label class="block text-sm font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                     LinkedIn Profile
                   </label>
                   <input
                     v-model="memberForm.linkedin_url"
                     type="url"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    class="w-full px-4 py-3 border-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    :class="isDarkMode ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-200 text-slate-900'"
                     placeholder="https://linkedin.com/in/username"
                   />
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-semibold mb-3 text-slate-700">
+                  <label class="block text-sm font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                     Twitter Profile
                   </label>
                   <input
                     v-model="memberForm.twitter_url"
                     type="url"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    class="w-full px-4 py-3 border-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    :class="isDarkMode ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-200 text-slate-900'"
                     placeholder="https://twitter.com/username"
                   />
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-semibold mb-3 text-slate-700">
+                  <label class="block text-sm font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                     Facebook Profile
                   </label>
                   <input
                     v-model="memberForm.facebook_url"
                     type="url"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    class="w-full px-4 py-3 border-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    :class="isDarkMode ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-200 text-slate-900'"
                     placeholder="https://facebook.com/username"
                   />
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-semibold mb-3 text-slate-700">
+                  <label class="block text-sm font-semibold mb-3 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                     Instagram Profile
                   </label>
                   <input
                     v-model="memberForm.instagram_url"
                     type="url"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    class="w-full px-4 py-3 border-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    :class="isDarkMode ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-200 text-slate-900'"
                     placeholder="https://instagram.com/username"
                   />
                 </div>
@@ -649,18 +671,19 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200">
+            <div class="flex justify-end space-x-4 pt-6 border-t transition-colors duration-300" :class="isDarkMode ? 'border-slate-600' : 'border-slate-200'">
               <button
                 type="button"
                 @click="closeModal"
-                class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition-all duration-200"
+                class="px-6 py-3 font-semibold transition-all duration-200"
+                :class="isDarkMode ? 'bg-slate-600 hover:bg-slate-500 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 :disabled="saving"
-                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-lg hover:shadow-xl"
+                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-lg hover:shadow-xl"
               >
                 <i class="pi pi-spin pi-spinner" v-if="saving"></i>
                 <i v-else class="pi pi-check" v-if="!saving"></i>
@@ -676,6 +699,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { isDarkMode } from '../../utils/darkMode'
 import ImageGallery from './ImageGallery.vue'
 import axios from '../../plugins/axios'
 

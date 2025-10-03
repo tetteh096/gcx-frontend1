@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 animate-fade-in">
+  <div class="space-y-8 animate-fade-in transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'">
     <!-- Enhanced Header -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
       <div class="flex-1">
@@ -8,10 +8,10 @@
             <i class="pi pi-users text-white text-2xl"></i>
           </div>
       <div>
-            <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-200 bg-clip-text text-transparent">
+            <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-colors duration-300" :class="isDarkMode ? 'from-white to-slate-200' : 'from-slate-900 to-slate-700'">
               Trader Management
             </h1>
-            <p class="text-lg text-slate-600 dark:text-slate-400 mt-1">
+            <p class="text-lg mt-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
               Manage membership list and trader information
             </p>
           </div>
@@ -41,7 +41,7 @@
     </div>
 
     <!-- Enhanced Search and Filters -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+    <div class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-blue-200 shadow-blue-100'">
       <div class="flex flex-col lg:flex-row gap-4 items-center">
         <div class="flex-1 relative">
           <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -51,8 +51,8 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search traders by name, phone, or email..."
-            class="w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white transition-all duration-200"
-            :class="isDarkMode ? 'placeholder-slate-400' : 'placeholder-slate-500'"
+            class="w-full pl-12 pr-4 py-3 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+            :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white/90 border-blue-300 text-slate-800 placeholder-slate-500 shadow-sm'"
           @input="debouncedSearch"
         />
       </div>
@@ -61,7 +61,8 @@
       <select
         v-model="statusFilter"
         @change="loadTraders"
-            class="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white transition-all duration-200"
+            class="px-4 py-3 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+            :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
       >
         <option value="">All Status</option>
         <option value="Active">Active</option>
@@ -71,8 +72,8 @@
           
           <button
             @click="toggleFilters"
-            class="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200"
-            :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'"
+            class="px-4 py-3 border transition-all duration-200"
+            :class="isDarkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-blue-300 text-blue-700 hover:bg-blue-50 shadow-sm'"
           >
             <i class="pi pi-filter mr-2"></i>
             Filters
@@ -82,41 +83,41 @@
       
       <!-- Stats Row -->
       <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-blue-50/50 border-blue-200 shadow-blue-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Total Traders</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ traders.length }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Traders</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ traders.length }}</p>
             </div>
             <i class="pi pi-users text-2xl text-blue-500 dark:text-blue-400"></i>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-blue-50/50 border-blue-200 shadow-blue-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Active</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ activeTraders }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Active</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ activeTraders }}</p>
             </div>
             <i class="pi pi-check-circle text-2xl text-green-500 dark:text-green-400"></i>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-blue-50/50 border-blue-200 shadow-blue-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Inactive</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ inactiveTraders }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Inactive</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ inactiveTraders }}</p>
             </div>
             <i class="pi pi-clock text-2xl text-orange-500 dark:text-orange-400"></i>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm">
+        <div class="p-4 border shadow-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gradient-to-br from-white to-blue-50/50 border-blue-200 shadow-blue-100'">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Suspended</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ suspendedTraders }}</p>
+              <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Suspended</p>
+              <p class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ suspendedTraders }}</p>
             </div>
             <i class="pi pi-ban text-2xl text-red-500 dark:text-red-400"></i>
           </div>
@@ -125,42 +126,42 @@
     </div>
 
     <!-- Enhanced Traders Table -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="shadow-lg border overflow-hidden transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/90 backdrop-blur-sm border-blue-200 shadow-blue-100'">
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-slate-50 dark:bg-slate-700">
+          <thead class="transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-gradient-to-r from-blue-50 to-indigo-50'">
             <tr>
-              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+              <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-user text-slate-500 dark:text-slate-400"></i>
                   Name
                 </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+              <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-building text-slate-500 dark:text-slate-400"></i>
                   Industry
                 </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+              <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag text-slate-500 dark:text-slate-400"></i>
                   Member Type
                 </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+              <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-phone text-slate-500 dark:text-slate-400"></i>
                   Phone
                 </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+              <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-circle text-slate-500 dark:text-slate-400"></i>
                   Status
                 </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+              <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-500'">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-cog text-slate-500 dark:text-slate-400"></i>
                   Actions
@@ -169,15 +170,15 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-            <tr v-for="trader in traders" :key="trader.id" class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200 group">
+            <tr v-for="trader in traders" :key="trader.id" class="transition-all duration-200 group" :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-blue-50/50'">
               <td class="px-6 py-5 whitespace-nowrap">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
                     {{ trader.name.charAt(0).toUpperCase() }}
                   </div>
                   <div>
-                    <div class="text-sm font-semibold text-slate-900 dark:text-white">{{ trader.name }}</div>
-                    <div class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                    <div class="text-sm font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ trader.name }}</div>
+                    <div class="text-sm flex items-center gap-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                       <i class="pi pi-envelope text-xs"></i>
                       {{ trader.email }}
                     </div>
@@ -185,7 +186,7 @@
                 </div>
               </td>
               <td class="px-6 py-5 whitespace-nowrap">
-                <div class="text-sm text-slate-900 dark:text-white">
+                <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ trader.industry || '-' }}
                 </div>
               </td>
@@ -196,7 +197,7 @@
                 </span>
               </td>
               <td class="px-6 py-5 whitespace-nowrap">
-                <div class="text-sm text-slate-900 dark:text-white flex items-center gap-1">
+                <div class="text-sm flex items-center gap-1 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                   <i class="pi pi-phone text-slate-400 text-xs"></i>
                 {{ trader.phone_no || '-' }}
                 </div>
@@ -217,13 +218,6 @@
                     <i class="pi pi-pencil"></i>
                   </button>
                   <button
-                    @click="viewTrader(trader)"
-                    class="p-2 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
-                    title="View details"
-                  >
-                    <i class="pi pi-eye"></i>
-                  </button>
-                  <button
                     @click="deleteTrader(trader.id)"
                     class="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
                     title="Delete trader"
@@ -242,8 +236,8 @@
         <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
           <i class="pi pi-users text-4xl text-slate-400"></i>
         </div>
-        <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-2">No traders found</h3>
-        <p class="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+        <h3 class="text-xl font-semibold mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">No traders found</h3>
+        <p class="mb-6 max-w-md mx-auto transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
           {{ searchQuery ? 'No traders match your search criteria. Try adjusting your filters.' : 'Get started by adding your first trader to the system.' }}
         </p>
         <button
@@ -258,18 +252,18 @@
     </div>
 
     <!-- Enhanced Pagination -->
-    <div v-if="(pagination && pagination.totalPages > 1) || traders.length > 0" class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+    <div v-if="(pagination && pagination.totalPages > 1) || traders.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-blue-200 shadow-blue-100'">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-      <div class="text-sm text-slate-700 dark:text-slate-300">
+      <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
           <template v-if="pagination">
-            Showing <span class="font-semibold text-slate-900 dark:text-white">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ pagination.total }}</span> results
+            Showing             <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
           </template>
           <template v-else>
-            Showing <span class="font-semibold text-slate-900 dark:text-white">1</span> to 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ traders.length }}</span> of 
-            <span class="font-semibold text-slate-900 dark:text-white">{{ traders.length }}</span> results
+            Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">1</span> to 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ traders.length }}</span> of 
+            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ traders.length }}</span> results
           </template>
       </div>
         
@@ -319,8 +313,8 @@
       <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center">
       <i class="pi pi-spin pi-spinner text-2xl text-blue-600"></i>
       </div>
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">Loading traders...</h3>
-      <p class="text-slate-500 dark:text-slate-400">Please wait while we fetch the latest data.</p>
+      <h3 class="text-lg font-semibold mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Loading traders...</h3>
+      <p class="transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">Please wait while we fetch the latest data.</p>
     </div>
 
     <!-- Add/Edit Modal -->
@@ -330,17 +324,17 @@
       @click="closeModal"
     >
       <div
-        class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        class="shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white/95 backdrop-blur-sm border border-blue-200'"
         @click.stop
       >
         <div class="p-6">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-slate-900 dark:text-white">
+            <h3 class="text-xl font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
               {{ editingTrader ? 'Edit Trader' : 'Add New Trader' }}
             </h3>
             <button
               @click="closeModal"
-              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              class="transition-colors duration-300" :class="isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'"
             >
               <i class="pi pi-times text-xl"></i>
             </button>
@@ -349,34 +343,37 @@
           <form @submit.prevent="saveTrader" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Name *
                 </label>
                 <input
                   v-model="form.name"
                   type="text"
                   required
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Industry
                 </label>
                 <input
                   v-model="form.industry"
                   type="text"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Member Type *
                 </label>
                 <select
                   v-model="form.member_type"
                   required
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
                 >
                   <option value="Associates">Associates</option>
                   <option value="Full Members">Full Members</option>
@@ -385,32 +382,35 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Phone Number
                 </label>
                 <input
                   v-model="form.phone_no"
                   type="tel"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Email
                 </label>
                 <input
                   v-model="form.email"
                   type="email"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                   Status
                 </label>
                 <select
                   v-model="form.status"
-                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -419,23 +419,25 @@
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                 Address
               </label>
               <textarea
                 v-model="form.address"
                 rows="3"
-                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
               ></textarea>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label class="block text-sm font-medium mb-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
                 Registration Date
               </label>
               <input
                 v-model="form.registration_date"
                 type="date"
-                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                class="w-full px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white/90 border-blue-300 text-slate-800 shadow-sm'"
               />
             </div>
 
@@ -443,7 +445,8 @@
               <button
                 type="button"
                 @click="closeModal"
-                class="px-4 py-2 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                class="px-4 py-2 border transition-colors"
+                :class="isDarkMode ? 'text-slate-300 border-slate-600 hover:bg-slate-700' : 'text-blue-700 border-blue-300 hover:bg-blue-50 shadow-sm'"
               >
                 Cancel
               </button>

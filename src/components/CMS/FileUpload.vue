@@ -138,7 +138,7 @@
     <!-- Upload Modal -->
     <div
       v-if="showUploadModal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
       @click="closeUploadModal"
     >
       <div
@@ -547,10 +547,10 @@ const uploadFiles = async (fileList: File[]) => {
       }
       
       const formData = new FormData()
-      formData.append('file', file)
-      formData.append('folder', props.folder)
+      formData.append('document', file)
+      formData.append('type', props.folder)
       
-      const response = await axios.post('/api/documents', formData, {
+      const response = await axios.post('/api/upload/document', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
@@ -563,11 +563,11 @@ const uploadFiles = async (fileList: File[]) => {
       
       if (response.data.success) {
         const newFile: FileItem = {
-          id: response.data.data.id,
-          url: response.data.data.url,
-          name: response.data.data.name,
-          type: response.data.data.type,
-          size: response.data.data.size,
+          id: response.data.filename,
+          url: response.data.url,
+          name: response.data.filename,
+          type: response.data.type,
+          size: response.data.size,
           loaded: false,
           error: false
         }

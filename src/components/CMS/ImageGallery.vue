@@ -2,12 +2,13 @@
   <div class="image-gallery">
     <!-- Gallery Header -->
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+      <h3 class="text-lg font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-green-600'">
         {{ title || 'Select Image' }}
       </h3>
       <button
         @click="showUploadModal = true"
-        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+        class="px-4 py-2 text-white rounded-lg transition-colors flex items-center space-x-2"
+        :class="isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'"
       >
         <i class="pi pi-upload"></i>
         <span>Upload New</span>
@@ -20,8 +21,8 @@
         v-model="searchQuery"
         type="text"
         placeholder="Search images..."
-        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-        :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300'"
+        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+        :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-green-300 text-slate-800'"
       />
     </div>
 
@@ -120,7 +121,8 @@
     <div v-if="filteredImages.length > 3" class="text-center mb-4">
       <button
         @click.stop="openFullGallery"
-        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
+        class="px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
+        :class="isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-slate-300' : 'bg-green-100 hover:bg-green-200 text-green-700'"
       >
         <i class="pi pi-images"></i>
         <span>View All Images ({{ filteredImages.length }})</span>
@@ -129,8 +131,8 @@
 
 
     <!-- Selected Image Preview -->
-    <div v-if="selectedImage" class="mt-4 p-4 rounded-lg border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'">
-      <h4 class="text-sm font-medium mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Selected Image:</h4>
+    <div v-if="selectedImage" class="mt-4 p-4 rounded-lg border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-green-50 border-green-200'">
+      <h4 class="text-sm font-medium mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-green-600'">Selected Image:</h4>
       <div class="flex items-center space-x-4">
         <img
           :src="selectedImage.url"
@@ -138,10 +140,10 @@
           class="w-16 h-16 object-cover rounded-lg"
         />
         <div class="flex-1">
-          <p class="text-sm font-medium" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          <p class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
             {{ getImageName(selectedImage.name || selectedImage.url) }}
           </p>
-          <p class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+          <p class="text-xs transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
             {{ formatFileSize(selectedImage.size) }}
           </p>
           <p class="text-xs text-green-600 mt-1">
@@ -150,7 +152,8 @@
         </div>
         <button
           @click="confirmSelection"
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          class="px-4 py-2 text-white rounded-lg transition-colors"
+          :class="isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'"
         >
           Confirm Selection
         </button>
@@ -160,7 +163,7 @@
     <!-- Image Viewer Modal -->
     <div
       v-if="showImageViewer"
-      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
       @click="closeImageViewer"
     >
       <div class="relative max-w-4xl max-h-[90vh] w-full" @click.stop>
@@ -216,20 +219,22 @@
     <!-- Upload Modal -->
     <div
       v-if="showUploadModal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
       @click="closeUploadModal"
     >
       <div
-        class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6"
+        class="shadow-2xl max-w-md w-full p-6 transition-colors duration-300"
+        :class="isDarkMode ? 'bg-slate-800' : 'bg-white/95 backdrop-blur-sm border border-green-200'"
         @click.stop
       >
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          <h3 class="text-lg font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-green-600'">
             Upload New Image
           </h3>
           <button
             @click="closeUploadModal"
-            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            class="transition-colors duration-300"
+            :class="isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-green-400 hover:text-green-600'"
           >
             <i class="pi pi-times text-xl"></i>
           </button>
@@ -299,29 +304,31 @@
     <!-- Full Gallery Modal -->
     <div
       v-if="showFullGallery"
-      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
       @click="closeFullGallery"
     >
       <div
-        class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden"
+        class="shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden transition-colors duration-300"
+        :class="isDarkMode ? 'bg-slate-800' : 'bg-white/95 backdrop-blur-sm border border-green-200'"
         @click.stop
       >
         <!-- Modal Header -->
-        <div class="p-6 border-b border-slate-200 dark:border-slate-700">
+        <div class="p-6 border-b transition-colors duration-300" :class="isDarkMode ? 'border-slate-700' : 'border-green-200'">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              <h3 class="text-2xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-green-600'">
                 All Images
               </h3>
-              <p class="text-slate-600 dark:text-slate-400 mt-1">
+              <p class="mt-1 transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-green-700'">
                 Select an image from the gallery
               </p>
             </div>
             <button
               @click="closeFullGallery"
-              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              class="p-2 rounded-lg transition-colors"
+              :class="isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-green-50'"
             >
-              <i class="pi pi-times text-xl text-slate-500 dark:text-slate-400"></i>
+              <i class="pi pi-times text-xl transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-green-500'"></i>
             </button>
           </div>
           
@@ -331,8 +338,8 @@
               v-model="fullGallerySearch"
               type="text"
               placeholder="Search images..."
-              class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300'"
+              class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-green-300 text-slate-800'"
             />
           </div>
         </div>
@@ -431,29 +438,31 @@
 
           <!-- Empty State for Full Gallery -->
           <div v-if="fullGalleryImages.length === 0" class="text-center py-12">
-            <i class="pi pi-images text-4xl text-slate-400 mb-4"></i>
-            <h3 class="text-lg font-medium text-slate-900 dark:text-white mb-2">No images found</h3>
-            <p class="text-slate-500 dark:text-slate-400">Try adjusting your search or upload some images.</p>
+            <i class="pi pi-images text-4xl transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-green-400'"></i>
+            <h3 class="text-lg font-medium mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">No images found</h3>
+            <p class="transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">Try adjusting your search or upload some images.</p>
           </div>
         </div>
 
         <!-- Modal Footer -->
-        <div class="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+        <div class="p-6 border-t transition-colors duration-300" :class="isDarkMode ? 'border-slate-700 bg-slate-700/50' : 'border-green-200 bg-green-50/50'">
           <div class="flex justify-between items-center">
-            <div class="text-sm text-slate-600 dark:text-slate-400">
+            <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-green-600'">
               {{ fullGalleryImages.length }} image{{ fullGalleryImages.length !== 1 ? 's' : '' }} found
             </div>
             <div class="flex space-x-3">
               <button
                 @click="closeFullGallery"
-                class="px-4 py-2 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                class="px-4 py-2 border rounded-lg transition-colors"
+                :class="isDarkMode ? 'text-slate-300 border-slate-600 hover:bg-slate-700' : 'text-green-700 border-green-300 hover:bg-green-50'"
               >
                 Cancel
               </button>
               <button
                 @click="confirmSelectionFromFullGallery"
                 :disabled="!selectedImage"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg transition-colors flex items-center space-x-2"
+                class="px-4 py-2 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:bg-slate-400"
+                :class="isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'"
               >
                 <i class="pi pi-check"></i>
                 <span>Select Image</span>

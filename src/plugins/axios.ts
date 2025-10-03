@@ -1,4 +1,5 @@
 import axios from 'axios'
+import type { truncateText } from '../utils/cms'
 
 // Backend configuration - easily switch between Go and Laravel
 const BACKEND_CONFIG = {

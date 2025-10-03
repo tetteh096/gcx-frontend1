@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
 import Footer from '../components/Footer.vue'
+import CommoditySlider from '../components/Common/CommoditySlider.vue'
+import commoditiesService, { type CommodityData } from '../services/commoditiesService'
 
 const { t } = useI18n()
 
@@ -11,143 +13,18 @@ const activeTab = ref('maize')
 
 // Modal state
 const showModal = ref(false)
-const selectedCommodity = ref(null)
+const selectedCommodity = ref<CommodityData | null>(null)
 
-// Commodity data with real prices (T+1)
-const commodityData = {
-  maize: {
-    name: 'Maize',
-    description: 'Maize, also known as corn, has become a staple food in all parts of the world with total production surpassing that of rice or wheat. It is a cereal grain first domesticated by indigenous peoples in southern Mexico about 10,000 years ago.',
-    fullDescription: 'Maize, also known as corn, has become a staple food in all parts of the world with total production surpassing that of rice or wheat. It is a cereal grain first domesticated by indigenous peoples in southern Mexico about 10,000 years ago. The maize crop serves a number of purposes, from being used as animal feed or for products such as corn starch and corn syrup. In Ghana, maize is a critical food security crop and a major source of income for smallholder farmers. The crop is grown in all agro-ecological zones of the country and is used for both human consumption and animal feed. Maize production in Ghana has been increasing steadily due to improved varieties, better farming practices, and government support programs. The commodity exchange provides a platform for farmers to access better prices and reduce post-harvest losses through proper storage and marketing.',
-    image: '/commodities/miaze.jpg',
-    fallbackImage: '/commodities/miaze.jpg',
-    category: 'Grains',
-    contracts: [
-      { code: 'GAPWM2', price: 1880, change: 15, volume: 1250 },
-      { code: 'GAPWM3', price: 1240, change: -8, volume: 890 },
-      { code: 'GAPYM2', price: 1200, change: 22, volume: 2100 },
-      { code: 'GAPYM4', price: 1160, change: -5, volume: 750 },
-    ],
-    specifications: {
-      contractSize: '50 bags (50kg each)',
-      tradingHours: '9:00 AM - 4:00 PM',
-      deliveryMonths: 'March, May, July, September',
-      minimumPrice: 'GHS 800 per metric ton',
-      maximumPrice: 'GHS 3000 per metric ton'
-    },
-    contractFile: '/gcx-online-trading-member.pdf'
-  },
-  rice: {
-    name: 'Rice',
-    description: 'Rice is one of the most important staple foods for a large part of the world\'s human population, especially in Asia and Africa. It is the agricultural commodity with the third-highest worldwide production after sugarcane and maize.',
-    fullDescription: 'Rice is one of the most important staple foods for a large part of the world\'s human population, especially in Asia and Africa. It is the agricultural commodity with the third-highest worldwide production after sugarcane and maize. Rice cultivation is well-suited to countries and regions with low labor costs and high rainfall. In Ghana, rice is a major staple food and its consumption has been increasing rapidly due to urbanization and changing dietary habits. The country has significant potential for rice production, with both upland and lowland rice cultivation systems. The government has implemented various programs to boost rice production and reduce import dependency. Rice trading on the commodity exchange provides price discovery and market access for both producers and consumers, ensuring food security and fair pricing.',
-    image: '/commodities/rice.jpg',
-    fallbackImage: '/commodities/rice.jpg',
-    category: 'Grains',
-    contracts: [
-      { code: 'GKIWM1', price: 1820, change: 12, volume: 980 },
-      { code: 'GKIWM2', price: 3776, change: -18, volume: 1450 },
-      { code: 'GKIWM3', price: 3970, change: 8, volume: 2200 },
-      { code: 'GKIWM4', price: 1100, change: -3, volume: 650 },
-      { code: 'GKIYM2', price: 7355, change: 25, volume: 3200 },
-      { code: 'GKIYM3', price: 1120, change: -7, volume: 890 },
-    ],
-    specifications: {
-      contractSize: '40 bags (50kg each)',
-      tradingHours: '9:00 AM - 4:00 PM',
-      deliveryMonths: 'April, June, August, October',
-      minimumPrice: 'GHS 1000 per metric ton',
-      maximumPrice: 'GHS 8000 per metric ton'
-    },
-    contractFile: '/gcx-online-trading-member.pdf'
-  },
-  sesame: {
-    name: 'Sesame',
-    description: 'Sesame is a flowering plant in the genus Sesamum, also called benne. Numerous wild relatives occur in Africa and a smaller number in India. It is widely naturalized in tropical regions around the world.',
-    fullDescription: 'Sesame is a flowering plant in the genus Sesamum, also called benne. Numerous wild relatives occur in Africa and a smaller number in India. It is widely naturalized in tropical regions around the world and is cultivated for its edible seeds, which grow in pods. Sesame seeds are rich in oil, protein, and various nutrients, making them valuable for both culinary and industrial purposes. In Ghana, sesame is an important cash crop, particularly in the northern regions where it thrives in the dry climate. The crop is drought-resistant and requires minimal inputs, making it suitable for smallholder farmers. Sesame oil is used in cooking, cosmetics, and pharmaceuticals. The commodity exchange provides a platform for sesame farmers to access better markets and pricing, contributing to rural development and poverty reduction.',
-    image: '/commodities/seasame.jpg',
-    fallbackImage: '/commodities/seasame.jpg',
-    category: 'Oilseeds',
-    contracts: [
-      { code: 'GSAWM1', price: 3145, change: 18, volume: 1100 },
-      { code: 'GSAWM2', price: 4745, change: -12, volume: 1850 },
-      { code: 'GSAWM3', price: 2684, change: 6, volume: 920 },
-      { code: 'GSAWSS4', price: 3200, change: -9, volume: 750 },
-      { code: 'GSAYM1', price: 3145, change: 14, volume: 1300 },
-      { code: 'GSAYM2', price: 6290, change: 21, volume: 2800 },
-      { code: 'GSAYM3', price: 2516, change: -4, volume: 680 },
-    ],
-    specifications: {
-      contractSize: '30 bags (50kg each)',
-      tradingHours: '9:00 AM - 4:00 PM',
-      deliveryMonths: 'February, April, June, August',
-      minimumPrice: 'GHS 2000 per metric ton',
-      maximumPrice: 'GHS 7000 per metric ton'
-    },
-    contractFile: '/gcx-online-trading-member.pdf'
-  },
-  sorghum: {
-    name: 'Sorghum',
-    description: 'Sorghum is a genus of flowering plants in the grass family Poaceae. It is a drought-tolerant crop that can be grown in arid and semi-arid regions.',
-    fullDescription: 'Sorghum is a genus of flowering plants in the grass family Poaceae. It is a drought-tolerant crop that can be grown in arid and semi-arid regions. Sorghum is used for food, animal feed, and the production of alcoholic beverages and biofuels. In Ghana, sorghum is particularly important in the northern regions where rainfall is limited and unpredictable. The crop is highly resilient to climate change and provides food security for many rural communities. Sorghum grains are used to make traditional foods like porridge and local beverages. The crop also serves as an important source of fodder for livestock. The commodity exchange facilitates better market access for sorghum farmers, helping them get fair prices for their produce and contributing to food security in the region.',
-    image: '/commodities/sorghon.jpg',
-    fallbackImage: '/commodities/sorghon.jpg',
-    category: 'Grains',
-    contracts: [
-      { code: 'GKUWM1', price: 1480, change: 7, volume: 850 },
-      { code: 'GKUWM2', price: 4645, change: -15, volume: 1650 },
-      { code: 'GKUWM3', price: 1700, change: 3, volume: 720 },
-      { code: 'GKUWM4', price: 1700, change: -2, volume: 680 },
-      { code: 'GKUYM1', price: 1480, change: 9, volume: 920 },
-      { code: 'GKUYM2', price: 4150, change: 16, volume: 2100 },
-      { code: 'GKUYM3', price: 6515, change: -11, volume: 1850 },
-      { code: 'GKUYM4', price: 1700, change: 5, volume: 750 },
-      { code: 'GKUYSB3', price: 7418, change: 19, volume: 3200 },
-    ],
-    specifications: {
-      contractSize: '50 bags (50kg each)',
-      tradingHours: '9:00 AM - 4:00 PM',
-      deliveryMonths: 'March, May, July, September',
-      minimumPrice: 'GHS 1200 per metric ton',
-      maximumPrice: 'GHS 8000 per metric ton'
-    },
-    contractFile: '/gcx-online-trading-member.pdf'
-  },
-  soybean: {
-    name: 'Soya Bean',
-    description: 'The soybean, soy bean, or soya bean is a species of legume native to East Asia, widely grown for its edible bean, which has numerous uses.',
-    fullDescription: 'The soybean, soy bean, or soya bean is a species of legume native to East Asia, widely grown for its edible bean, which has numerous uses. Traditional unfermented food uses of soybeans include soy milk, from which tofu and tofu skin are made. Soybeans are also processed into oil, flour, and protein isolates used in various food products. In Ghana, soybean cultivation has been growing due to its high protein content and versatility. The crop is particularly important for improving soil fertility through nitrogen fixation. Soybeans are used in animal feed production, contributing to the livestock industry. The commodity exchange provides a platform for soybean farmers to access better markets and pricing, supporting the development of the legume sector and contributing to food security and nutrition.',
-    image: '/commodities/soya.jpg',
-    fallbackImage: '/commodities/soya.jpg',
-    category: 'Legumes',
-    contracts: [
-      { code: 'GTAWM1', price: 4440, change: 13, volume: 1650 },
-      { code: 'GTAWM2', price: 4405, change: -6, volume: 1200 },
-      { code: 'GTAWM3', price: 1920, change: 4, volume: 850 },
-      { code: 'GTAWM4', price: 1100, change: -8, volume: 650 },
-      { code: 'GTAWSO3', price: 1550, change: 11, volume: 920 },
-      { code: 'GTAYM1', price: 1480, change: -3, volume: 750 },
-      { code: 'GTAYM2', price: 5929, change: 17, volume: 2800 },
-      { code: 'GTAYM3', price: 1120, change: 7, volume: 890 },
-      { code: 'GTAYSB1', price: 2800, change: -9, volume: 1100 },
-      { code: 'GTAYSB2', price: 10390, change: 23, volume: 4200 },
-      { code: 'GTUWM2', price: 5995, change: 15, volume: 1850 },
-      { code: 'GTUYM2', price: 5690, change: 400, volume: 3200 },
-    ],
-    specifications: {
-      contractSize: '40 bags (50kg each)',
-      tradingHours: '9:00 AM - 4:00 PM',
-      deliveryMonths: 'April, June, August, October',
-      minimumPrice: 'GHS 1000 per metric ton',
-      maximumPrice: 'GHS 12000 per metric ton'
-    },
-    contractFile: '/gcx-online-trading-member.pdf'
-  }
-}
+// Loading and error states
+const loading = ref(true)
+const error = ref<string | null>(null)
+
+// Commodity data from CMS + Firebase
+const commodityData = ref<Record<string, CommodityData>>({})
 
 // Computed properties
-const activeCommodity = computed(() => commodityData[activeTab.value])
-const commodityTabs = computed(() => Object.keys(commodityData))
+const activeCommodity = computed(() => commodityData.value[activeTab.value])
+const commodityTabs = computed(() => Object.keys(commodityData.value))
 
 // Functions
 const formatPrice = (price: number) => {
@@ -169,6 +46,14 @@ const handleImageError = (event: Event) => {
 }
 
 const downloadContract = (commodity: any) => {
+  // Check if this commodity has multiple contract types
+  const hasMultipleContractTypes = commodity.contractTypes && commodity.contractTypes.length > 1
+  
+  if (hasMultipleContractTypes) {
+    // Multiple contract types - open slider to let user choose
+    openModal(commodity)
+  } else {
+    // Single contract type - download directly
   if (commodity.contractFile) {
     const link = document.createElement('a')
     link.href = commodity.contractFile
@@ -176,10 +61,11 @@ const downloadContract = (commodity: any) => {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    }
   }
 }
 
-const openModal = (commodity: any) => {
+const openModal = (commodity: CommodityData) => {
   selectedCommodity.value = commodity
   showModal.value = true
 }
@@ -189,8 +75,52 @@ const closeModal = () => {
   selectedCommodity.value = null
 }
 
+const startTrading = () => {
+  // Route to membership page for trading registration
+  window.location.href = '/membership'
+}
+
+const viewMarketData = () => {
+  // Route to market data platform (localhost:3000 for testing)
+  window.open('http://localhost:3000', '_blank')
+}
+
+// Load commodity data from CMS + Firebase
+const loadCommodityData = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    
+    const combinedData = await commoditiesService.getCombinedCommodityData()
+    
+    // Convert array to object with lowercase keys for tabs
+    const dataObject: Record<string, CommodityData> = {}
+    combinedData.forEach(commodity => {
+      const key = commodity.name.toLowerCase().replace(/\s+/g, '')
+      dataObject[key] = commodity
+    })
+    
+    commodityData.value = dataObject
+    
+    // Set first commodity as active if none selected
+    if (!activeTab.value || !commodityData.value[activeTab.value]) {
+      const firstKey = Object.keys(commodityData.value)[0]
+      if (firstKey) {
+        activeTab.value = firstKey
+      }
+    }
+    
+    console.log('✅ Commodity data loaded successfully:', Object.keys(commodityData.value))
+  } catch (err) {
+    console.error('❌ Error loading commodity data:', err)
+    error.value = 'Failed to load commodity data. Please try again later.'
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(() => {
-  // Initialize with first commodity
+  loadCommodityData()
 })
 </script>
 
@@ -243,6 +173,35 @@ onMounted(() => {
     <!-- Commodity Tabs Section -->
     <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-slate-50'">
       <div class="max-w-7xl mx-auto px-4">
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-20">
+          <div class="inline-flex items-center gap-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+            <span class="text-lg" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Loading commodity data...
+            </span>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-20">
+          <div class="max-w-md mx-auto">
+            <div class="text-red-500 text-6xl mb-4">⚠️</div>
+            <h3 class="text-xl font-bold mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+              Failed to Load Data
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">{{ error }}</p>
+            <button 
+              @click="loadCommodityData"
+              class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-6 rounded-lg transition-colors duration-200"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div v-else>
         <!-- Tab Navigation -->
         <div class="mb-12">
           <h2 class="text-3xl font-bold text-center mb-8" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
@@ -262,7 +221,7 @@ onMounted(() => {
                   ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
                   : 'bg-white text-slate-700 hover:bg-gray-100 border border-gray-200'"
             >
-              {{ commodityData[tab].name }}
+                {{ commodityData[tab]?.name || tab }}
             </button>
           </div>
         </div>
@@ -364,7 +323,7 @@ onMounted(() => {
                         <th class="text-left py-3 px-2 font-semibold" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Contract Code</th>
                         <th class="text-right py-3 px-2 font-semibold" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Closing Price (GHS)</th>
                         <th class="text-right py-3 px-2 font-semibold" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Change</th>
-                        <th class="text-right py-3 px-2 font-semibold" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Volume</th>
+                        <th class="text-right py-3 px-2 font-semibold" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Delivery Centre</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y" :class="isDarkMode ? 'divide-slate-600' : 'divide-gray-200'">
@@ -394,7 +353,7 @@ onMounted(() => {
                         </td>
                         <td class="py-4 px-2 text-right">
                           <span class="font-medium" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                            {{ contract.volume.toLocaleString() }}
+                            {{ contract.deliveryCentre }}
                           </span>
                         </td>
                       </tr>
@@ -406,13 +365,13 @@ onMounted(() => {
 
             <!-- Trading Actions -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2">
+              <button @click="startTrading" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
                 Start Trading
               </button>
-              <button class="border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-500 hover:text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2">
+              <button @click="viewMarketData" class="border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-500 hover:text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -430,96 +389,19 @@ onMounted(() => {
                 Trading hours: 9:00 AM - 4:00 PM (GMT)
               </p>
             </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto" @click="closeModal">
-      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeModal"></div>
-
-        <!-- Modal panel -->
-        <div class="inline-block align-bottom rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'" @click.stop>
-          <div class="px-6 py-4 border-b" :class="isDarkMode ? 'border-slate-700' : 'border-gray-200'">
-            <div class="flex items-center justify-between">
-              <h3 class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                About {{ selectedCommodity?.name }}
-              </h3>
-              <button 
-                @click="closeModal"
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-              >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <div class="px-6 py-6">
-            <div class="mb-6">
-              <img 
-                :src="selectedCommodity?.image" 
-                :alt="selectedCommodity?.name"
-                @error="handleImageError"
-                class="w-full h-64 object-cover rounded-lg mb-6"
-              />
-              <div class="flex items-center gap-3 mb-4">
-                <span class="px-3 py-1 bg-yellow-500 text-black text-sm font-semibold rounded-full">
-                  {{ selectedCommodity?.category }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="prose prose-lg max-w-none" :class="isDarkMode ? 'prose-invert' : ''">
-              <p class="text-lg leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                {{ selectedCommodity?.fullDescription }}
-              </p>
-            </div>
-
-            <!-- Contract Specifications in Modal -->
-            <div class="mt-8 p-6 rounded-lg" :class="isDarkMode ? 'bg-slate-700' : 'bg-gray-50'">
-              <h4 class="text-xl font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                Contract Specifications
-              </h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div v-for="(value, key) in selectedCommodity?.specifications" :key="key" class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                  <span class="font-medium capitalize text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-                    {{ String(key).replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) }}:
-                  </span>
-                  <span class="font-semibold text-sm" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                    {{ value }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="px-6 py-4 border-t" :class="isDarkMode ? 'border-slate-700' : 'border-gray-200'">
-            <div class="flex justify-end gap-3">
-              <button 
-                @click="downloadContract(selectedCommodity)"
-                class="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center gap-2"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Download Contract
-              </button>
-              <button 
-                @click="closeModal"
-                class="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 font-medium transition-colors duration-200"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Commodity Slider Panel -->
+    <CommoditySlider 
+      :is-open="showModal"
+      :commodity="selectedCommodity"
+      @close="closeModal"
+      @download-contract="downloadContract"
+    />
 
     <!-- Footer -->
     <Footer />

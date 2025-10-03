@@ -5,6 +5,7 @@ export interface Commodity {
   name: string;
   code: string;
   description: string;
+  full_description: string;
   specifications: string;
   trading_hours: string;
   contract_size: string;
@@ -17,9 +18,11 @@ export interface Commodity {
   trading_volume: number;
   market_status: 'Open' | 'Closed' | 'Suspended';
   image_path: string;
+  contract_file: string;
   category: string;
   origin_country: string;
   harvest_season: string;
+  delivery_months: string;
   storage_requirements: string;
   quality_standards: string;
   created_at: string;
@@ -62,5 +65,23 @@ export const getAllCommodities = async (filters: CommodityFilters = {}): Promise
 // Get single commodity by ID
 export const getCommodityById = async (id: number): Promise<{ success: boolean; data: Commodity }> => {
   const response = await axios.get(`/api/commodities/${id}`);
+  return response.data;
+};
+
+// Create new commodity
+export const createCommodity = async (commodityData: Partial<Commodity>): Promise<{ success: boolean; data: Commodity }> => {
+  const response = await axios.post('/api/commodities', commodityData);
+  return response.data;
+};
+
+// Update commodity
+export const updateCommodity = async (id: number, commodityData: Partial<Commodity>): Promise<{ success: boolean; data: Commodity }> => {
+  const response = await axios.put(`/api/commodities/${id}`, commodityData);
+  return response.data;
+};
+
+// Delete commodity
+export const deleteCommodity = async (id: number): Promise<{ success: boolean; message?: string }> => {
+  const response = await axios.delete(`/api/commodities/${id}`);
   return response.data;
 };

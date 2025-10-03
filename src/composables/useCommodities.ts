@@ -96,6 +96,49 @@ export function useCommodities() {
     }
   };
 
+  // CRUD operations
+  const createCommodity = async (commodityData: Partial<Commodity>) => {
+    try {
+      const response = await commodityService.createCommodity(commodityData);
+      if (response.success) {
+        await fetchCommodities(); // Refresh the list
+        return response;
+      }
+      throw new Error('Failed to create commodity');
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to create commodity';
+      throw err;
+    }
+  };
+
+  const updateCommodity = async (id: number, commodityData: Partial<Commodity>) => {
+    try {
+      const response = await commodityService.updateCommodity(id, commodityData);
+      if (response.success) {
+        await fetchCommodities(); // Refresh the list
+        return response;
+      }
+      throw new Error('Failed to update commodity');
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to update commodity';
+      throw err;
+    }
+  };
+
+  const deleteCommodity = async (id: number) => {
+    try {
+      const response = await commodityService.deleteCommodity(id);
+      if (response.success) {
+        await fetchCommodities(); // Refresh the list
+        return response;
+      }
+      throw new Error('Failed to delete commodity');
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to delete commodity';
+      throw err;
+    }
+  };
+
   return {
     // State
     commodities,
@@ -119,6 +162,11 @@ export function useCommodities() {
     clearFilters,
     goToPage,
     nextPage,
-    prevPage
+    prevPage,
+    
+    // CRUD operations
+    createCommodity,
+    updateCommodity,
+    deleteCommodity
   };
 }
