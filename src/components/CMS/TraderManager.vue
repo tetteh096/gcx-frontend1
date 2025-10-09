@@ -252,23 +252,16 @@
     </div>
 
     <!-- Enhanced Pagination -->
-    <div v-if="(pagination && pagination.totalPages > 1) || traders.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-blue-200 shadow-blue-100'">
+    <div v-if="pagination.totalPages > 0 || traders.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-blue-200 shadow-blue-100'">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-      <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-          <template v-if="pagination">
-            Showing             <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
-          </template>
-          <template v-else>
-            Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">1</span> to 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ traders.length }}</span> of 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ traders.length }}</span> results
-          </template>
-      </div>
+        <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+          Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+          <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+          <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
+        </div>
         
         <!-- Page Numbers -->
-        <div v-if="pagination && pagination.totalPages > 1" class="flex items-center gap-2">
+        <div v-if="pagination.totalPages > 1" class="flex items-center gap-2">
           <button
             @click="changePage(pagination.page - 1)"
             :disabled="pagination.page <= 1"
@@ -484,7 +477,12 @@ const pagination = ref<{
   limit: number
   total: number
   totalPages: number
-} | null>(null)
+}>({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0
+})
 
 // Form
 const form = ref<CreateTraderRequest>({
@@ -512,7 +510,7 @@ const suspendedTraders = computed(() =>
 )
 
 const visiblePages = computed(() => {
-  if (!pagination.value) return []
+  if (pagination.value.totalPages <= 1) return []
   
   const current = pagination.value.page
   const total = pagination.value.totalPages
@@ -534,8 +532,8 @@ const loadTraders = async () => {
   loading.value = true
   try {
     const params: any = {
-      page: pagination.value?.page || 1,
-      limit: 10
+      page: pagination.value.page,
+      limit: pagination.value.limit
     }
     
     if (searchQuery.value) {
@@ -548,7 +546,15 @@ const loadTraders = async () => {
     
     const response = await getAllTraders(params)
     traders.value = response.data
-    pagination.value = response.pagination || null
+    if (response.pagination) {
+      // Map backend response (snake_case) to frontend (camelCase)
+      pagination.value = {
+        page: response.pagination.page,
+        limit: response.pagination.limit,
+        total: response.pagination.total,
+        totalPages: (response.pagination as any).total_pages || Math.ceil(response.pagination.total / response.pagination.limit)
+      }
+    }
   } catch (error) {
     console.error('Failed to load traders:', error)
   } finally {
@@ -561,14 +567,14 @@ const debouncedSearch = (() => {
   return () => {
     clearTimeout(timeout)
     timeout = window.setTimeout(() => {
-      pagination.value = { ...pagination.value!, page: 1 }
+      pagination.value.page = 1
       loadTraders()
     }, 500)
   }
 })()
 
 const changePage = (page: number) => {
-  if (pagination.value) {
+  if (page >= 1 && page <= pagination.value.totalPages) {
     pagination.value.page = page
     loadTraders()
   }

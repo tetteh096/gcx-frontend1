@@ -118,8 +118,32 @@ const navigationItems = computed<NavigationItem[]>(() => [
         label: 'Commodities',
         icon: 'pi pi-shopping-cart',
         permissions: ['admin', 'editor']
+      },
+      {
+        id: 'event-manager',
+        label: 'Events',
+        icon: 'pi pi-calendar',
+        permissions: ['admin', 'editor']
+      },
+      {
+        id: 'gallery-manager',
+        label: 'Photo Gallery',
+        icon: 'pi pi-images',
+        permissions: ['admin', 'editor']
+      },
+      {
+        id: 'video-manager',
+        label: 'Video Library',
+        icon: 'pi pi-video',
+        permissions: ['admin', 'editor']
       }
     ]
+  },
+  {
+    id: 'rti-manager',
+    label: 'RTI Requests',
+    icon: 'pi pi-file-check',
+    permissions: ['admin', 'editor']
   },
   {
     id: 'market-data',
@@ -202,6 +226,10 @@ const navigateToSection = (section: string) => {
     'publication-manager': 'cms-publications',
     'career-manager': 'cms-careers',
     'commodity-manager': 'cms-commodities',
+    'event-manager': 'cms-events',
+    'gallery-manager': 'cms-gallery',
+    'video-manager': 'cms-video',
+    'rti-manager': 'cms-rti',
     'market-data': 'cms-market-data',
     'users': 'cms-users',
     'analytics': 'cms-analytics',

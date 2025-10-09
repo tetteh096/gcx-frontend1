@@ -3,12 +3,18 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
 import Footer from '../components/Footer.vue'
+import eventService, { type Event } from '../services/eventService'
 
 const route = useRoute()
 const router = useRouter()
 
-// Event data (in a real app, this would come from an API)
-const events = ref([
+// Event data
+const event = ref<Event | null>(null)
+const loading = ref(true)
+const error = ref<string | null>(null)
+
+// Store mock events for backwards compatibility if needed
+const mockEvents = [
   // Upcoming Events
   {
     id: 'gcx-annual-conference-2025',
@@ -209,7 +215,7 @@ The event featured engaging panel discussions, practical workshops, and valuable
       'Business card for networking'
     ]
   }
-])
+];
 
 // Registration form
 const registrationForm = ref({
@@ -226,16 +232,12 @@ const isRegistering = ref(false)
 const registrationSubmitted = ref(false)
 
 // Computed properties
-const event = computed(() => {
-  return events.value.find(e => e.id === route.params.id) || null
-})
-
 const isUpcoming = computed(() => {
   return event.value?.status === 'upcoming'
 })
 
 const canRegister = computed(() => {
-  return isUpcoming.value && event.value?.registrationOpen
+  return isUpcoming.value && event.value?.registration_open
 })
 
 // Functions
@@ -266,13 +268,24 @@ const getTypeColor = (type: string) => {
 }
 
 const submitRegistration = async () => {
+  if (!event.value) return
+
   isRegistering.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await eventService.registerForEvent(event.value.id, {
+      event_id: event.value.id,
+      full_name: registrationForm.value.fullName,
+      email: registrationForm.value.email,
+      phone: registrationForm.value.phone,
+      organization: registrationForm.value.organization,
+      position: registrationForm.value.position,
+      dietary_requirements: registrationForm.value.dietaryRequirements,
+      special_needs: registrationForm.value.specialNeeds
+    })
     registrationSubmitted.value = true
-  } catch (error) {
-    console.error('Registration failed:', error)
+  } catch (err: any) {
+    console.error('Registration failed:', err)
+    alert('Registration failed. Please try again.')
   } finally {
     isRegistering.value = false
   }
@@ -282,15 +295,68 @@ const goBack = () => {
   router.push('/media/archives')
 }
 
-onMounted(() => {
-  if (!event.value) {
+// Fetch event by slug
+const fetchEvent = async () => {
+  const slug = route.params.id as string
+  if (!slug) {
     router.push('/media/archives')
+    return
   }
+
+  try {
+    loading.value = true
+    error.value = null
+    const data = await eventService.getEventBySlug(slug)
+    event.value = data
+  } catch (err: any) {
+    console.error('Failed to fetch event:', err)
+    error.value = 'Event not found'
+    // Try to find in mock events as fallback
+    const mockEvent = mockEvents.find(e => e.id === slug)
+    if (mockEvent) {
+      // Convert mock event to Event type
+      event.value = mockEvent as any
+      error.value = null
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchEvent()
 })
 </script>
 
 <template>
-  <div v-if="event" class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-white'">
+  <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-white'">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center min-h-screen">
+      <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-yellow-500"></div>
+        <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading event details...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="flex items-center justify-center min-h-screen">
+      <div class="text-center max-w-md px-4">
+        <svg class="mx-auto h-16 w-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="text-xl font-semibold mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Event Not Found</h3>
+        <p :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'" class="mb-4">{{ error }}</p>
+        <button 
+          @click="goBack"
+          class="px-6 py-2 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-600 transition-colors"
+        >
+          Back to Events
+        </button>
+      </div>
+    </div>
+
+    <!-- Event Content -->
+    <div v-else-if="event">
     <!-- Hero Section -->
     <section class="relative py-20 lg:py-32 overflow-hidden">
       <div class="absolute inset-0">
@@ -373,8 +439,8 @@ onMounted(() => {
                 About This Event
               </h2>
               <div class="prose prose-lg max-w-none" :class="isDarkMode ? 'prose-invert' : ''">
-                <p class="text-lg leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                  {{ event.fullDescription }}
+                <p class="text-lg leading-relaxed whitespace-pre-line" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+                  {{ event.full_description || event.description }}
                 </p>
               </div>
             </div>
@@ -428,7 +494,7 @@ onMounted(() => {
                 </div>
                 
                 <div class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-                  <strong>Registration Deadline:</strong> {{ event.registrationDeadline }}
+                  <strong>Registration Deadline:</strong> {{ event.registration_deadline ? formatDate(event.registration_deadline) : 'N/A' }}
                 </div>
                 
                 <form @submit.prevent="submitRegistration" class="space-y-4">
@@ -575,5 +641,6 @@ onMounted(() => {
 
     <!-- Footer -->
     <Footer />
+    </div>
   </div>
 </template>

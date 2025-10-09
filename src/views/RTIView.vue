@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { isDarkMode } from '../utils/darkMode'
 import Footer from '../components/Footer.vue'
 import RTIHeroSlider from '../components/RTI/RTIHeroSlider.vue'
 import RTINavigation from '../components/RTI/RTINavigation.vue'
 import RTIOverview from '../components/RTI/RTIOverview.vue'
 import RTIContact from '../components/RTI/RTIContact.vue'
+import rtiService from '../services/rtiService'
 
 const applicationForm = ref({
   fullName: '',
   email: '',
   phone: '',
   address: '',
+  organization: '',
   informationType: '',
   informationDetails: '',
   purpose: '',
@@ -20,47 +22,83 @@ const applicationForm = ref({
 
 const isSubmitting = ref(false)
 const activeTab = ref('overview')
+const submittedRequestId = ref<string | null>(null)
+
+// RTI Documents
+const rtiDocuments = ref<any[]>([])
+const loadingDocuments = ref(false)
 
 const submitApplication = async () => {
   isSubmitting.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    alert('Your RTI application has been submitted successfully. You will receive a confirmation email shortly.')
+    const response = await rtiService.submitRequest({
+      full_name: applicationForm.value.fullName,
+      email: applicationForm.value.email,
+      phone: applicationForm.value.phone,
+      address: applicationForm.value.address || undefined,
+      organization: applicationForm.value.organization || undefined,
+      request_type: applicationForm.value.informationType,
+      subject: applicationForm.value.purpose,
+      description: applicationForm.value.informationDetails,
+      preferred_format: applicationForm.value.preferredFormat
+    })
+
+    submittedRequestId.value = response.request_id
+    alert(`Your RTI request has been submitted successfully!\n\nRequest ID: ${response.request_id}\n\nYou will receive a confirmation email shortly. Please keep this Request ID for future reference.`)
+    
+    // Reset form
     applicationForm.value = {
       fullName: '',
       email: '',
       phone: '',
       address: '',
+      organization: '',
       informationType: '',
       informationDetails: '',
       purpose: '',
       preferredFormat: 'electronic'
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Failed to submit RTI request:', error)
     alert('There was an error submitting your application. Please try again.')
   } finally {
     isSubmitting.value = false
   }
 }
 
-const downloadRTIManual = () => {
-  // Simulate download
-  const link = document.createElement('a')
-  link.href = '/gcx-rti-manual.pdf'
-  link.download = 'GCX-RTI-Manual.pdf'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+// Fetch RTI documents
+const fetchRTIDocuments = async () => {
+  try {
+    loadingDocuments.value = true
+    const docs = await rtiService.getDocuments()
+    rtiDocuments.value = docs.filter(d => d.is_active)
+  } catch (error) {
+    console.error('Failed to fetch RTI documents:', error)
+  } finally {
+    loadingDocuments.value = false
+  }
 }
 
-const downloadApplicationForm = () => {
-  // Simulate download
+const downloadDocument = async (doc: any) => {
+  try {
+    // Track download
+    await rtiService.trackDownload(doc.id)
+    
+    // Download file
   const link = document.createElement('a')
-  link.href = '/gcx-rti-application-form.pdf'
-  link.download = 'GCX-RTI-Application-Form.pdf'
+    link.href = doc.file_path
+    link.download = doc.file_name || `${doc.title}.pdf`
+    link.target = '_blank'
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+  } catch (error) {
+    console.error('Failed to download document:', error)
+  }
+}
+
+const getDocumentIcon = (icon: string) => {
+  return icon || 'pi-file-pdf'
 }
 
 const exemptCategories = [
@@ -77,6 +115,10 @@ const exemptCategories = [
   'Privilege information',
   'Disclosure of personal matters'
 ]
+
+onMounted(() => {
+  fetchRTIDocuments()
+})
 </script>
 
 <template>
@@ -242,48 +284,45 @@ const exemptCategories = [
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <!-- RTI Manual -->
-          <div class="rounded-2xl p-8 shadow-lg text-center" :class="isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'">
+        <!-- Loading State -->
+        <div v-if="loadingDocuments" class="text-center py-12">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+          <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading documents...</p>
+        </div>
+
+        <!-- Documents Grid -->
+        <div v-else-if="rtiDocuments.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div
+            v-for="doc in rtiDocuments"
+            :key="doc.id"
+            class="rounded-2xl p-8 shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:scale-105"
+            :class="isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'"
+          >
             <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" :class="isDarkMode ? 'bg-green-900/30' : 'bg-green-100'">
-              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+              <i :class="getDocumentIcon(doc.icon)" class="text-3xl text-green-600"></i>
             </div>
             <h3 class="text-2xl font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-              GCX RTI Manual
+              {{ doc.title }}
             </h3>
             <p class="text-lg mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-              Comprehensive guide to understanding the Right to Information process at GCX
+              {{ doc.description }}
             </p>
+            <div class="text-sm mb-4" :class="isDarkMode ? 'text-slate-500' : 'text-slate-500'">
+              <i class="pi pi-download mr-1"></i> {{ doc.download_count }} downloads
+            </div>
             <button
-              @click="downloadRTIManual"
+              @click="downloadDocument(doc)"
               class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              Download Manual
+              <i class="pi pi-download mr-2"></i>
+              Download {{ doc.category === 'form' ? 'Form' : doc.category === 'manual' ? 'Manual' : 'Document' }}
             </button>
           </div>
+        </div>
 
-          <!-- Application Form -->
-          <div class="rounded-2xl p-8 shadow-lg text-center" :class="isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'">
-            <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" :class="isDarkMode ? 'bg-green-900/30' : 'bg-green-100'">
-              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-              RTI Application Form
-            </h3>
-            <p class="text-lg mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-              Download the official application form to submit your information request
-            </p>
-            <button
-              @click="downloadApplicationForm"
-              class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              Download Form
-            </button>
-          </div>
+        <!-- No Documents State -->
+        <div v-else class="text-center py-12">
+          <p :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">No documents available at the moment</p>
         </div>
 
         <!-- Additional Information -->

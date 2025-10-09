@@ -2,78 +2,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
+import eventService, { type Event } from '../services/eventService'
 
 const { t } = useI18n()
 
 // Event data
-const events = ref([
-  {
-    id: 1,
-    title: 'GCX Annual Conference 2023',
-    date: '2023-12-15',
-    location: 'Accra, Ghana',
-    description: 'The Ghana Commodity Exchange Annual Conference brought together industry leaders, farmers, and stakeholders to discuss the future of commodity trading in Ghana.',
-    image: '/conference.jpg',
-    category: 'Conference',
-    attendees: 500,
-    status: 'Completed'
-  },
-  {
-    id: 2,
-    title: 'Agricultural Innovation Summit',
-    date: '2023-10-20',
-    location: 'Kumasi, Ghana',
-    description: 'Exploring digital agriculture and technology solutions for modern farming practices and commodity trading.',
-    image: '/farmer.jpg',
-    category: 'Summit',
-    attendees: 300,
-    status: 'Completed'
-  },
-  {
-    id: 3,
-    title: 'Commodity Market Analysis Workshop',
-    date: '2023-08-10',
-    location: 'Tamale, Ghana',
-    description: 'Training workshop on commodity market analysis and trading strategies for local farmers and traders.',
-    image: '/trading.jpg',
-    category: 'Workshop',
-    attendees: 150,
-    status: 'Completed'
-  },
-  {
-    id: 4,
-    title: 'Women in Agriculture Forum',
-    date: '2023-06-15',
-    location: 'Cape Coast, Ghana',
-    description: 'Empowering women farmers and traders in the commodity exchange ecosystem.',
-    image: '/maize.jpg',
-    category: 'Forum',
-    attendees: 200,
-    status: 'Completed'
-  },
-  {
-    id: 5,
-    title: 'Youth in Agriculture Program',
-    date: '2023-04-22',
-    location: 'Takoradi, Ghana',
-    description: 'Engaging young people in agriculture and commodity trading through education and mentorship.',
-    image: '/crop.jpg',
-    category: 'Program',
-    attendees: 100,
-    status: 'Completed'
-  },
-  {
-    id: 6,
-    title: 'International Trade Partnership Meeting',
-    date: '2023-02-28',
-    location: 'Accra, Ghana',
-    description: 'Strengthening international partnerships for commodity trade and market development.',
-    image: '/market-analysis.jpg',
-    category: 'Meeting',
-    attendees: 75,
-    status: 'Completed'
-  }
-])
+const events = ref<Event[]>([])
+const loading = ref(true)
+const error = ref<string | null>(null)
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
@@ -82,18 +18,23 @@ const selectedYear = ref('')
 // Categories
 const categories = ['All', 'Conference', 'Summit', 'Workshop', 'Forum', 'Program', 'Meeting']
 
-// Years
-const years = ['All', '2023', '2022', '2021', '2020']
+// Years - dynamically generated from events
+const years = computed(() => {
+  const eventYears = events.value.map(event => new Date(event.date).getFullYear())
+  const uniqueYears = [...new Set(eventYears)].sort((a, b) => b - a)
+  return ['All', ...uniqueYears.map(String)]
+})
 
 // Filtered events
 const filteredEvents = computed(() => {
   let filtered = events.value
 
   if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(event =>
-      event.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchQuery.value.toLowerCase())
+      event.title.toLowerCase().includes(query) ||
+      (event.description && event.description.toLowerCase().includes(query)) ||
+      event.location.toLowerCase().includes(query)
     )
   }
 
@@ -102,13 +43,13 @@ const filteredEvents = computed(() => {
   }
 
   if (selectedYear.value && selectedYear.value !== 'All') {
-    filtered = filtered.filter(event => event.date.startsWith(selectedYear.value))
+    filtered = filtered.filter(event => new Date(event.date).getFullYear().toString() === selectedYear.value)
   }
 
   return filtered
 })
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -122,6 +63,25 @@ const clearFilters = () => {
   selectedCategory.value = ''
   selectedYear.value = ''
 }
+
+// Fetch events on mount
+const fetchEvents = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const data = await eventService.getPastEvents(50)
+    events.value = data
+  } catch (err: any) {
+    console.error('Failed to fetch events:', err)
+    error.value = 'Failed to load events. Please try again later.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchEvents()
+})
 </script>
 
 <template>
@@ -243,8 +203,29 @@ const clearFilters = () => {
     <!-- Events Grid -->
     <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-white'">
       <div class="max-w-7xl mx-auto px-4">
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-20">
+          <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+          <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading events...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-20">
+          <svg class="mx-auto h-16 w-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="text-xl font-semibold mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Error Loading Events</h3>
+          <p :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'" class="mb-4">{{ error }}</p>
+          <button 
+            @click="fetchEvents"
+            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+
         <!-- Events Grid -->
-        <div v-if="filteredEvents.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-else-if="filteredEvents.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <div
             v-for="event in filteredEvents"
             :key="event.id"
@@ -267,7 +248,7 @@ const clearFilters = () => {
               </div>
               
               <!-- Status Badge -->
-              <div class="absolute top-4 right-4 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+              <div class="absolute top-4 right-4 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full capitalize">
                 {{ event.status }}
               </div>
             </div>

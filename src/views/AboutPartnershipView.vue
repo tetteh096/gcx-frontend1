@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { isDarkMode } from '../utils/darkMode';
+import { getPartnersByCategory, type Partner } from '../services/partnerService';
 
 // Router
 const route = useRoute();
@@ -10,43 +11,50 @@ const router = useRouter();
 // Active category
 const activeCategory = ref('partners');
 
-// Partnership categories
+// State
+const loading = ref(true);
+const error = ref<string | null>(null);
+const partnersData = ref<Record<string, Partner[]>>({
+  partners: [],
+  donors: [],
+  government: [],
+  ngos: [],
+  private: [],
+  tenders: []
+});
+
+// Partnership categories - map display keys to backend category values
 const partnershipCategories = [
-  { label: 'Financial Institutions', key: 'partners' },
-  { label: 'Donor Agencies', key: 'donors' },
-  { label: 'Government Agencies', key: 'government' },
-  { label: 'NGOs', key: 'ngos' },
-  { label: 'Private Agencies', key: 'private' },
-  { label: 'Tenders & Procurement', key: 'tenders' },
+  { label: 'Financial Institutions', key: 'partners', backendKey: 'financial' },
+  { label: 'Donor Agencies', key: 'donors', backendKey: 'donor' },
+  { label: 'Government Agencies', key: 'government', backendKey: 'government' },
+  { label: 'NGOs', key: 'ngos', backendKey: 'ngo' },
+  { label: 'Private Agencies', key: 'private', backendKey: 'private' },
+  { label: 'Tenders & Procurement', key: 'tenders', backendKey: 'tender' },
 ];
 
-// Financial Institutions data
-const financialInstitutions = [
-  { imageSrc: '/Partners/ghana-exim-bank.jpg', title: 'Ghana Export-Import Bank' },
-  { imageSrc: '/Partners/ghana-export-promotion-authority-gepa.png', title: 'Ghana Export Promotion Authority' },
-  { imageSrc: '/Partners/ghana-standard-authority-gsa.png', title: 'Ghana Standards Authority' },
-  { imageSrc: '/Partners/standard-chartered.jpg', title: 'Standard Chartered' },
-  { imageSrc: '/Partners/fidelity-bank.png', title: 'Fidelity Bank' },
-  { imageSrc: '/Partners/ecobank.png', title: 'Ecobank' },
-  { imageSrc: '/Partners/ghana-grains-council-ggc.png', title: 'Ghana Grains Council' },
-  { imageSrc: '/Partners/ipmc.jpg', title: 'IPMC' },
-  { imageSrc: '/Partners/africa-cashew-alliance.png', title: 'Africa Cashew Alliance' },
-  { imageSrc: '/Partners/6-ciag.jpg', title: 'CIAG' },
-];
+// Fetch partners by category
+const fetchPartnersByCategory = async (displayKey: string) => {
+  const category = partnershipCategories.find(c => c.key === displayKey);
+  if (!category) return;
 
-// Donor Agencies data
-const donorAgencies = [
-  { imageSrc: '/Donors/1-ukaid.jpg', title: 'UKAID' },
-  { imageSrc: '/Donors/usaid.png', title: 'USAID' },
-  { imageSrc: '/Donors/agra.png', title: 'AGRA' },
-  { imageSrc: '/Donors/ifc.png', title: 'IFC' },
-  { imageSrc: '/Donors/giz-logo.gif', title: 'GIZ' },
-  { imageSrc: '/Donors/snv.png', title: 'SNV' },
-  { imageSrc: '/Donors/undp_100.png', title: 'UNDP' },
-  { imageSrc: '/Donors/unido.png', title: 'UNIDO' },
-  { imageSrc: '/Donors/ifad-a-edit.png', title: 'IFAD' },
-  { imageSrc: '/Donors/world-food-programme-wfp.jpg', title: 'World Food Programme' },
-];
+  try {
+    loading.value = true;
+    error.value = null;
+    const data = await getPartnersByCategory(category.backendKey);
+    partnersData.value[displayKey] = data;
+  } catch (err: any) {
+    console.error(`Failed to fetch ${displayKey} partners:`, err);
+    error.value = `Failed to load ${category.label}`;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Get partners for current category
+const currentPartners = computed(() => {
+  return partnersData.value[activeCategory.value] || [];
+});
 
 // Donor category cards
 const donorCategoryCards = [
@@ -181,6 +189,10 @@ const tenderItems = [
 const updateActiveCategory = (category: string) => {
   activeCategory.value = category;
   router.replace({ hash: `#${category}` });
+  // Fetch data if not already loaded
+  if (partnersData.value[category].length === 0) {
+    fetchPartnersByCategory(category);
+  }
 };
 
 // Hash-based navigation
@@ -196,11 +208,20 @@ const setActiveFromHash = () => {
 // Lifecycle
 onMounted(() => {
   setActiveFromHash();
+  // Fetch data for initial category
+  fetchPartnersByCategory(activeCategory.value);
 });
 
 // Watch for route hash changes
 watch(() => route.hash, () => {
   setActiveFromHash();
+});
+
+// Watch for category changes
+watch(activeCategory, (newCategory) => {
+  if (partnersData.value[newCategory].length === 0) {
+    fetchPartnersByCategory(newCategory);
+  }
 });
 </script>
 
@@ -274,24 +295,43 @@ watch(() => route.hash, () => {
             </p>
           </div>
           
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+            <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading partners...</p>
+          </div>
+
+          <!-- Error State -->
+          <div v-else-if="error" class="text-center py-12">
+            <p class="text-red-600">{{ error }}</p>
+          </div>
+
+          <!-- No Partners State -->
+          <div v-else-if="currentPartners.length === 0" class="text-center py-12">
+            <p :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">No partners available in this category</p>
+          </div>
+
           <!-- Partnership Cards Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
             <div 
-              v-for="item in financialInstitutions"
-              :key="item.title"
+              v-for="item in currentPartners"
+              :key="item.id"
               class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
-                             :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+              :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
             >
               <div class="flex flex-col items-center text-center">
                 <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
+                  <img :src="item.logo" :alt="item.name" class="max-w-full max-h-full object-contain" @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'" />
                 </div>
                 <h4 
                   class="text-sm font-semibold transition-colors duration-300"
                   :class="isDarkMode ? 'text-white' : 'text-slate-900'"
                 >
-                  {{ item.title }}
+                  {{ item.name }}
                 </h4>
+                <p v-if="item.description" class="text-xs mt-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                  {{ item.description }}
+                </p>
               </div>
             </div>
           </div>
@@ -310,24 +350,33 @@ watch(() => route.hash, () => {
             </p>
           </div>
           
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+            <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading partners...</p>
+          </div>
+
           <!-- Partnership Cards Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
             <div 
-              v-for="item in donorAgencies"
-              :key="item.title"
+              v-for="item in currentPartners"
+              :key="item.id"
               class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
               :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
             >
               <div class="flex flex-col items-center text-center">
                 <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
+                  <img :src="item.logo" :alt="item.name" class="max-w-full max-h-full object-contain" @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'" />
                 </div>
                 <h4 
                   class="text-sm font-semibold transition-colors duration-300"
                   :class="isDarkMode ? 'text-white' : 'text-slate-900'"
                 >
-                  {{ item.title }}
+                  {{ item.name }}
                 </h4>
+                <p v-if="item.description" class="text-xs mt-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                  {{ item.description }}
+                </p>
               </div>
             </div>
           </div>
@@ -386,24 +435,33 @@ watch(() => route.hash, () => {
             </p>
           </div>
           
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+            <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading partners...</p>
+          </div>
+
           <!-- Partnership Cards Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
             <div 
-              v-for="item in governmentAgencies"
-              :key="item.title"
+              v-for="item in currentPartners"
+              :key="item.id"
               class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
-                             :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
+              :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
             >
               <div class="flex flex-col items-center text-center">
                 <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
+                  <img :src="item.logo" :alt="item.name" class="max-w-full max-h-full object-contain" @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'" />
                 </div>
                 <h4 
                   class="text-sm font-semibold transition-colors duration-300"
                   :class="isDarkMode ? 'text-white' : 'text-slate-900'"
                 >
-                  {{ item.title }}
+                  {{ item.name }}
                 </h4>
+                <p v-if="item.description" class="text-xs mt-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                  {{ item.description }}
+                </p>
               </div>
             </div>
           </div>
@@ -422,24 +480,33 @@ watch(() => route.hash, () => {
             </p>
           </div>
           
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+            <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading partners...</p>
+          </div>
+
           <!-- Partnership Cards Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
             <div 
-              v-for="item in ngos"
-              :key="item.title"
+              v-for="item in currentPartners"
+              :key="item.id"
               class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
               :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
             >
               <div class="flex flex-col items-center text-center">
                 <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
+                  <img :src="item.logo" :alt="item.name" class="max-w-full max-h-full object-contain" @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'" />
                 </div>
                 <h4 
                   class="text-sm font-semibold transition-colors duration-300"
                   :class="isDarkMode ? 'text-white' : 'text-slate-900'"
                 >
-                  {{ item.title }}
+                  {{ item.name }}
                 </h4>
+                <p v-if="item.description" class="text-xs mt-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                  {{ item.description }}
+                </p>
               </div>
             </div>
           </div>
@@ -458,24 +525,33 @@ watch(() => route.hash, () => {
             </p>
           </div>
           
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+            <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading partners...</p>
+          </div>
+
           <!-- Partnership Cards Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
+          <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
             <div 
-              v-for="item in privateAgencies"
-              :key="item.title"
+              v-for="item in currentPartners"
+              :key="item.id"
               class="transition-colors duration-300 rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:scale-105 transform transition-all duration-300"
               :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-100 hover:bg-slate-50'"
             >
               <div class="flex flex-col items-center text-center">
                 <div class="w-24 h-24 mb-4 flex items-center justify-center">
-                  <img :src="item.imageSrc" :alt="item.title" class="max-w-full max-h-full object-contain" />
+                  <img :src="item.logo" :alt="item.name" class="max-w-full max-h-full object-contain" @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'" />
                 </div>
                 <h4 
                   class="text-sm font-semibold transition-colors duration-300"
                   :class="isDarkMode ? 'text-white' : 'text-slate-900'"
                 >
-                  {{ item.title }}
+                  {{ item.name }}
                 </h4>
+                <p v-if="item.description" class="text-xs mt-2" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                  {{ item.description }}
+                </p>
               </div>
             </div>
           </div>

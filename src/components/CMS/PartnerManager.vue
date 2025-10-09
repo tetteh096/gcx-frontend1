@@ -289,23 +289,16 @@
     </div>
 
     <!-- Enhanced Pagination -->
-    <div v-if="(pagination && pagination.totalPages > 1) || partners.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-green-200 shadow-green-100'">
+    <div v-if="pagination.totalPages > 0 || partners.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-green-200 shadow-green-100'">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-          <template v-if="pagination">
-            Showing             <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
-          </template>
-          <template v-else>
-            Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">1</span> to 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ partners.length }}</span> of 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ partners.length }}</span> results
-          </template>
+          Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+          <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+          <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
         </div>
         
         <!-- Page Numbers -->
-        <div v-if="pagination && pagination.totalPages > 1" class="flex items-center gap-2">
+        <div v-if="pagination.totalPages > 1" class="flex items-center gap-2">
           <button
             @click="changePage(pagination.page - 1)"
             :disabled="pagination.page <= 1"
@@ -543,7 +536,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { getCMSPartners, createPartner, updatePartner, deletePartner, type Partner, type CreatePartnerRequest } from '../../services/partnerService'
+import { getCMSPartners, createPartner, updatePartner, deletePartner as deletePartnerAPI, type Partner, type CreatePartnerRequest } from '../../services/partnerService'
 import { isDarkMode } from '../../utils/darkMode'
 import ImageGallery from './ImageGallery.vue'
 
@@ -562,7 +555,12 @@ const pagination = ref<{
   limit: number
   total: number
   totalPages: number
-} | null>(null)
+}>({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0
+})
 
 // Form
 const form = ref<CreatePartnerRequest>({
@@ -582,7 +580,7 @@ const inactivePartners = computed(() => partners.value.filter(partner => partner
 const suspendedPartners = computed(() => partners.value.filter(partner => partner.status === 'suspended').length)
 
 const visiblePages = computed(() => {
-  if (!pagination.value || pagination.value.totalPages <= 1) return []
+  if (pagination.value.totalPages <= 1) return []
   
   const current = pagination.value.page
   const total = pagination.value.totalPages
@@ -635,8 +633,8 @@ const loadPartners = async () => {
   loading.value = true
   try {
     const params: any = {
-      page: pagination.value?.page || 1,
-      limit: 10
+      page: pagination.value.page,
+      limit: pagination.value.limit
     }
     
     if (searchQuery.value) {
@@ -653,7 +651,17 @@ const loadPartners = async () => {
     
     const response = await getCMSPartners(params)
     partners.value = response.data
-    pagination.value = response.pagination || null
+    if (response.pagination) {
+      // Map backend response (snake_case) to frontend (camelCase)
+      const totalPages = (response.pagination as any).total_pages || Math.ceil(response.pagination.total / response.pagination.limit)
+      pagination.value = {
+        page: response.pagination.page,
+        limit: response.pagination.limit,
+        total: response.pagination.total,
+        totalPages: totalPages
+      }
+      console.log('📊 Pagination:', pagination.value)
+    }
   } catch (error) {
     console.error('Failed to load partners:', error)
   } finally {
@@ -666,18 +674,16 @@ const debouncedSearch = (() => {
   return () => {
     clearTimeout(timeout)
     timeout = window.setTimeout(() => {
-      pagination.value = { ...pagination.value!, page: 1 }
+      pagination.value.page = 1
       loadPartners()
     }, 500)
   }
 })()
 
 const changePage = (page: number) => {
-  if (pagination.value && page >= 1 && page <= pagination.value.totalPages) {
+  if (page >= 1 && page <= pagination.value.totalPages) {
     pagination.value.page = page
     loadPartners()
-  } else if (!pagination.value) {
-    // Fallback for client-side pagination if backend doesn't support it
   }
 }
 
@@ -736,7 +742,7 @@ const savePartner = async () => {
 const deletePartner = async (id: number) => {
   if (confirm('Are you sure you want to delete this partner?')) {
     try {
-      await deletePartner(id)
+      await deletePartnerAPI(id)
       loadPartners()
     } catch (error) {
       console.error('Failed to delete partner:', error)

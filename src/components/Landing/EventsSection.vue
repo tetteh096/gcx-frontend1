@@ -1,81 +1,60 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
 import { CalendarIcon, MapPinIcon, ClockIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { isDarkMode } from '../../utils/darkMode'
+import eventService, { type Event } from '../../services/eventService'
 
+const router = useRouter()
 const activeTab = ref('upcoming')
 const { t } = useI18n()
 
-const upcomingEvents = [
-  {
-    title: "GCX Annual Trading Conference 2025",
-    date: "September 15-17, 2025",
-    time: "9:00 AM - 5:00 PM",
-    location: "Accra International Conference Centre",
-    description: "Join industry leaders, traders, and stakeholders for three days of insights, networking, and market analysis.",
-    category: "Conference",
-    image: "/trading.jpg",
-    status: "upcoming"
-  },
-  {
-    title: "Farmer Training Workshop",
-    date: "September 25, 2025",
-    time: "10:00 AM - 3:00 PM",
-    location: "Kumasi Agricultural Centre",
-    description: "Learn about modern trading practices, quality standards, and market access opportunities.",
-    category: "Workshop",
-    image: "/crop.jpg",
-    status: "upcoming"
-  },
-  {
-    title: "Commodity Price Analysis Seminar",
-    date: "October 5, 2025",
-    time: "2:00 PM - 6:00 PM",
-    location: "GCX Trading Floor, Accra",
-    description: "Expert analysis of current market trends and future price projections for major commodities.",
-    category: "Seminar",
-    image: "/trading dashboard.jpg",
-    status: "upcoming"
-  }
-]
+// State
+const upcomingEvents = ref<Event[]>([])
+const pastEvents = ref<Event[]>([])
+const loading = ref(true)
 
-const pastEvents = [
-  {
-    title: "GCX Market Opening Ceremony 2024",
-    date: "December 15, 2024",
-    time: "10:00 AM - 2:00 PM",
-    location: "GCX Headquarters, Accra",
-    description: "Official opening ceremony for the 2024 trading season with key stakeholders and government officials.",
-    category: "Ceremony",
-    image: "/crop.jpg",
-    status: "past"
-  },
-  {
-    title: "Agricultural Commodity Summit",
-    date: "November 20, 2024",
-    time: "9:00 AM - 6:00 PM",
-    location: "Kumasi Conference Centre",
-    description: "Comprehensive summit covering agricultural commodity trends, market analysis, and future projections.",
-    category: "Summit",
-    image: "/trading.jpg",
-    status: "past"
-  },
-  {
-    title: "Trading Technology Workshop",
-    date: "October 10, 2024",
-    time: "1:00 PM - 5:00 PM",
-    location: "GCX Training Centre, Accra",
-    description: "Hands-on workshop on using GCX trading platforms and mobile applications.",
-    category: "Workshop",
-    image: "/trading dashboard.jpg",
-    status: "past"
+// Fetch events from API
+const fetchEvents = async () => {
+  try {
+    loading.value = true
+    // Fetch only 3 upcoming and 3 past events
+    const upcoming = await eventService.getUpcomingEvents(3)
+    const past = await eventService.getPastEvents(3)
+    
+    upcomingEvents.value = upcoming
+    pastEvents.value = past
+  } catch (error) {
+    console.error('Failed to fetch events:', error)
+  } finally {
+    loading.value = false
   }
-]
+}
 
 const getCurrentEvents = () => {
-  return activeTab.value === 'upcoming' ? upcomingEvents : pastEvents
+  return activeTab.value === 'upcoming' ? upcomingEvents.value : pastEvents.value
 }
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+const navigateToEvent = (event: Event) => {
+  router.push(`/media/archives/${event.slug}`)
+}
+
+const viewAllEvents = () => {
+  router.push('/media/archives')
+}
+
+onMounted(() => {
+  fetchEvents()
+})
 </script>
 
 <template>
@@ -111,37 +90,53 @@ const getCurrentEvents = () => {
         </div>
       </div>
       
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+        <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading events...</p>
+      </div>
+
+      <!-- No Events State -->
+      <div v-else-if="getCurrentEvents().length === 0" class="text-center py-12">
+        <i class="pi pi-calendar text-4xl mb-4" :class="isDarkMode ? 'text-slate-500' : 'text-gray-400'"></i>
+        <p :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+          {{ activeTab === 'upcoming' ? 'No upcoming events at the moment' : 'No past events to display' }}
+        </p>
+      </div>
+
       <!-- Events Grid -->
-      <div class="grid lg:grid-cols-3 gap-8">
+      <div v-else class="grid lg:grid-cols-3 gap-8">
         <div 
           v-for="event in getCurrentEvents()" 
-          :key="event.title"
-          class="group relative overflow-hidden rounded-3xl shadow-2xl border transition-all duration-500 hover:shadow-3xl"
+          :key="event.id"
+          @click="navigateToEvent(event)"
+          class="group relative overflow-hidden rounded-3xl shadow-2xl border transition-all duration-500 hover:shadow-3xl cursor-pointer"
           :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-200'"
         >
           <!-- Event Image -->
           <div class="w-full h-64 overflow-hidden">
             <img 
-              :src="event.image" 
+              :src="event.image || '/Picture3.png'" 
               :alt="event.title" 
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'"
             />
           </div>
           
           <!-- Category Badge -->
           <div class="absolute top-6 left-6">
             <span class="px-4 py-2 rounded-full text-sm font-bold text-white shadow-lg bg-yellow-500">
-              {{ event.category }}
+              {{ event.type }}
             </span>
           </div>
           
           <!-- Status Badge -->
           <div class="absolute top-6 right-6">
-            <span class="px-3 py-2 rounded-lg text-xs font-medium text-white shadow-lg" :class="{
+            <span class="px-3 py-2 rounded-lg text-xs font-medium text-white shadow-lg capitalize" :class="{
               'bg-green-500': event.status === 'upcoming',
-              'bg-slate-500': event.status === 'past'
+              'bg-slate-500': event.status === 'completed'
             }">
-              {{ event.status === 'upcoming' ? 'Upcoming' : 'Past' }}
+              {{ event.status }}
             </span>
           </div>
           
@@ -161,25 +156,26 @@ const getCurrentEvents = () => {
             <div class="space-y-3 mb-6">
               <div class="flex items-center text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                 <CalendarIcon class="w-4 h-4 mr-3 text-yellow-500" />
-                {{ event.date }}
+                {{ formatDate(event.date) }}
               </div>
-              <div class="flex items-center text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <div v-if="event.time" class="flex items-center text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                 <ClockIcon class="w-4 h-4 mr-3 text-yellow-500" />
                 {{ event.time }}
               </div>
               <div class="flex items-center text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                 <MapPinIcon class="w-4 h-4 mr-3 text-yellow-500" />
-                {{ event.location }}
+                {{ event.venue ? `${event.location} - ${event.venue}` : event.location }}
               </div>
             </div>
             
             <!-- CTA Button -->
             <button 
+              @click.stop="navigateToEvent(event)"
               class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2"
-              :class="event.status === 'past' ? 'bg-slate-500 hover:bg-slate-400 text-white cursor-default' : ''"
+              :class="event.status === 'completed' ? 'bg-slate-500 hover:bg-slate-400 text-white' : ''"
             >
-              <span>{{ event.status === 'upcoming' ? 'Register Now' : 'Event Completed' }}</span>
-              <ChevronRightIcon v-if="event.status === 'upcoming'" class="w-4 h-4" />
+              <span>{{ event.status === 'upcoming' ? 'Register Now' : 'View Details' }}</span>
+              <ChevronRightIcon class="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -187,7 +183,10 @@ const getCurrentEvents = () => {
       
       <!-- View All Events Button -->
       <div class="text-center mt-16">
-        <button class="bg-transparent border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black font-semibold py-4 px-8 rounded-xl transition-all transform hover:scale-105 text-lg">
+        <button 
+          @click="viewAllEvents"
+          class="bg-transparent border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black font-semibold py-4 px-8 rounded-xl transition-all transform hover:scale-105 text-lg"
+        >
           View All Events →
         </button>
       </div>

@@ -1,165 +1,39 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
+import * as galleryService from '../services/galleryService'
+import type { PhotoGallery, GalleryPhoto } from '../services/galleryService'
 
 const { t } = useI18n()
 
 // Gallery folders data
-const galleryFolders = ref([
-  {
-    id: 'events',
-    title: 'Events & Conferences',
-    category: 'Events',
-    coverImage: '/conference.jpg',
-    imageCount: 12,
-    date: '2023-12-15',
-    description: 'Key moments from our annual conferences, events, and stakeholder meetings.',
-    images: [
-      { id: 1, src: '/conference.jpg', title: 'Opening Ceremony', date: '2023-12-15' },
-      { id: 2, src: '/farmer.jpg', title: 'Keynote Speaker', date: '2023-12-15' },
-      { id: 3, src: '/trading.jpg', title: 'Panel Discussion', date: '2023-12-15' },
-      { id: 4, src: '/maize.jpg', title: 'Networking Session', date: '2023-12-15' },
-      { id: 5, src: '/crop.jpg', title: 'Award Ceremony', date: '2023-12-15' },
-      { id: 6, src: '/market-analysis.jpg', title: 'Closing Remarks', date: '2023-12-15' }
-    ],
-    tags: ['Conference', 'Leadership', 'Networking']
-  },
-  {
-    id: 'training',
-    title: 'Training & Workshops',
-    category: 'Training',
-    coverImage: '/farmer.jpg',
-    imageCount: 8,
-    date: '2023-11-20',
-    description: 'Training sessions and workshops empowering farmers and traders.',
-    images: [
-      { id: 7, src: '/farmer.jpg', title: 'Farmers Training', date: '2023-11-20' },
-      { id: 8, src: '/trading.jpg', title: 'Trading Workshop', date: '2023-11-20' },
-      { id: 9, src: '/maize.jpg', title: 'Quality Assessment', date: '2023-11-20' },
-      { id: 10, src: '/crop.jpg', title: 'Field Visit', date: '2023-11-20' }
-    ],
-    tags: ['Training', 'Farmers', 'Education']
-  },
-  {
-    id: 'operations',
-    title: 'Trading Operations',
-    category: 'Operations',
-    coverImage: '/trading.jpg',
-    imageCount: 15,
-    date: '2023-10-15',
-    description: 'Behind-the-scenes look at our trading operations and market activities.',
-    images: [
-      { id: 11, src: '/trading.jpg', title: 'Trading Floor', date: '2023-10-15' },
-      { id: 12, src: '/conference.jpg', title: 'Market Analysis', date: '2023-10-15' },
-      { id: 13, src: '/farmer.jpg', title: 'Commodity Exchange', date: '2023-10-15' },
-      { id: 14, src: '/maize.jpg', title: 'Price Monitoring', date: '2023-10-15' },
-      { id: 15, src: '/crop.jpg', title: 'Order Processing', date: '2023-10-15' }
-    ],
-    tags: ['Trading', 'Operations', 'Market']
-  },
-  {
-    id: 'quality',
-    title: 'Quality Assurance',
-    category: 'Quality',
-    coverImage: '/maize.jpg',
-    imageCount: 10,
-    date: '2023-09-10',
-    description: 'Our quality assurance team ensuring the highest standards for commodity trading.',
-    images: [
-      { id: 16, src: '/maize.jpg', title: 'Quality Inspection', date: '2023-09-10' },
-      { id: 17, src: '/crop.jpg', title: 'Grading Process', date: '2023-09-10' },
-      { id: 18, src: '/trading.jpg', title: 'Sample Testing', date: '2023-09-10' },
-      { id: 19, src: '/conference.jpg', title: 'Certification', date: '2023-09-10' }
-    ],
-    tags: ['Quality', 'Inspection', 'Standards']
-  },
-  {
-    id: 'programs',
-    title: 'Youth Programs',
-    category: 'Programs',
-    coverImage: '/crop.jpg',
-    imageCount: 6,
-    date: '2023-08-25',
-    description: 'Engaging young people in agriculture and commodity trading through education and mentorship.',
-    images: [
-      { id: 20, src: '/crop.jpg', title: 'Youth Program', date: '2023-08-25' },
-      { id: 21, src: '/farmer.jpg', title: 'Mentorship Session', date: '2023-08-25' },
-      { id: 22, src: '/trading.jpg', title: 'Practical Training', date: '2023-08-25' }
-    ],
-    tags: ['Youth', 'Programs', 'Education']
-  },
-  {
-    id: 'analysis',
-    title: 'Market Analysis',
-    category: 'Analysis',
-    coverImage: '/market-analysis.jpg',
-    imageCount: 9,
-    date: '2023-07-30',
-    description: 'Expert analysis sessions on commodity market trends and trading strategies.',
-    images: [
-      { id: 23, src: '/market-analysis.jpg', title: 'Market Analysis', date: '2023-07-30' },
-      { id: 24, src: '/conference.jpg', title: 'Data Presentation', date: '2023-07-30' },
-      { id: 25, src: '/trading.jpg', title: 'Trend Discussion', date: '2023-07-30' },
-      { id: 26, src: '/maize.jpg', title: 'Strategy Planning', date: '2023-07-30' }
-    ],
-    tags: ['Analysis', 'Market', 'Strategy']
-  },
-  {
-    id: 'partnerships',
-    title: 'International Partnerships',
-    category: 'Partnerships',
-    coverImage: '/rice.jpg',
-    imageCount: 7,
-    date: '2023-06-15',
-    description: 'Building strategic partnerships with international commodity exchanges and organizations.',
-    images: [
-      { id: 27, src: '/rice.jpg', title: 'Partnership Meeting', date: '2023-06-15' },
-      { id: 28, src: '/conference.jpg', title: 'Agreement Signing', date: '2023-06-15' },
-      { id: 29, src: '/farmer.jpg', title: 'Collaboration', date: '2023-06-15' }
-    ],
-    tags: ['Partnerships', 'International', 'Collaboration']
-  },
-  {
-    id: 'forums',
-    title: 'Women in Agriculture',
-    category: 'Forums',
-    coverImage: '/sesame.jpg',
-    imageCount: 5,
-    date: '2023-05-20',
-    description: 'Empowering women farmers and traders in the commodity exchange ecosystem.',
-    images: [
-      { id: 30, src: '/sesame.jpg', title: 'Women Forum', date: '2023-05-20' },
-      { id: 31, src: '/farmer.jpg', title: 'Empowerment Session', date: '2023-05-20' },
-      { id: 32, src: '/crop.jpg', title: 'Success Stories', date: '2023-05-20' }
-    ],
-    tags: ['Women', 'Forum', 'Empowerment']
-  },
-  {
-    id: 'technology',
-    title: 'Technology & Innovation',
-    category: 'Technology',
-    coverImage: '/soybean.jpg',
-    imageCount: 11,
-    date: '2023-04-10',
-    description: 'Showcasing cutting-edge technology solutions for modern agriculture.',
-    images: [
-      { id: 33, src: '/soybean.jpg', title: 'Tech Innovation', date: '2023-04-10' },
-      { id: 34, src: '/trading.jpg', title: 'Digital Platform', date: '2023-04-10' },
-      { id: 35, src: '/market-analysis.jpg', title: 'Data Analytics', date: '2023-04-10' },
-      { id: 36, src: '/conference.jpg', title: 'Tech Demo', date: '2023-04-10' }
-    ],
-    tags: ['Technology', 'Innovation', 'Digital']
-  }
-])
+const galleryFolders = ref<PhotoGallery[]>([])
+const loading = ref(true)
+const error = ref('')
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
-const selectedFolder = ref(null)
-const selectedImage = ref(null)
+const selectedFolder = ref<PhotoGallery | null>(null)
+const selectedImage = ref<GalleryPhoto | null>(null)
 const isModalOpen = ref(false)
 const isFolderModalOpen = ref(false)
 const currentImageIndex = ref(0)
+
+// Fetch galleries from API
+const fetchGalleries = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const galleries = await galleryService.getGalleries()
+    galleryFolders.value = galleries
+  } catch (err: any) {
+    error.value = err.response?.data?.error || 'Failed to load galleries'
+    console.error('Error fetching galleries:', err)
+  } finally {
+    loading.value = false
+  }
+}
 
 // Categories
 const categories = ['All', 'Events', 'Training', 'Operations', 'Quality', 'Programs', 'Analysis', 'Partnerships', 'Forums', 'Technology']
@@ -171,8 +45,8 @@ const filteredGalleryFolders = computed(() => {
   if (searchQuery.value) {
     filtered = filtered.filter(folder =>
       folder.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      folder.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      folder.tags.some(tag => tag.toLowerCase().includes(searchQuery.value.toLowerCase()))
+      (folder.description && folder.description.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (folder.tags && folder.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.value.toLowerCase())))
     )
   }
 
@@ -183,10 +57,17 @@ const filteredGalleryFolders = computed(() => {
   return filtered
 })
 
-const openFolderModal = (folder) => {
-  selectedFolder.value = folder
+const openFolderModal = async (folder: PhotoGallery) => {
+  try {
+    // Fetch full gallery with photos
+    const fullGallery = await galleryService.getGallery(folder.id)
+    selectedFolder.value = fullGallery
   isFolderModalOpen.value = true
   document.body.style.overflow = 'hidden'
+  } catch (err: any) {
+    console.error('Error fetching gallery:', err)
+    alert('Failed to load gallery photos')
+  }
 }
 
 const closeFolderModal = () => {
@@ -195,9 +76,9 @@ const closeFolderModal = () => {
   document.body.style.overflow = 'auto'
 }
 
-const openImageModal = (image) => {
+const openImageModal = (image: GalleryPhoto) => {
   selectedImage.value = image
-  currentImageIndex.value = selectedFolder.value.images.findIndex(img => img.id === image.id)
+  currentImageIndex.value = selectedFolder.value?.photos?.findIndex(img => img.id === image.id) || 0
   isModalOpen.value = true
   document.body.style.overflow = 'hidden'
 }
@@ -209,20 +90,21 @@ const closeImageModal = () => {
 }
 
 const nextImage = () => {
-  if (currentImageIndex.value < selectedFolder.value.images.length - 1) {
+  if (selectedFolder.value?.photos && currentImageIndex.value < selectedFolder.value.photos.length - 1) {
     currentImageIndex.value++
-    selectedImage.value = selectedFolder.value.images[currentImageIndex.value]
+    selectedImage.value = selectedFolder.value.photos[currentImageIndex.value]
   }
 }
 
 const previousImage = () => {
-  if (currentImageIndex.value > 0) {
+  if (selectedFolder.value?.photos && currentImageIndex.value > 0) {
     currentImageIndex.value--
-    selectedImage.value = selectedFolder.value.images[currentImageIndex.value]
+    selectedImage.value = selectedFolder.value.photos[currentImageIndex.value]
   }
 }
 
-const formatDate = (dateString) => {
+const formatDate = (dateString?: string) => {
+  if (!dateString) return ''
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -235,6 +117,11 @@ const clearFilters = () => {
   searchQuery.value = ''
   selectedCategory.value = ''
 }
+
+// Fetch galleries on mount
+onMounted(() => {
+  fetchGalleries()
+})
 </script>
 
 <template>
@@ -282,8 +169,18 @@ const clearFilters = () => {
     <!-- Search and Filters -->
     <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-slate-50'">
       <div class="max-w-7xl mx-auto px-4">
+        <!-- Loading State -->
+        <div v-if="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="p-4 rounded-lg bg-red-100 border border-red-300 text-red-700 text-center">
+          {{ error }}
+        </div>
+
         <!-- Search Bar -->
-        <div class="mb-8">
+        <div v-else class="mb-8">
           <div class="relative max-w-2xl mx-auto">
             <input
               v-model="searchQuery"
@@ -348,10 +245,10 @@ const clearFilters = () => {
             <!-- Folder Cover Image -->
             <div class="relative overflow-hidden">
               <img 
-                :src="folder.coverImage"
+                :src="folder.cover_image || '/Picture3.png'"
                 :alt="folder.title"
                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-                @error="(e) => (e.target as HTMLImageElement).src = '/trading.jpg'"
+                @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
@@ -362,7 +259,7 @@ const clearFilters = () => {
               
               <!-- Image Count Badge -->
               <div class="absolute top-4 right-4 bg-black/70 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                {{ folder.imageCount }} photos
+                {{ folder.photo_count }} photos
               </div>
               
               <!-- Folder Icon -->
@@ -458,7 +355,7 @@ const clearFilters = () => {
                   <span class="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 rounded-full">
                     {{ selectedFolder?.category }}
                   </span>
-                  <span>{{ selectedFolder?.imageCount }} photos</span>
+                  <span>{{ selectedFolder?.photo_count }} photos</span>
                   <span>{{ formatDate(selectedFolder?.date || '') }}</span>
                 </div>
               </div>
@@ -471,29 +368,32 @@ const clearFilters = () => {
           
           <!-- Images Grid -->
           <div class="p-8">
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div v-if="selectedFolder?.photos && selectedFolder.photos.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div
-                v-for="image in selectedFolder?.images"
+                v-for="image in selectedFolder?.photos"
                 :key="image.id"
                 @click="openImageModal(image)"
                 class="group cursor-pointer rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:scale-105"
                 :class="isDarkMode ? 'bg-slate-700' : 'bg-gray-100'"
               >
                 <img
-                  :src="image.src"
-                  :alt="image.title"
+                  :src="image.image_url"
+                  :alt="image.title || 'Gallery photo'"
                   class="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-300"
-                  @error="(e) => (e.target as HTMLImageElement).src = '/trading.jpg'"
+                  @error="(e) => (e.target as HTMLImageElement).src = '/Picture3.png'"
                 />
                 <div class="p-3">
                   <h4 class="text-sm font-medium line-clamp-1" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                    {{ image.title }}
+                    {{ image.title || 'Photo' }}
                   </h4>
                   <p class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                    {{ formatDate(image.date) }}
+                    {{ formatDate(image.created_at) }}
                   </p>
                 </div>
               </div>
+            </div>
+            <div v-else class="text-center py-12" :class="isDarkMode ? 'text-slate-400' : 'text-gray-500'">
+              <p>No photos in this gallery yet.</p>
             </div>
           </div>
         </div>
@@ -530,8 +430,8 @@ const clearFilters = () => {
           <div class="aspect-video w-full relative">
             <img
               v-if="selectedImage"
-              :src="selectedImage.image"
-              :alt="selectedImage.title"
+              :src="selectedImage.image_url"
+              :alt="selectedImage.title || 'Gallery photo'"
               class="w-full h-full object-cover rounded-t-2xl"
             />
             
@@ -552,7 +452,7 @@ const clearFilters = () => {
               
               <!-- Next Button -->
               <button
-                v-if="currentImageIndex < selectedFolder?.images.length - 1"
+                v-if="selectedFolder?.photos && currentImageIndex < selectedFolder.photos.length - 1"
                 @click="nextImage"
                 class="p-3 rounded-full transition-all duration-300 hover:scale-110"
                 :class="isDarkMode ? 'bg-slate-800/90 hover:bg-slate-700 text-white' : 'bg-white/90 hover:bg-white text-slate-900'"
@@ -567,7 +467,7 @@ const clearFilters = () => {
             <!-- Image Counter -->
             <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium"
                  :class="isDarkMode ? 'bg-slate-800/90 text-white' : 'bg-white/90 text-slate-900'">
-              {{ currentImageIndex + 1 }} / {{ selectedFolder?.images.length }}
+              {{ currentImageIndex + 1 }} / {{ selectedFolder?.photos?.length || 0 }}
             </div>
           </div>
           
@@ -576,25 +476,25 @@ const clearFilters = () => {
             <div class="flex items-start justify-between mb-4">
               <div class="flex-1">
                 <h2 class="text-2xl font-bold mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                  {{ selectedImage?.title }}
+                  {{ selectedImage?.title || 'Photo' }}
                 </h2>
                 <div class="flex items-center gap-4 text-sm mb-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
                   <span class="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 rounded-full">
-                    {{ selectedImage?.category }}
+                    {{ selectedFolder?.category }}
                   </span>
-                  <span>{{ formatDate(selectedImage?.date || '') }}</span>
+                  <span>{{ formatDate(selectedImage?.created_at || '') }}</span>
                 </div>
               </div>
             </div>
             
-            <p class="text-lg leading-relaxed mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-              {{ selectedImage?.description }}
+            <p v-if="selectedImage?.description" class="text-lg leading-relaxed mb-6" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+              {{ selectedImage.description }}
             </p>
             
             <!-- Tags -->
-            <div class="flex flex-wrap gap-2">
+            <div v-if="selectedImage?.tags && selectedImage.tags.length > 0" class="flex flex-wrap gap-2">
               <span
-                v-for="tag in selectedImage?.tags"
+                v-for="tag in selectedImage.tags"
                 :key="tag"
                 class="px-3 py-1 rounded-full text-sm font-medium"
                 :class="isDarkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-slate-100 text-slate-700'"

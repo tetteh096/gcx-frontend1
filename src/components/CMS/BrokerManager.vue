@@ -243,23 +243,16 @@
     </div>
 
     <!-- Enhanced Pagination -->
-    <div v-if="(pagination && pagination.totalPages > 1) || brokers.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-blue-200 shadow-blue-100'">
+    <div v-if="pagination.totalPages > 0 || brokers.length > 0" class="shadow-lg border p-6 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white/80 backdrop-blur-sm border-blue-200 shadow-blue-100'">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-      <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-          <template v-if="pagination">
-            Showing             <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
-          </template>
-          <template v-else>
-            Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">1</span> to 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ brokers.length }}</span> of 
-            <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ brokers.length }}</span> results
-          </template>
-      </div>
+        <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+          Showing <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+          <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+          <span class="font-semibold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ pagination.total }}</span> results
+        </div>
         
         <!-- Page Numbers -->
-        <div v-if="pagination && pagination.totalPages > 1" class="flex items-center gap-2">
+        <div v-if="pagination.totalPages > 1" class="flex items-center gap-2">
         <button
           @click="changePage(pagination.page - 1)"
           :disabled="pagination.page <= 1"
@@ -463,7 +456,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { getAllBrokers, createBroker, updateBroker, deleteBroker, type Broker, type CreateBrokerRequest } from '../../services/brokerService'
+import { getAllBrokers, createBroker, updateBroker, deleteBroker as deleteBrokerAPI, type Broker, type CreateBrokerRequest } from '../../services/brokerService'
 import { isDarkMode } from '../../utils/darkMode'
 
 // State
@@ -479,7 +472,12 @@ const pagination = ref<{
   limit: number
   total: number
   totalPages: number
-} | null>(null)
+}>({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0
+})
 
 // Form
 const form = ref<CreateBrokerRequest>({
@@ -500,7 +498,7 @@ const inactiveBrokers = computed(() => brokers.value.filter(broker => broker.sta
 const suspendedBrokers = computed(() => brokers.value.filter(broker => broker.status === 'Suspended').length)
 
 const visiblePages = computed(() => {
-  if (!pagination.value) return []
+  if (pagination.value.totalPages <= 1) return []
   const current = pagination.value.page
   const total = pagination.value.totalPages
   const pages = []
@@ -521,8 +519,8 @@ const loadBrokers = async () => {
   loading.value = true
   try {
     const params: any = {
-      page: pagination.value?.page || 1,
-      limit: 10
+      page: pagination.value.page,
+      limit: pagination.value.limit
     }
     
     if (searchQuery.value) {
@@ -535,7 +533,14 @@ const loadBrokers = async () => {
     
     const response = await getAllBrokers(params)
     brokers.value = response.data
-    pagination.value = response.pagination || null
+    if (response.pagination) {
+      pagination.value = {
+        page: response.pagination.page,
+        limit: response.pagination.limit,
+        total: response.pagination.total,
+        totalPages: (response.pagination as any).total_pages || Math.ceil(response.pagination.total / response.pagination.limit)
+      }
+    }
   } catch (error) {
     console.error('Failed to load brokers:', error)
   } finally {
@@ -544,18 +549,18 @@ const loadBrokers = async () => {
 }
 
 const debouncedSearch = (() => {
-  let timeout: NodeJS.Timeout
+  let timeout: number
   return () => {
     clearTimeout(timeout)
-    timeout = setTimeout(() => {
-      pagination.value = { ...pagination.value!, page: 1 }
+    timeout = window.setTimeout(() => {
+      pagination.value.page = 1
       loadBrokers()
     }, 500)
   }
 })()
 
 const changePage = (page: number) => {
-  if (pagination.value) {
+  if (page >= 1 && page <= pagination.value.totalPages) {
     pagination.value.page = page
     loadBrokers()
   }
@@ -618,7 +623,7 @@ const saveBroker = async () => {
 const deleteBroker = async (id: number) => {
   if (confirm('Are you sure you want to delete this broker?')) {
     try {
-      await deleteBroker(id)
+      await deleteBrokerAPI(id)
       loadBrokers()
     } catch (error) {
       console.error('Failed to delete broker:', error)

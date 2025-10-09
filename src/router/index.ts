@@ -210,6 +210,30 @@ const router = createRouter({
           meta: { section: 'commodity-manager' }
         },
         {
+          path: 'events',
+          name: 'cms-events',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'event-manager' }
+        },
+        {
+          path: 'gallery',
+          name: 'cms-gallery',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'gallery-manager' }
+        },
+        {
+          path: 'video',
+          name: 'cms-video',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'video-manager' }
+        },
+        {
+          path: 'rti',
+          name: 'cms-rti',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'rti-manager' }
+        },
+        {
           path: 'market-data',
           name: 'cms-market-data',
           component: () => import('../views/CMSView.vue'),

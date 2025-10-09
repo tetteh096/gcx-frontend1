@@ -18,7 +18,11 @@ import PartnerManager from '../components/CMS/PartnerManager.vue'
 import PublicationManager from '../components/CMS/PublicationManager.vue'
 import CareerManager from '../components/CMS/CareerManager.vue'
 import CommodityManager from '../components/CMS/CommodityManager.vue'
+import EventManager from '../components/CMS/EventManager.vue'
+import RTIManager from '../components/CMS/RTIManager.vue'
 import ImageManager from '../components/CMS/ImageManager.vue'
+import GalleryManager from '../components/CMS/GalleryManager.vue'
+import VideoManager from '../components/CMS/VideoManager.vue'
 
 // Note: user, isAuthenticated are handled by router guard
 // const { user, isAuthenticated, logout } = useAuth()
@@ -92,6 +96,18 @@ const toggleSidebar = () => {
 
           <!-- Commodity Manager -->
           <CommodityManager v-else-if="activeSection === 'commodity-manager'" />
+
+          <!-- Event Manager -->
+          <EventManager v-else-if="activeSection === 'event-manager'" />
+
+          <!-- Gallery Manager -->
+          <GalleryManager v-else-if="activeSection === 'gallery-manager'" />
+
+          <!-- Video Manager -->
+          <VideoManager v-else-if="activeSection === 'video-manager'" />
+
+          <!-- RTI Manager -->
+          <RTIManager v-else-if="activeSection === 'rti-manager'" />
 
           <!-- Image Manager -->
           <ImageManager v-else-if="activeSection === 'image-manager'" />

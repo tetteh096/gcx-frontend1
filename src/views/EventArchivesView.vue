@@ -3,137 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
 import Footer from '../components/Footer.vue'
+import eventService, { type Event } from '../services/eventService'
 
 const router = useRouter()
 
 // Event data
-const events = ref([
-  // Upcoming Events
-  {
-    id: 'gcx-annual-conference-2025',
-    title: 'GCX Annual Conference 2025',
-    date: 'December 15, 2025',
-    location: 'Accra, Ghana',
-    type: 'Conference',
-    status: 'upcoming',
-    description: 'The Ghana Commodity Exchange Annual Conference will bring together industry leaders, farmers, and stakeholders to discuss the future of commodity trading in Ghana.',
-    attendees: 500,
-    image: '/Picture3.png',
-    registrationOpen: true,
-    registrationDeadline: 'December 10, 2025',
-    price: 'Free',
-    category: 'Conference'
-  },
-  {
-    id: 'agricultural-tech-summit-2025',
-    title: 'Agricultural Technology Summit 2025',
-    date: 'November 20, 2025',
-    location: 'Kumasi, Ghana',
-    type: 'Summit',
-    status: 'upcoming',
-    description: 'Exploring cutting-edge agricultural technologies and their impact on commodity trading and market development.',
-    attendees: 300,
-    image: '/Picture3.png',
-    registrationOpen: true,
-    registrationDeadline: 'November 15, 2025',
-    price: 'GHS 50',
-    category: 'Summit'
-  },
-  {
-    id: 'youth-agriculture-program-2025',
-    title: 'Youth in Agriculture Program 2025',
-    date: 'October 25, 2025',
-    location: 'Takoradi, Ghana',
-    type: 'Program',
-    status: 'upcoming',
-    description: 'Engaging young people in agriculture and commodity trading through education, mentorship, and practical training.',
-    attendees: 100,
-    image: '/Picture3.png',
-    registrationOpen: true,
-    registrationDeadline: 'October 20, 2025',
-    price: 'Free',
-    category: 'Program'
-  },
-  // Past Events
-  {
-    id: 'gcx-annual-conference-2023',
-    title: 'GCX Annual Conference 2023',
-    date: 'December 15, 2023',
-    location: 'Accra, Ghana',
-    type: 'Conference',
-    status: 'completed',
-    description: 'The Ghana Commodity Exchange Annual Conference brought together industry leaders, farmers, and stakeholders to discuss the future of commodity trading in Ghana.',
-    attendees: 500,
-    image: '/Picture3.png',
-    registrationOpen: false,
-    category: 'Conference'
-  },
-  {
-    id: 'agricultural-innovation-summit-2023',
-    title: 'Agricultural Innovation Summit 2023',
-    date: 'October 20, 2023',
-    location: 'Kumasi, Ghana',
-    type: 'Summit',
-    status: 'completed',
-    description: 'Exploring digital agriculture and technology solutions for modern farming practices and commodity trading.',
-    attendees: 300,
-    image: '/Picture3.png',
-    registrationOpen: false,
-    category: 'Summit'
-  },
-  {
-    id: 'commodity-market-workshop-2023',
-    title: 'Commodity Market Analysis Workshop 2023',
-    date: 'August 10, 2023',
-    location: 'Tamale, Ghana',
-    type: 'Workshop',
-    status: 'completed',
-    description: 'Training workshop on commodity market analysis and trading strategies for local farmers and traders.',
-    attendees: 150,
-    image: '/Picture3.png',
-    registrationOpen: false,
-    category: 'Workshop'
-  },
-  {
-    id: 'women-agriculture-forum-2023',
-    title: 'Women in Agriculture Forum 2023',
-    date: 'June 15, 2023',
-    location: 'Cape Coast, Ghana',
-    type: 'Forum',
-    status: 'completed',
-    description: 'Empowering women farmers and traders in the commodity exchange ecosystem.',
-    attendees: 200,
-    image: '/Picture3.png',
-    registrationOpen: false,
-    category: 'Forum'
-  },
-  {
-    id: 'youth-agriculture-program-2023',
-    title: 'Youth in Agriculture Program 2023',
-    date: 'April 22, 2023',
-    location: 'Takoradi, Ghana',
-    type: 'Program',
-    status: 'completed',
-    description: 'Engaging young people in agriculture and commodity trading through education and mentorship.',
-    attendees: 100,
-    image: '/Picture3.png',
-    registrationOpen: false,
-    category: 'Program'
-  },
-  {
-    id: 'international-trade-meeting-2023',
-    title: 'International Trade Partnership Meeting 2023',
-    date: 'February 28, 2023',
-    location: 'Accra, Ghana',
-    type: 'Meeting',
-    status: 'completed',
-    description: 'Strengthening international partnerships for commodity trade and market development.',
-    attendees: 75,
-    image: '/Picture3.png',
-    registrationOpen: false,
-    category: 'Meeting'
-  }
-])
+const events = ref<Event[]>([])
+const loading = ref(true)
+const error = ref<string | null>(null)
 
 // Filter states
 const searchQuery = ref('')
@@ -143,18 +20,22 @@ const selectedStatus = ref('All')
 
 // Available filters
 const categories = ['All', 'Conference', 'Summit', 'Workshop', 'Forum', 'Program', 'Meeting']
-const years = ['All', '2025', '2024', '2023', '2022', '2021', '2020']
+const years = computed(() => {
+  const eventYears = events.value.map(event => new Date(event.date).getFullYear())
+  const uniqueYears = [...new Set(eventYears)].sort((a, b) => b - a)
+  return ['All', ...uniqueYears.map(String)]
+})
 const statuses = ['All', 'Upcoming', 'Completed']
 
 // Computed properties
 const filteredEvents = computed(() => {
   return events.value.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         (event.description && event.description.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
                          event.location.toLowerCase().includes(searchQuery.value.toLowerCase())
     
     const matchesCategory = selectedCategory.value === 'All' || event.category === selectedCategory.value
-    const matchesYear = selectedYear.value === 'All' || event.date.includes(selectedYear.value)
+    const matchesYear = selectedYear.value === 'All' || new Date(event.date).getFullYear().toString() === selectedYear.value
     const matchesStatus = selectedStatus.value === 'All' || 
                          (selectedStatus.value === 'Upcoming' && event.status === 'upcoming') ||
                          (selectedStatus.value === 'Completed' && event.status === 'completed')
@@ -171,8 +52,8 @@ const totalAttendees = computed(() => {
 })
 
 // Functions
-const viewEventDetails = (eventId: string) => {
-  router.push(`/media/archives/${eventId}`)
+const viewEventDetails = (eventSlug: string) => {
+  router.push(`/media/archives/${eventSlug}`)
 }
 
 const formatDate = (dateString: string) => {
@@ -182,6 +63,25 @@ const formatDate = (dateString: string) => {
     day: 'numeric'
   })
 }
+
+// Fetch events on mount
+const fetchEvents = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const data = await eventService.getEvents({ limit: 100 })
+    events.value = data
+  } catch (err: any) {
+    console.error('Failed to fetch events:', err)
+    error.value = 'Failed to load events. Please try again later.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchEvents()
+})
 
 const getStatusColor = (status: string) => {
   return status === 'upcoming' 
@@ -240,7 +140,29 @@ const getTypeColor = (type: string) => {
     <!-- Events Section -->
     <section class="py-16 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-slate-50'">
       <div class="max-w-7xl mx-auto px-4">
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-20">
+          <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-yellow-500"></div>
+          <p class="mt-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Loading events...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-20">
+          <svg class="mx-auto h-16 w-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="text-xl font-semibold mb-2" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Error Loading Events</h3>
+          <p :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'" class="mb-4">{{ error }}</p>
+          <button 
+            @click="fetchEvents"
+            class="px-6 py-2 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-600 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+
         <!-- Search and Filters -->
+        <div v-else>
         <div class="mb-12">
           <div class="flex flex-col lg:flex-row gap-6 items-center justify-between mb-8">
             <!-- Search Bar -->
@@ -299,7 +221,7 @@ const getTypeColor = (type: string) => {
               :key="event.id"
               class="rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
               :class="isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'"
-              @click="viewEventDetails(event.id)"
+              @click="viewEventDetails(event.slug)"
             >
               <div class="relative">
                 <img :src="event.image" :alt="event.title" class="w-full h-48 object-cover" />
@@ -357,7 +279,7 @@ const getTypeColor = (type: string) => {
               :key="event.id"
               class="rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
               :class="isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'"
-              @click="viewEventDetails(event.id)"
+              @click="viewEventDetails(event.slug)"
             >
               <div class="relative">
                 <img :src="event.image" :alt="event.title" class="w-full h-48 object-cover" />
@@ -402,6 +324,7 @@ const getTypeColor = (type: string) => {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </section>

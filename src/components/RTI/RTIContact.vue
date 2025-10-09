@@ -133,16 +133,6 @@ import { isDarkMode } from '../../utils/darkMode'
               </div>
             </div>
           </div>
-
-          <!-- COVID-19 Notice -->
-          <div class="rounded-2xl p-6" :class="isDarkMode ? 'bg-yellow-900/20 border border-yellow-800' : 'bg-yellow-50 border border-yellow-200'">
-            <h4 class="text-lg font-semibold mb-3" :class="isDarkMode ? 'text-yellow-300' : 'text-yellow-800'">
-              COVID-19 Safety Measures
-            </h4>
-            <p class="text-sm leading-relaxed" :class="isDarkMode ? 'text-yellow-200' : 'text-yellow-700'">
-              Download and complete the RTI Application Form, then submit it via email to rti@gcx.com.gh. Applications can also be submitted in person at our headquarters.
-            </p>
-          </div>
         </div>
       </div>
     </div>

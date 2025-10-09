@@ -2,93 +2,29 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
+import * as videoService from '../services/videoService'
+import type { VideoLibrary, LibraryVideo } from '../services/videoService'
 
 const { t } = useI18n()
 
 // Video state
-const videos = ref([])
+const videoLibraries = ref<VideoLibrary[]>([])
+const allVideos = ref<any[]>([])
 const isLoading = ref(true)
 const searchQuery = ref('')
 const selectedCategory = ref('')
-const selectedVideo = ref(null)
+const selectedVideo = ref<any>(null)
 const isModalOpen = ref(false)
 
-// Mock video data - replace with API calls
-const mockVideos = [
-  {
-    id: 1,
-    title: 'GCX Trading Platform Overview',
-    description: 'Learn about the Ghana Commodity Exchange trading platform and how to get started with commodity trading.',
-    thumbnail: '/trading.jpg',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    duration: '5:30',
-    category: 'Tutorial',
-    publishedAt: '2024-01-15',
-    views: 1250
-  },
-  {
-    id: 2,
-    title: 'Commodity Market Analysis Q4 2023',
-    description: 'Comprehensive analysis of commodity market trends and performance in the fourth quarter of 2023.',
-    thumbnail: '/market-analysis.jpg',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    duration: '12:45',
-    category: 'Analysis',
-    publishedAt: '2024-01-10',
-    views: 892
-  },
-  {
-    id: 3,
-    title: 'Farmer Success Stories',
-    description: 'Hear from farmers who have benefited from GCX services and improved their livelihoods.',
-    thumbnail: '/farmer.jpg',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    duration: '8:20',
-    category: 'Stories',
-    publishedAt: '2024-01-05',
-    views: 2100
-  },
-  {
-    id: 4,
-    title: 'GCX Annual Conference 2023 Highlights',
-    description: 'Key highlights from the Ghana Commodity Exchange Annual Conference featuring industry leaders.',
-    thumbnail: '/conference.jpg',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    duration: '15:30',
-    category: 'Events',
-    publishedAt: '2023-12-20',
-    views: 3200
-  },
-  {
-    id: 5,
-    title: 'Understanding Commodity Grades',
-    description: 'Learn about different commodity grades and quality standards used in the exchange.',
-    thumbnail: '/crop.jpg',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    duration: '7:15',
-    category: 'Education',
-    publishedAt: '2023-12-15',
-    views: 1580
-  },
-  {
-    id: 6,
-    title: 'Digital Agriculture in Ghana',
-    description: 'Exploring how digital technology is transforming agriculture and commodity trading in Ghana.',
-    thumbnail: '/maize.jpg',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    duration: '10:45',
-    category: 'Technology',
-    publishedAt: '2023-12-10',
-    views: 950
-  }
-]
-
-// Categories
-const categories = ['All', 'Tutorial', 'Analysis', 'Stories', 'Events', 'Education', 'Technology']
+// Categories (dynamic from API)
+const categories = computed(() => {
+  const cats = ['All', ...new Set(videoLibraries.value.map(lib => lib.category))]
+  return cats
+})
 
 // Filtered videos
 const filteredVideos = computed(() => {
-  let filtered = videos.value
+  let filtered = allVideos.value
 
   if (searchQuery.value) {
     filtered = filtered.filter(video =>
@@ -103,13 +39,6 @@ const filteredVideos = computed(() => {
 
   return filtered
 })
-
-// Functions
-const openVideoModal = (video) => {
-  selectedVideo.value = video
-  isModalOpen.value = true
-  document.body.style.overflow = 'hidden'
-}
 
 const closeVideoModal = () => {
   selectedVideo.value = null
@@ -137,13 +66,48 @@ const formatViews = (views) => {
 const fetchVideos = async () => {
   isLoading.value = true
   try {
-    // Simulate API call - replace with actual API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    videos.value = mockVideos
+    // Fetch all video libraries
+    videoLibraries.value = await videoService.getVideoLibraries()
+    
+    // Flatten all videos from all libraries
+    const videos: any[] = []
+    for (const library of videoLibraries.value) {
+      if (library.videos && library.videos.length > 0) {
+        library.videos.forEach(video => {
+          videos.push({
+            id: video.id,
+            title: video.title,
+            description: video.description || '',
+            thumbnail: video.thumbnail_url || '/trading.jpg',
+            videoUrl: video.video_url,
+            duration: video.duration || 'N/A',
+            category: library.category,
+            publishedAt: video.created_at,
+            views: video.view_count || 0
+          })
+        })
+      }
+    }
+    
+    allVideos.value = videos
   } catch (error) {
     console.error('Error fetching videos:', error)
+    allVideos.value = []
   } finally {
     isLoading.value = false
+  }
+}
+
+const openVideoModal = async (video: any) => {
+  selectedVideo.value = video
+  isModalOpen.value = true
+  document.body.style.overflow = 'hidden'
+  
+  // Track video view
+  try {
+    await videoService.trackVideoView(video.id)
+  } catch (error) {
+    console.error('Error tracking video view:', error)
   }
 }
 
@@ -179,11 +143,11 @@ onMounted(() => {
         <!-- Quick Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <div class="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-            <div class="text-3xl font-bold text-white mb-2">{{ videos.length }}+</div>
+            <div class="text-3xl font-bold text-white mb-2">{{ allVideos.length }}+</div>
             <div class="text-white/70 text-sm">Videos Available</div>
           </div>
           <div class="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-            <div class="text-3xl font-bold text-white mb-2">{{ categories.length - 1 }}</div>
+            <div class="text-3xl font-bold text-white mb-2">{{ Math.max(0, categories.length - 1) }}</div>
             <div class="text-white/70 text-sm">Categories</div>
           </div>
           <div class="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
