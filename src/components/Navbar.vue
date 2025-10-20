@@ -215,8 +215,11 @@ const clearDropdownTimeout = () => {
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    // Implement search functionality
-    console.log('Searching for:', searchQuery.value)
+    // Navigate to search results page
+    router.push({
+      path: '/search',
+      query: { q: searchQuery.value }
+    })
   }
 }
 

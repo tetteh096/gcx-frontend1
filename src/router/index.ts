@@ -21,6 +21,7 @@ import EventDetailView from '../views/EventDetailView.vue'
 import GalleryView from '../views/GalleryView.vue'
 import LoginView from '../views/LoginView.vue'
 import CMSView from '../views/CMSView.vue'
+import SearchView from '../views/SearchView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -130,6 +131,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: SearchView
     },
     {
       path: '/cms',
