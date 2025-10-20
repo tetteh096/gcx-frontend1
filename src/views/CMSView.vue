@@ -23,6 +23,7 @@ import RTIManager from '../components/CMS/RTIManager.vue'
 import ImageManager from '../components/CMS/ImageManager.vue'
 import GalleryManager from '../components/CMS/GalleryManager.vue'
 import VideoManager from '../components/CMS/VideoManager.vue'
+import NewsManager from '../components/CMS/NewsManager.vue'
 
 // Note: user, isAuthenticated are handled by router guard
 // const { user, isAuthenticated, logout } = useAuth()
@@ -108,6 +109,9 @@ const toggleSidebar = () => {
 
           <!-- RTI Manager -->
           <RTIManager v-else-if="activeSection === 'rti-manager'" />
+
+          <!-- News Manager -->
+          <NewsManager v-else-if="activeSection === 'news-manager'" />
 
           <!-- Image Manager -->
           <ImageManager v-else-if="activeSection === 'image-manager'" />

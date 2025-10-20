@@ -234,6 +234,12 @@ const router = createRouter({
           meta: { section: 'rti-manager' }
         },
         {
+          path: 'news',
+          name: 'cms-news',
+          component: () => import('../views/CMSView.vue'),
+          meta: { section: 'news-manager' }
+        },
+        {
           path: 'market-data',
           name: 'cms-market-data',
           component: () => import('../views/CMSView.vue'),

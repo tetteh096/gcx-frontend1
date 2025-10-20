@@ -146,6 +146,12 @@ const navigationItems = computed<NavigationItem[]>(() => [
     permissions: ['admin', 'editor']
   },
   {
+    id: 'news-manager',
+    label: 'News Ticker',
+    icon: 'pi pi-newspaper',
+    permissions: ['admin', 'editor']
+  },
+  {
     id: 'market-data',
     label: 'Market Data',
     icon: 'pi pi-chart-line',
@@ -230,6 +236,7 @@ const navigateToSection = (section: string) => {
     'gallery-manager': 'cms-gallery',
     'video-manager': 'cms-video',
     'rti-manager': 'cms-rti',
+    'news-manager': 'cms-news',
     'market-data': 'cms-market-data',
     'users': 'cms-users',
     'analytics': 'cms-analytics',

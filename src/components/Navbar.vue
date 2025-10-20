@@ -34,6 +34,15 @@ const navigation = computed(() => [
         ]
       },
       { 
+        title: 'Services',
+        items: [
+          { name: 'Trading Services', href: '/services#trading', description: 'Commodity trading and market access' },
+          { name: 'Market Data', href: '/services#market-data', description: 'Real-time market information and analytics' },
+          { name: 'Risk Management', href: '/services#risk', description: 'Comprehensive risk management solutions' },
+          { name: 'Settlement Services', href: '/services#settlement', description: 'Secure and efficient trade settlement' }
+        ]
+      },
+      { 
         title: 'Leadership',
         items: [
           { name: t('navigation.about.boardOfDirectors'), href: '/about#board', description: 'GCX board members and governance' },
@@ -48,33 +57,6 @@ const navigation = computed(() => [
           { name: 'Donor Agencies', href: '/about/partnership#donors', description: 'International donor partnerships' },
           { name: 'Financial Institutions', href: '/about/partnership#financial', description: 'Banking and financial collaborations' },
           { name: 'Government Agencies', href: '/about/partnership#government', description: 'Government sector partnerships' }
-        ]
-      }
-    ]
-  },
-  { 
-    name: 'Services', 
-    href: '/services'
-  },
-  { 
-    name: 'Membership', 
-    href: '/membership',
-    dropdown: [
-      { 
-        title: 'Membership Information',
-        items: [
-          { name: 'Membership Types', href: '/membership#types', description: 'Different membership categories and requirements' },
-          { name: 'Membership Benefits', href: '/membership#benefits', description: 'Exclusive benefits for GCX members' },
-          { name: 'Rights & Obligations', href: '/membership#rights', description: 'Member rights and responsibilities' },
-          { name: 'Membership List', href: '/membership#list', description: 'Current GCX member directory' }
-        ]
-      },
-      { 
-        title: 'Application Process',
-        items: [
-          { name: 'Rules & Regulations', href: '/membership/application#rules', description: 'Complete membership rules and guidelines' },
-          { name: 'Application Process', href: '/membership/application#process', description: 'Step-by-step application guide' },
-          { name: 'Application Forms', href: '/membership/application#forms', description: 'Download membership application forms' }
         ]
       }
     ]
@@ -102,6 +84,45 @@ const navigation = computed(() => [
     ]
   },
   { 
+    name: 'Commodities', 
+    href: '/commodities',
+    dropdown: [
+      { 
+        title: 'Commodity Markets',
+        items: [
+          { name: 'Maize', href: '/commodities#maize', description: 'Maize commodity trading and pricing' },
+          { name: 'Rice', href: '/commodities#rice', description: 'Rice market insights and trading' },
+          { name: 'Sesame', href: '/commodities#sesame', description: 'Sesame seed trading and market data' },
+          { name: 'Sorghum', href: '/commodities#sorghum', description: 'Sorghum commodity details and pricing' },
+          { name: 'Soya Bean', href: '/commodities#soybean', description: 'Soya bean market insights and trading' }
+        ]
+      }
+    ]
+  },
+  { 
+    name: 'Membership', 
+    href: '/membership',
+    dropdown: [
+      { 
+        title: 'Membership Information',
+        items: [
+          { name: 'Membership Types', href: '/membership#types', description: 'Different membership categories and requirements' },
+          { name: 'Membership Benefits', href: '/membership#benefits', description: 'Exclusive benefits for GCX members' },
+          { name: 'Rights & Obligations', href: '/membership#rights', description: 'Member rights and responsibilities' },
+          { name: 'Membership List', href: '/membership#list', description: 'Current GCX member directory' }
+        ]
+      },
+      { 
+        title: 'Application Process',
+        items: [
+          { name: 'Rules & Regulations', href: '/membership/application#rules', description: 'Complete membership rules and guidelines' },
+          { name: 'Application Process', href: '/membership/application#process', description: 'Step-by-step application guide' },
+          { name: 'Application Forms', href: '/membership/application#forms', description: 'Download membership application forms' }
+        ]
+      }
+    ]
+  },
+  { 
     name: 'Resources', 
     href: '/resources',
     dropdown: [
@@ -119,22 +140,6 @@ const navigation = computed(() => [
           { name: 'Job Openings', href: '/careers#openings', description: 'Current career opportunities at GCX' },
           { name: 'Internship Programs', href: '/careers#internship', description: 'Student internship and training programs' },
           { name: 'Functional Areas', href: '/careers#functional', description: 'Available job functions and departments' }
-        ]
-      }
-    ]
-  },
-  { 
-    name: 'Commodities', 
-    href: '/commodities',
-    dropdown: [
-      { 
-        title: 'Commodity Markets',
-        items: [
-          { name: 'Maize', href: '/commodities#maize', description: 'Maize commodity trading and pricing' },
-          { name: 'Rice', href: '/commodities#rice', description: 'Rice market insights and trading' },
-          { name: 'Sesame', href: '/commodities#sesame', description: 'Sesame seed trading and market data' },
-          { name: 'Sorghum', href: '/commodities#sorghum', description: 'Sorghum commodity details and pricing' },
-          { name: 'Soya Bean', href: '/commodities#soybean', description: 'Soya bean market insights and trading' }
         ]
       }
     ]

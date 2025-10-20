@@ -5,6 +5,7 @@ import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
 import { useI18n } from '../../composables/useI18n'
 import { getImagePath } from '../../utils/imageUtils'
+import NewsTicker from './NewsTicker.vue'
 
 // Ticker visibility
 const { isTickerVisible } = useTickerVisibility()
@@ -389,5 +390,8 @@ onMounted(() => {
         ></button>
       </div>
     </div>
+
+    <!-- News Ticker -->
+    <NewsTicker />
   </section>
 </template>
