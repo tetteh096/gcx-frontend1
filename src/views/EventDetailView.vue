@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
 import Footer from '../components/Footer.vue'
 import eventService, { type Event } from '../services/eventService'
+import { emailService, type EventRegistrationData, type EventData } from '../services/emailService'
 
 const route = useRoute()
 const router = useRouter()
@@ -230,6 +231,8 @@ const registrationForm = ref({
 
 const isRegistering = ref(false)
 const registrationSubmitted = ref(false)
+const registrationError = ref(false)
+const errorMessage = ref('')
 
 // Computed properties
 const isUpcoming = computed(() => {
@@ -271,7 +274,11 @@ const submitRegistration = async () => {
   if (!event.value) return
 
   isRegistering.value = true
+  registrationError.value = false
+  errorMessage.value = ''
+  
   try {
+    // Register for the event
     await eventService.registerForEvent(event.value.id, {
       event_id: event.value.id,
       full_name: registrationForm.value.fullName,
@@ -282,10 +289,65 @@ const submitRegistration = async () => {
       dietary_requirements: registrationForm.value.dietaryRequirements,
       special_needs: registrationForm.value.specialNeeds
     })
-    registrationSubmitted.value = true
+
+    // Send confirmation emails
+    const registrationData: EventRegistrationData = {
+      event_id: event.value.id,
+      full_name: registrationForm.value.fullName,
+      email: registrationForm.value.email,
+      phone: registrationForm.value.phone,
+      organization: registrationForm.value.organization,
+      position: registrationForm.value.position,
+      dietary_requirements: registrationForm.value.dietaryRequirements,
+      special_needs: registrationForm.value.specialNeeds
+    }
+
+    const eventData: EventData = {
+      id: event.value.id,
+      title: event.value.title,
+      date: event.value.date,
+      time: event.value.time,
+      location: event.value.location,
+      venue: event.value.venue,
+      address: event.value.address,
+      type: event.value.type,
+      category: event.value.category,
+      description: event.value.description,
+      attendees: event.value.attendees,
+      price: event.value.price
+    }
+
+    // Send emails
+    const emailResult = await emailService.sendEventRegistrationEmails(registrationData, eventData)
+    
+    if (emailResult.success) {
+      registrationSubmitted.value = true
+      
+      // Reset form
+      registrationForm.value = {
+        fullName: '',
+        email: '',
+        phone: '',
+        organization: '',
+        position: '',
+        dietaryRequirements: '',
+        specialNeeds: ''
+      }
+    } else {
+      // Registration succeeded but emails failed
+      registrationSubmitted.value = true
+      console.warn('Registration successful but email sending failed:', emailResult.message)
+    }
   } catch (err: any) {
     console.error('Registration failed:', err)
-    alert('Registration failed. Please try again.')
+    registrationError.value = true
+    errorMessage.value = err.response?.data?.error || 'Registration failed. Please try again.'
+    
+    // Hide error message after 10 seconds
+    setTimeout(() => {
+      registrationError.value = false
+      errorMessage.value = ''
+    }, 10000)
   } finally {
     isRegistering.value = false
   }
@@ -583,6 +645,16 @@ onMounted(() => {
                 </svg>
                 <h3 class="text-xl font-bold text-green-600 dark:text-green-400 mb-2">Registration Successful!</h3>
                 <p class="text-green-700 dark:text-green-300">You will receive a confirmation email shortly.</p>
+              </div>
+
+              <!-- Error Message -->
+              <div v-if="registrationError" class="text-center p-6" :class="isDarkMode ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'">
+                <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Registration Failed</h3>
+                <p class="text-red-700 dark:text-red-300 mb-4">{{ errorMessage }}</p>
+                <p class="text-sm text-red-600 dark:text-red-400">Please try again or contact us directly at contact@gcx.com.gh</p>
               </div>
             </div>
 

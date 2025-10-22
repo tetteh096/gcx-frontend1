@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
-import { marketDataService, type ProcessedMarketData } from '../../services/marketDataService'
+import { globalMarketData, globalLoading, globalError, refreshMarketData } from '../../utils/marketDataUtils'
+import type { ProcessedMarketData } from '../../services/marketDataService'
 
 interface TickerCommodity {
   symbol: string
@@ -20,8 +21,10 @@ interface TickerCommodity {
 const { t } = useI18n()
 
 const commodities = ref<TickerCommodity[]>([])
-const isLoading = ref(true)
-const error = ref<string | null>(null)
+
+// Use global state
+const isLoading = globalLoading
+const error = globalError
 
 // Commodity avatar mapping
 const commodityAvatars: Record<string, { avatar: string; color: string }> = {
@@ -38,7 +41,7 @@ const commodityAvatars: Record<string, { avatar: string; color: string }> = {
 const getDefaultAvatar = (commodity: string): { avatar: string; color: string } => {
   if (commodity.toLowerCase().includes('maize')) return { avatar: '🌽', color: 'bg-yellow-500' }
   if (commodity.toLowerCase().includes('soya')) return { avatar: '🫘', color: 'bg-green-500' }
-  if (commodity.toLowerCase().includes('rice')) return { avatar: '�', color: 'bg-blue-500' }
+  if (commodity.toLowerCase().includes('rice')) return { avatar: '🍚', color: 'bg-blue-500' }
   if (commodity.toLowerCase().includes('sesame')) return { avatar: '⚪', color: 'bg-slate-400' }
   if (commodity.toLowerCase().includes('sorghum')) return { avatar: '🌾', color: 'bg-amber-500' }
   return { avatar: '📦', color: 'bg-gray-500' }
@@ -88,21 +91,13 @@ const formatVolume = (symbol: string): string => {
   return baseVolumes[symbol] || '500K MT'
 }
 
-// Load market data
-const loadMarketData = async () => {
-  try {
-    isLoading.value = true
-    error.value = null
-    
-    const data = await marketDataService.getCombinedMarketData()
-    commodities.value = convertToTickerFormat(data)
-    
-    console.log('✅ Ticker data loaded:', commodities.value.length, 'items')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load market data'
-    console.error('❌ Ticker data loading error:', err)
-    
-    // Fallback to mock data on error
+// Convert global market data to ticker format
+const updateTickerData = () => {
+  if (globalMarketData.value.length > 0) {
+    commodities.value = convertToTickerFormat(globalMarketData.value)
+    console.log('✅ Ticker data updated:', commodities.value.length, 'items')
+  } else {
+    // Fallback to mock data
     commodities.value = [
       {
         symbol: 'GAPWM2',
@@ -121,7 +116,7 @@ const loadMarketData = async () => {
         change: -20.00,
         changePercent: -1.64,
         volume: '2.1M MT',
-        avatar: '�',
+        avatar: '🌽',
         color: 'bg-yellow-400'
       },
       {
@@ -135,27 +130,20 @@ const loadMarketData = async () => {
         color: 'bg-yellow-500'
       }
     ]
-  } finally {
-    isLoading.value = false
   }
 }
 
-// Auto-refresh data
-let refreshInterval: number | null = null
-
-const startAutoRefresh = () => {
-  // Refresh every 2 minutes
-  refreshInterval = setInterval(async () => {
-    await loadMarketData()
-  }, 2 * 60 * 1000)
+// Manual refresh function
+const refreshData = async () => {
+  console.log('🔄 Manual refresh triggered')
+  await refreshMarketData()
+  updateTickerData()
 }
 
-const stopAutoRefresh = () => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
-    refreshInterval = null
-  }
-}
+// Watch for changes in global market data
+watch(globalMarketData, () => {
+  updateTickerData()
+}, { immediate: true })
 
 const isPaused = ref(false)
 const { isTickerVisible: isVisible } = useTickerVisibility()
@@ -194,13 +182,8 @@ const formatPrice = (price: number) => {
 }
 
 // Lifecycle hooks
-onMounted(async () => {
-  await loadMarketData()
-  startAutoRefresh()
-})
-
-onUnmounted(() => {
-  stopAutoRefresh()
+onMounted(() => {
+  updateTickerData()
 })
 </script>
 
@@ -342,12 +325,25 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Menu Button -->
+      <!-- Refresh Button -->
       <div class="absolute right-2 top-1/2 transform -translate-y-1/2">
-        <button class="w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors duration-200 shadow-lg hover:shadow-xl">
-          <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        <button 
+          @click="refreshData"
+          :disabled="isLoading"
+          class="w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
+          :class="isLoading ? 'bg-blue-500' : 'bg-green-500 hover:bg-green-600'"
+          :title="isLoading ? 'Refreshing...' : 'Refresh data'"
+        >
+          <svg 
+            v-if="!isLoading"
+            class="w-2.5 h-2.5 text-white" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
+          <div v-else class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
         </button>
       </div>
     </div>

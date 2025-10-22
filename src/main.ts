@@ -7,6 +7,7 @@ import App from './App.vue'
 import './plugins/axios'
 import { useAuthStore } from './stores/auth'
 import i18n from './plugins/i18n'
+import { initializeMarketData } from './utils/marketDataUtils'
 
 // PrimeVue Configuration
 import PrimeVue from 'primevue/config'
@@ -42,5 +43,8 @@ app.directive('tooltip', Tooltip)
 // Initialize auth store after pinia is setup
 useAuthStore()
 // Don't initialize auth automatically to prevent logout on refresh
+
+// Initialize market data system
+initializeMarketData().catch(console.error)
 
 app.mount('#app')

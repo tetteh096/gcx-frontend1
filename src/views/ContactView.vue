@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
 import Footer from '../components/Footer.vue'
+import { emailService, type ContactFormData } from '../services/emailService'
 import { 
   EnvelopeIcon, 
   PhoneIcon, 
@@ -10,7 +11,8 @@ import {
   ClockIcon,
   BuildingOfficeIcon,
   GlobeAltIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 
 // Type declarations for external libraries
@@ -25,7 +27,7 @@ declare global {
 
 const { t } = useI18n()
 
-const formData = ref({
+const formData = ref<ContactFormData>({
   name: '',
   email: '',
   subject: '',
@@ -34,28 +36,55 @@ const formData = ref({
 
 const isSubmitting = ref(false)
 const submitSuccess = ref(false)
+const submitError = ref(false)
+const errorMessage = ref('')
 
 const handleSubmit = async () => {
   isSubmitting.value = true
+  submitError.value = false
+  errorMessage.value = ''
   
-  // Simulate form submission
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  isSubmitting.value = false
-  submitSuccess.value = true
-  
-  // Reset form
-  formData.value = {
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
+  try {
+    // Send emails using the email service
+    const result = await emailService.sendContactFormEmails(formData.value)
+    
+    if (result.success) {
+      submitSuccess.value = true
+      
+      // Reset form
+      formData.value = {
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+      }
+      
+      // Hide success message after 8 seconds
+      setTimeout(() => {
+        submitSuccess.value = false
+      }, 8000)
+    } else {
+      submitError.value = true
+      errorMessage.value = result.message
+      
+      // Hide error message after 10 seconds
+      setTimeout(() => {
+        submitError.value = false
+        errorMessage.value = ''
+      }, 10000)
+    }
+  } catch (error) {
+    submitError.value = true
+    errorMessage.value = error instanceof Error ? error.message : 'An unexpected error occurred'
+    
+    // Hide error message after 10 seconds
+    setTimeout(() => {
+      submitError.value = false
+      errorMessage.value = ''
+    }, 10000)
+  } finally {
+    isSubmitting.value = false
   }
-  
-  // Hide success message after 5 seconds
-  setTimeout(() => {
-    submitSuccess.value = false
-  }, 5000)
 }
 
 // Google Maps integration
@@ -401,7 +430,26 @@ const initLeafletMap = () => {
           >
             <div class="flex items-center">
               <CheckCircleIcon class="w-5 h-5 mr-2" />
-              Thank you for your message! We'll get back to you within 24 hours.
+              <div>
+                <p class="font-semibold">Message sent successfully!</p>
+                <p class="text-sm mt-1">We've sent your message to our team and a confirmation email to your inbox. We'll get back to you within 24 hours.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          <div
+            v-if="submitError"
+            class="p-4 border rounded-lg transition-colors duration-300"
+            :class="isDarkMode ? 'bg-red-900/30 border-red-600 text-red-300' : 'bg-red-100 border-red-400 text-red-700'"
+          >
+            <div class="flex items-start">
+              <ExclamationTriangleIcon class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p class="font-semibold">Failed to send message</p>
+                <p class="text-sm mt-1">{{ errorMessage }}</p>
+                <p class="text-sm mt-2">Please try again or contact us directly at contact@gcx.com.gh</p>
+              </div>
             </div>
           </div>
         </section>
