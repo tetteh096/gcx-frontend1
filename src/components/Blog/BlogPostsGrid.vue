@@ -86,11 +86,11 @@ const goToPage = (page: number) => {
               <!-- Author and Date -->
               <div class="flex items-center gap-3 mb-4">
                 <div class="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
-                  <span class="text-white text-xs font-bold">{{ post.author.charAt(0) }}</span>
+                  <span class="text-white text-xs font-bold">{{ typeof post.author === 'string' ? post.author.charAt(0) : ((post.author as any)?.name || 'G').charAt(0) }}</span>
                 </div>
                 <div>
                   <p class="text-sm font-semibold" :class="isDarkMode ? 'text-yellow-400' : 'text-yellow-600'">
-                    {{ post.author }}
+                    {{ typeof post.author === 'string' ? post.author : ((post.author as any)?.name || 'GCX Team') }}
                   </p>
                   <p class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
                     {{ new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}

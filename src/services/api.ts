@@ -40,12 +40,12 @@ export const authAPI = {
 export const blogAPI = {
   // Public blog posts (for website)
   getPublicPosts: () => {
-    console.log('🌐 Making API call to: GET /api/posts')
-    return api.get<BlogPost[]>('/api/posts')
+    console.log('🌐 Making API call to: GET /api/cms/posts')
+    return api.get<BlogPost[]>('/api/cms/posts')
   },
     
   getPublicPost: (slug: string) =>
-    api.get<BlogPost>(`/api/posts/${slug}`),
+    api.get<BlogPost>(`/api/cms/posts/${slug}`),
     
   // CMS blog posts (authenticated)
   getAllPosts: () =>
@@ -77,10 +77,10 @@ export const mediaAPI = {
   },
   
   getFiles: () =>
-    api.get<MediaFile[]>('/api/media'),
+    api.get<MediaFile[]>('/api/cms/media'),
     
   deleteFile: (id: number) =>
-    api.delete<ApiResponse<{ message: string }>>(`/api/media/${id}`),
+    api.delete<ApiResponse<{ message: string }>>(`/api/cms/media/${id}`),
 }
 
 // Market Data API

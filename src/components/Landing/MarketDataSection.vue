@@ -901,4 +901,3 @@ onUnmounted(() => {
 
   // No cleanup needed - global system handles it
 })
-

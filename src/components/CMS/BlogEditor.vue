@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
-import TiptapImage from '@tiptap/extension-image'
-import ResizeImage from 'tiptap-extension-resize-image'
-import TextAlign from '@tiptap/extension-text-align'
-import Underline from '@tiptap/extension-underline'
 import { isDarkMode } from '../../utils/darkMode'
 import { useBlog } from '../../composables/useBlog'
 import { useMedia } from '../../composables/useMedia'
 import { slugify, formatDate } from '../../utils/cms'
 import { getImageUrl } from '../../utils/imageUrl'
 import type { BlogPost, CreatePostRequest } from '../../types/cms'
+// import QuillEditor from './QuillEditor.vue' // Temporarily disabled
 
 interface Props {
   post?: BlogPost | null
@@ -71,93 +65,13 @@ const wordCount = computed(() => {
   return text.trim().split(/\s+/).filter(word => word.length > 0).length
 })
 
-// Tiptap editor configuration
-const editor = useEditor({
-  content: formData.content,
-  extensions: [
-    StarterKit,
-    Underline,
-    Link.configure({
-      openOnClick: false,
-    }),
-    ResizeImage,
-    TextAlign.configure({
-      types: ['heading', 'paragraph'],
-    }),
-  ],
-  onUpdate: ({ editor }) => {
-    formData.content = editor.getHTML()
-  },
-})
+// Quill editor reference
+const quillEditor = ref()
 
-// Editor toolbar actions
-const toggleBold = () => editor.value?.chain().focus().toggleBold().run()
-const toggleItalic = () => editor.value?.chain().focus().toggleItalic().run()
-const toggleUnderline = () => editor.value?.chain().focus().toggleUnderline().run()
-const toggleStrike = () => editor.value?.chain().focus().toggleStrike().run()
-const toggleBulletList = () => editor.value?.chain().focus().toggleBulletList().run()
-const toggleOrderedList = () => editor.value?.chain().focus().toggleOrderedList().run()
-const toggleBlockquote = () => editor.value?.chain().focus().toggleBlockquote().run()
-const toggleCodeBlock = () => editor.value?.chain().focus().toggleCodeBlock().run()
-const setHeading = (level: 1 | 2 | 3) => editor.value?.chain().focus().toggleHeading({ level }).run()
-const setParagraph = () => editor.value?.chain().focus().setParagraph().run()
-const setTextAlign = (alignment: 'left' | 'center' | 'right' | 'justify') => 
-  editor.value?.chain().focus().setTextAlign(alignment).run()
-
-const addLink = () => {
-  const url = window.prompt('Enter URL:')
-  if (url) {
-    editor.value?.chain().focus().setLink({ href: url }).run()
-  }
-}
-
-const removeLink = () => editor.value?.chain().focus().unsetLink().run()
-
-const addImage = () => {
-  const url = window.prompt('Enter image URL:')
-  if (url) {
-    const imageUrl = getImageUrl(url)
-    insertImageWithControls(imageUrl, 500)
-  }
-}
-
-// Add image with specific size
-const addImageSize = (size: 'small' | 'medium' | 'large' | 'xl' | 'full') => {
-  const url = window.prompt(`Enter image URL for ${size} image:`)
-  if (url) {
-    const imageUrl = getImageUrl(url)
-    
-    const widthMap = {
-      small: 300,
-      medium: 500,
-      large: 700,
-      xl: 900,
-      full: 1200
-    }
-    
-    insertImageWithControls(imageUrl, widthMap[size])
-  }
-}
-
-const insertHtmlCode = () => {
-  const htmlCode = window.prompt('Enter HTML code:')
-  if (htmlCode) {
-    editor.value?.chain().focus().insertContent(`<pre><code class="language-html">${htmlCode}</code></pre>`).run()
-  }
-}
-
-const insertCssCode = () => {
-  const cssCode = window.prompt('Enter CSS code:')
-  if (cssCode) {
-    editor.value?.chain().focus().insertContent(`<pre><code class="language-css">${cssCode}</code></pre>`).run()
-  }
-}
-
-const insertJavaScriptCode = () => {
-  const jsCode = window.prompt('Enter JavaScript code:')
-  if (jsCode) {
-    editor.value?.chain().focus().insertContent(`<pre><code class="language-javascript">${jsCode}</code></pre>`).run()
-  }
+// Handle image selection from gallery
+const handleImageSelected = (image: { url: string }) => {
+  formData.featured_image = image.url
+  showImageLibrary.value = false
 }
 
 // Image upload from computer
@@ -299,40 +213,14 @@ const smartCompress = (file: File): Promise<File> => {
 
 
 
-// Simple image insertion using Tiptap's built-in image command
-const insertImageWithControls = (src: string, width: number = 400) => {
-  const imageUrl = getImageUrl(src)
-  
-  // Use Tiptap's native image command with width attribute
-  editor.value?.chain().focus().setImage({ 
-    src: imageUrl, 
-    alt: 'Image',
-    width: width
-  }).run()
+// Get content from Quill editor
+const getEditorContent = () => {
+  return quillEditor.value?.getContent() || ''
 }
 
-// Quick image insertion with predefined sizes
-const addQuickImage = (size: 'small' | 'medium' | 'large') => {
-  const url = window.prompt('Enter image URL:')
-  if (url) {
-    const sizeMap = {
-      small: '300px',
-      medium: '600px', 
-      large: '100%'
-    }
-    
-    const maxWidth = sizeMap[size]
-    const imageUrl = getImageUrl(url)
-    const imageHtml = `
-      <div class="image-container" style="text-align: center; margin: 20px 0;">
-        <img src="${imageUrl}" alt="Image" style="max-width: ${maxWidth}; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
-        <div style="margin-top: 8px; font-size: 11px; color: #888;">
-          ${size.charAt(0).toUpperCase() + size.slice(1)} Image (${maxWidth})
-        </div>
-      </div>
-    `
-    editor.value?.chain().focus().insertContent(imageHtml).run()
-  }
+// Set content in Quill editor
+const setEditorContent = (content: string) => {
+  quillEditor.value?.setContent(content)
 }
 
 // Initialize form data
@@ -363,10 +251,8 @@ onMounted(async () => {
       author_notes: (props.post as any).author_notes || ''
     })
     
-    // Update editor content after form data is set
-    if (editor.value && props.post.content) {
-      editor.value.commands.setContent(props.post.content)
-    }
+    // Set content in Quill editor
+    setEditorContent(props.post.content)
     
     autoSlug.value = false
   }
@@ -472,6 +358,9 @@ const handleImageError = (event: Event) => {
 // Save post
 const savePost = async () => {
   try {
+    // Get content from Quill editor
+    formData.content = getEditorContent()
+    
     // Auto-generate excerpt if empty
     if (!formData.excerpt && formData.content) {
       const textContent = formData.content.replace(/<[^>]*>/g, ' ').trim()
@@ -972,6 +861,36 @@ const previewPost = () => {
                 </button>
               </div>
               
+              <!-- Image Alignment -->
+              <div class="border-l pl-2 ml-2 flex gap-1" :class="isDarkMode ? 'border-slate-600' : 'border-slate-300'">
+                <button
+                  type="button"
+                  @click="addQuickImage('medium', 'left')"
+                  class="px-2 py-1 text-xs rounded font-medium"
+                  :class="isDarkMode ? 'text-blue-400 hover:bg-slate-700' : 'text-blue-600 hover:bg-blue-50'"
+                  title="Add Left-Aligned Image"
+                >
+                  ← Left
+                </button>
+                <button
+                  type="button"
+                  @click="addQuickImage('medium', 'center')"
+                  class="px-2 py-1 text-xs rounded font-medium"
+                  :class="isDarkMode ? 'text-blue-400 hover:bg-slate-700' : 'text-blue-600 hover:bg-blue-50'"
+                  title="Add Center-Aligned Image"
+                >
+                  ↕ Center
+                </button>
+                <button
+                  type="button"
+                  @click="addQuickImage('medium', 'right')"
+                  class="px-2 py-1 text-xs rounded font-medium"
+                  :class="isDarkMode ? 'text-blue-400 hover:bg-slate-700' : 'text-blue-600 hover:bg-blue-50'"
+                  title="Add Right-Aligned Image"
+                >
+                  Right →
+                </button>
+              </div>
 
             </div>
 
@@ -1017,14 +936,14 @@ const previewPost = () => {
             </div>
           </div>
 
-          <!-- Editor Content -->
-          <div class="min-h-[400px] p-4" :class="isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'">
-            <EditorContent 
-              :editor="editor" 
-              class="prose prose-sm max-w-none focus:outline-none"
-              :class="isDarkMode ? 'prose-invert' : ''"
-            />
-          </div>
+          <!-- Quill Editor -->
+          <textarea
+            v-model="formData.content"
+            rows="15"
+            class="w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            :class="isDarkMode ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'"
+            placeholder="Write your blog post content here..."
+          ></textarea>
         </div>
       </div>
 
@@ -1370,100 +1289,14 @@ const previewPost = () => {
             </button>
           </div>
 
-          <!-- Upload Section -->
-          <div class="border-b pb-4 mb-4" :class="isDarkMode ? 'border-slate-600' : 'border-gray-200'">
-            <label class="block w-full cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                @change="handleLibraryImageUpload"
-                class="sr-only"
-              />
-              <div class="flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed rounded-xl transition-colors hover:bg-opacity-50"
-                   :class="isDarkMode 
-                     ? 'border-slate-600 hover:bg-slate-700 text-slate-300' 
-                     : 'border-gray-300 hover:bg-gray-50 text-gray-600'"
-              >
-                <svg class="w-10 h-10 mb-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"/>
-                </svg>
-                <p class="text-lg font-medium">Upload Images</p>
-                <p class="text-sm opacity-75">Click to browse or drag and drop</p>
-                <p class="text-xs opacity-50 mt-1">PNG, JPG, WEBP up to 5MB each</p>
+          <!-- Use the existing ImageGallery component -->
+          <ImageGallery
+            title="Select Featured Image"
+            :current-image="formData.featured_image"
+            @image-selected="handleImageSelected"
+            @close="showImageLibrary = false"
+          />
               </div>
-            </label>
-          </div>
-
-          <!-- Media Grid -->
-          <div v-if="files.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
-            <div
-              v-for="file in files.filter(f => f.mime_type?.startsWith('image/'))"
-              :key="file.id"
-              class="relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
-              :class="formData.featured_image === file.url 
-                ? 'border-green-500 ring-2 ring-green-500 ring-opacity-50' 
-                : (isDarkMode ? 'border-slate-600' : 'border-gray-200')"
-              @click="selectImage(getImageUrl(file.url))"
-            >
-              <img
-                :src="getImageUrl(file.url)"
-                :alt="file.original_name"
-                class="w-full h-24 object-cover"
-                @error="handleImageError"
-              />
-              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
-                <svg v-if="formData.featured_image === file.url" class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <svg v-else class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
-                </svg>
-              </div>
-              <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1 truncate">
-                {{ file.original_name }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Empty State -->
-          <div v-else-if="!isLoading" class="text-center py-12">
-            <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <h3 class="mt-2 text-sm font-medium" :class="isDarkMode ? 'text-slate-300' : 'text-slate-900'">
-              No images yet
-            </h3>
-            <p class="mt-1 text-sm" :class="isDarkMode ? 'text-slate-500' : 'text-slate-500'">
-              Upload some images to get started
-            </p>
-          </div>
-
-          <!-- Loading State -->
-          <div v-else class="text-center py-12">
-            <svg class="animate-spin h-8 w-8 mx-auto text-green-500" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="mt-2 text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-              Loading media library...
-            </p>
-          </div>
-
-          <!-- Manual URL Input -->
-          <div class="mt-6 pt-4 border-t" :class="isDarkMode ? 'border-slate-600' : 'border-gray-200'">
-            <label class="block text-sm font-medium mb-2" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">
-              Or enter image URL manually:
-            </label>
-            <input
-              type="url"
-              v-model="formData.featured_image"
-              placeholder="https://example.com/image.jpg"
-              class="w-full px-4 py-2 border rounded-lg text-sm transition-all duration-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              :class="isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'"
-            />
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1565,10 +1398,71 @@ const previewPost = () => {
   text-decoration: underline;
 }
 
+/* Modern image handling with text wrapping */
 :deep(.ProseMirror img) {
   max-width: 100%;
   height: auto;
-  border-radius: 0.375rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin: 16px 0;
+  display: block;
+  transition: transform 0.2s ease-in-out;
+}
+
+:deep(.ProseMirror img:hover) {
+  transform: scale(1.02);
+}
+
+/* Image alignment classes */
+:deep(.ProseMirror img[style*="float: left"]) {
+  float: left;
+  margin: 0 16px 16px 0;
+  max-width: 50%;
+}
+
+:deep(.ProseMirror img[style*="float: right"]) {
+  float: right;
+  margin: 0 0 16px 16px;
+  max-width: 50%;
+}
+
+:deep(.ProseMirror img[style*="text-align: center"]) {
+  display: block;
+  margin: 16px auto;
+}
+
+/* Text wrapping around images */
+:deep(.ProseMirror p) {
+  text-align: justify;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+/* Image container for better control */
+:deep(.ProseMirror .image-container) {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+:deep(.ProseMirror .image-container img) {
+  margin: 0;
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Responsive image handling */
+:deep(.ProseMirror img[width]) {
+  width: auto !important;
+  max-width: 100%;
+}
+
+/* Image resize handles */
+:deep(.ProseMirror img[data-resize-handles]) {
+  cursor: grab;
+}
+
+:deep(.ProseMirror img[data-resize-handles]:active) {
+  cursor: grabbing;
 }
 
 /* Dark mode styles */

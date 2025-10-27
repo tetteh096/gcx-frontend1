@@ -83,7 +83,7 @@ export const usePageContent = () => {
       }
       return null
     } catch (err: any) {
-      console.warn(`Failed to fetch homepage section ${sectionId} from CMS:`, err)
+      // Silently handle CMS errors - these are non-critical
       error.value = err.response?.data?.error || err.message || 'Unknown error'
       loading.value = false
       return fallbackContent || null
@@ -109,7 +109,7 @@ export const usePageContent = () => {
       
       return settingsObject
     } catch (err: any) {
-      console.warn('Failed to fetch site settings from CMS:', err)
+      // Silently handle CMS errors - these are non-critical
       error.value = err.response?.data?.error || err.message || 'Unknown error'
       loading.value = false
       return {}

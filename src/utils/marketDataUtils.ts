@@ -42,11 +42,9 @@ export const loadMarketData = async (): Promise<ProcessedMarketData[]> => {
       second: '2-digit'
     })
     
-    console.log('✅ Global market data loaded:', data.length, 'items')
     return data
   } catch (err) {
     globalError.value = err instanceof Error ? err.message : 'Failed to load market data'
-    console.error('❌ Global market data loading error:', err)
     throw err
   } finally {
     globalLoading.value = false
@@ -57,7 +55,6 @@ export const loadMarketData = async (): Promise<ProcessedMarketData[]> => {
  * Refresh market data (clears cache and fetches fresh data)
  */
 export const refreshMarketData = async (): Promise<ProcessedMarketData[]> => {
-  console.log('🔄 Global market data refresh triggered')
   marketDataService.clearCache()
   return await loadMarketData()
 }
@@ -77,7 +74,6 @@ export const startGlobalAutoRefresh = (): void => {
     }
   }, 6 * 60 * 60 * 1000) // 6 hours = 21,600,000ms
   
-  console.log('🔄 Global auto-refresh started (6 hours)')
 }
 
 /**
@@ -87,7 +83,6 @@ export const stopGlobalAutoRefresh = (): void => {
   if (globalRefreshInterval) {
     clearInterval(globalRefreshInterval)
     globalRefreshInterval = null
-    console.log('⏹️ Global auto-refresh stopped')
   }
 }
 
@@ -105,7 +100,7 @@ export const getMarketDataState = (): MarketDataState => ({
  * Get market data by commodity type
  */
 export const getMarketDataByCommodity = (commodityType: string): ProcessedMarketData[] => {
-  return globalMarketData.value.filter(item => 
+  return globalMarketData.value.filter(item =>
     item.Commodity.toLowerCase().includes(commodityType.toLowerCase())
   )
 }
@@ -114,7 +109,7 @@ export const getMarketDataByCommodity = (commodityType: string): ProcessedMarket
  * Get market data by delivery centre
  */
 export const getMarketDataByDeliveryCentre = (centreName: string): ProcessedMarketData[] => {
-  return globalMarketData.value.filter(item => 
+  return globalMarketData.value.filter(item =>
     item.DeliveryCentre?.toLowerCase().includes(centreName.toLowerCase())
   )
 }
@@ -178,7 +173,6 @@ export const getMarketStatistics = () => {
  * Call this once when the app starts
  */
 export const initializeMarketData = async (): Promise<void> => {
-  console.log('🚀 Initializing market data system...')
   await loadMarketData()
   startGlobalAutoRefresh()
 }

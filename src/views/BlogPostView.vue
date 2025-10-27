@@ -4,6 +4,7 @@ import { useI18n } from '../composables/useI18n'
 import { useRoute, useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
 import { useBlog } from '../composables/useBlog'
+import { getImageUrl } from '../utils/imageUrl'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -28,7 +29,7 @@ const loadPosts = async () => {
             try {
               postTags = JSON.parse(post.tags)
             } catch {
-              postTags = post.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+              postTags = (post.tags as string).split(',').map(tag => tag.trim()).filter(tag => tag)
             }
           } else if (Array.isArray(post.tags)) {
             postTags = post.tags
@@ -44,14 +45,24 @@ const loadPosts = async () => {
           postDate = new Date().toISOString().split('T')[0]
         }
         
+        // Handle author - could be string or object
+        let authorName = 'GCX Team'
+        if (post.author) {
+          if (typeof post.author === 'string') {
+            authorName = post.author
+          } else if (typeof post.author === 'object' && post.author.name) {
+            authorName = post.author.name
+          }
+        }
+        
         return {
           id: post.id,
           title: post.title || 'Untitled Post',
           excerpt: post.excerpt || post.content?.replace(/<[^>]*>/g, ' ').trim().substring(0, 160) + '...' || 'No excerpt available',
           content: post.content || '<p>No content available</p>',
-          author: post.author || 'GCX Team',
+          author: authorName,
           date: postDate,
-          image: post.featured_image || '/trading.jpg',
+          image: post.featured_image ? getImageUrl(post.featured_image) : '/trading.jpg',
           tags: postTags,
           featured: false,
           readTime: Math.ceil((post.content?.replace(/<[^>]*>/g, ' ').trim().split(' ').length || 0) / 200) + ' min read',

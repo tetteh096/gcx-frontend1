@@ -7,6 +7,7 @@ import RecentPosts from '../components/Blog/RecentPosts.vue'
 import BlogFilters from '../components/Blog/BlogFilters.vue'
 import BlogPostsGrid from '../components/Blog/BlogPostsGrid.vue'
 import { useBlog } from '../composables/useBlog'
+import { getImageUrl } from '../utils/imageUrl'
 
 const { posts, fetchPublicPosts, isLoading } = useBlog()
 
@@ -88,8 +89,8 @@ const loadPosts = async () => {
           if (excerpt.length === 160) excerpt += '...'
         }
         
-        // Handle featured image
-        const featuredImage = post.featured_image || '/trading.jpg'
+        // Handle featured image - use getImageUrl to properly handle S3 URLs
+        const featuredImage = post.featured_image ? getImageUrl(post.featured_image) : '/trading.jpg'
         
         // Handle date formatting
         let postDate
@@ -100,11 +101,21 @@ const loadPosts = async () => {
           postDate = new Date().toISOString().split('T')[0]
         }
         
+        // Handle author - could be string or object
+        let authorName = 'GCX Team'
+        if (post.author) {
+          if (typeof post.author === 'string') {
+            authorName = post.author
+          } else if (typeof post.author === 'object' && post.author.name) {
+            authorName = post.author.name
+          }
+        }
+        
         return {
           id: post.id,
           title: post.title || 'Untitled Post',
           excerpt: excerpt || 'No excerpt available',
-          author: post.author || 'GCX Team',
+          author: authorName,
           date: postDate,
           image: featuredImage,
           tags: postTags,

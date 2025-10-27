@@ -7,6 +7,7 @@ import RTINavigation from '../components/RTI/RTINavigation.vue'
 import RTIOverview from '../components/RTI/RTIOverview.vue'
 import RTIContact from '../components/RTI/RTIContact.vue'
 import rtiService from '../services/rtiService'
+import { emailService, type RTIApplicationData } from '../services/emailService'
 
 const applicationForm = ref({
   fullName: '',
@@ -23,6 +24,8 @@ const applicationForm = ref({
 const isSubmitting = ref(false)
 const activeTab = ref('overview')
 const submittedRequestId = ref<string | null>(null)
+const submissionError = ref(false)
+const errorMessage = ref('')
 
 // RTI Documents
 const rtiDocuments = ref<any[]>([])
@@ -30,7 +33,11 @@ const loadingDocuments = ref(false)
 
 const submitApplication = async () => {
   isSubmitting.value = true
+  submissionError.value = false
+  errorMessage.value = ''
+  
   try {
+    // Submit RTI request
     const response = await rtiService.submitRequest({
       full_name: applicationForm.value.fullName,
       email: applicationForm.value.email,
@@ -44,23 +51,54 @@ const submitApplication = async () => {
     })
 
     submittedRequestId.value = response.request_id
-    alert(`Your RTI request has been submitted successfully!\n\nRequest ID: ${response.request_id}\n\nYou will receive a confirmation email shortly. Please keep this Request ID for future reference.`)
+
+    // Send confirmation emails
+    const applicationData: RTIApplicationData = {
+      request_id: response.request_id,
+      full_name: applicationForm.value.fullName,
+      email: applicationForm.value.email,
+      phone: applicationForm.value.phone,
+      address: applicationForm.value.address,
+      organization: applicationForm.value.organization,
+      request_type: applicationForm.value.informationType,
+      subject: applicationForm.value.purpose,
+      description: applicationForm.value.informationDetails,
+      preferred_format: applicationForm.value.preferredFormat
+    }
+
+    // Send emails
+    const emailResult = await emailService.sendRTIApplicationEmails(applicationData)
     
-    // Reset form
-    applicationForm.value = {
-      fullName: '',
-      email: '',
-      phone: '',
-      address: '',
-      organization: '',
-      informationType: '',
-      informationDetails: '',
-      purpose: '',
-      preferredFormat: 'electronic'
+    if (emailResult.success) {
+      alert(`Your RTI request has been submitted successfully!\n\nRequest ID: ${response.request_id}\n\nYou will receive a confirmation email shortly. Please keep this Request ID for future reference.`)
+      
+      // Reset form
+      applicationForm.value = {
+        fullName: '',
+        email: '',
+        phone: '',
+        address: '',
+        organization: '',
+        informationType: '',
+        informationDetails: '',
+        purpose: '',
+        preferredFormat: 'electronic'
+      }
+    } else {
+      // Application succeeded but emails failed
+      alert(`Your RTI request has been submitted successfully!\n\nRequest ID: ${response.request_id}\n\nNote: There was an issue sending confirmation emails. Please contact us directly if you don't receive a confirmation email.`)
+      console.warn('RTI application successful but email sending failed:', emailResult.message)
     }
   } catch (error: any) {
     console.error('Failed to submit RTI request:', error)
-    alert('There was an error submitting your application. Please try again.')
+    submissionError.value = true
+    errorMessage.value = error.response?.data?.error || 'There was an error submitting your application. Please try again.'
+    
+    // Hide error message after 10 seconds
+    setTimeout(() => {
+      submissionError.value = false
+      errorMessage.value = ''
+    }, 10000)
   } finally {
     isSubmitting.value = false
   }
@@ -252,6 +290,20 @@ onMounted(() => {
                 <option value="physical">Physical (Hard Copy)</option>
                 <option value="both">Both Formats</option>
               </select>
+            </div>
+
+            <!-- Error Message -->
+            <div v-if="submissionError" class="p-4 border rounded-xl transition-colors duration-300" :class="isDarkMode ? 'bg-red-900/30 border-red-600 text-red-300' : 'bg-red-100 border-red-400 text-red-700'">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p class="font-semibold">Failed to submit application</p>
+                  <p class="text-sm mt-1">{{ errorMessage }}</p>
+                  <p class="text-sm mt-2">Please try again or contact us directly at contact@gcx.com.gh</p>
+                </div>
+              </div>
             </div>
 
             <button

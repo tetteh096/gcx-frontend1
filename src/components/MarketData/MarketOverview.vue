@@ -172,19 +172,21 @@ const convertToCommodity = (data: ProcessedMarketData): Commodity => {
   const priceChange = parseFloat(data.PriceChange) || 0
   const trend = priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'neutral'
         
-        return {
+  return {
     symbol: data.Symbol,
     name: data.Commodity,
     price,
     change: priceChange,
     trend,
-    deliveryCentre: data.DeliveryCentre,
-    grade: data.Grade
+    deliveryCentre: data.DeliveryCentre || 'Standard',
+    grade: data.Grade || 'Grade A'
   }
 }
 
 // Helper function to determine commodity category
-const getCommodityCategory = (commodityName: string): string => {
+const getCommodityCategory = (commodityName: string | undefined): string => {
+  if (!commodityName) return 'Other'
+  
   const name = commodityName.toLowerCase()
   
   // Check for specific commodity types
@@ -201,6 +203,12 @@ const getCommodityCategory = (commodityName: string): string => {
 // Group commodities by category
 const groupCommoditiesByCategory = (commodities: Commodity[]): MarketCategory[] => {
   const grouped = commodities.reduce((acc, commodity) => {
+    // Add safety check for undefined name
+    if (!commodity || !commodity.name) {
+      console.warn('Skipping commodity with undefined name:', commodity)
+      return acc
+    }
+    
     const category = getCommodityCategory(commodity.name)
     if (!acc[category]) {
       acc[category] = []
@@ -231,7 +239,7 @@ const loadMarketData = async () => {
     
     const commodities = data.map(convertToCommodity)
     marketData.value = groupCommoditiesByCategory(commodities)
-    lastUpdated.value = statistics.lastUpdated
+    lastUpdated.value = new Date().toLocaleString()
     
     console.log(`✅ Loaded ${commodities.length} commodities for market overview`)
   } catch (err) {

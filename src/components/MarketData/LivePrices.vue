@@ -83,8 +83,8 @@ const convertToCommodity = (data: ProcessedMarketData): Commodity => {
   const trend = priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'neutral'
   
   const { avatar, color } = getCommodityAvatar(data.Commodity)
-  
-  return {
+      
+      return {
     symbol: data.Symbol,
     name: data.Commodity,
     openingPrice,
@@ -188,17 +188,17 @@ onMounted(async () => {
           </svg>
         </button>
         
-        <div class="relative w-full lg:w-80">
-          <input
-            v-model="searchTerm"
-            type="text"
-            placeholder="Search commodities..."
-            class="w-full px-4 py-3 pl-10 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            :class="isDarkMode ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'"
-          />
-          <svg class="absolute left-3 top-3 w-4 h-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
+      <div class="relative w-full lg:w-80">
+        <input
+          v-model="searchTerm"
+          type="text"
+          placeholder="Search commodities..."
+          class="w-full px-4 py-3 pl-10 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          :class="isDarkMode ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'"
+        />
+        <svg class="absolute left-3 top-3 w-4 h-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
         </div>
       </div>
     </div>
