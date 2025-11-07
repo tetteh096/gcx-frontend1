@@ -5,7 +5,6 @@ import { MagnifyingGlassIcon, ChevronDownIcon, SunIcon, MoonIcon } from '@heroic
 import { isDarkMode, toggleDarkMode } from '../utils/darkMode'
 import { useTickerVisibility } from '../composables/useTickerVisibility'
 import { useI18n } from '../composables/useI18n'
-import LanguageSwitcher from './LanguageSwitcher.vue'
 
 const router = useRouter()
 const isMenuOpen = ref(false)
@@ -30,7 +29,8 @@ const navigation = computed(() => [
         items: [
           { name: t('navigation.about.aboutGcx'), href: '/about#about', description: 'Overview of Ghana Commodity Exchange' },
           { name: t('navigation.about.mission'), href: '/about#who', description: 'Our mission and purpose' },
-          { name: t('navigation.about.vision'), href: '/about#vision', description: 'Our vision and strategic goals' }
+          { name: t('navigation.about.vision'), href: '/about#vision', description: 'Our vision and strategic goals' },
+          { name: 'GCX Rule Book', href: '/gcx_rules_obligations.pdf', description: 'GCX rules and regulations document', external: true }
         ]
       },
       { 
@@ -39,7 +39,8 @@ const navigation = computed(() => [
           { name: 'Trading Services', href: '/services#trading', description: 'Commodity trading and market access' },
           { name: 'Market Data', href: '/services#market-data', description: 'Real-time market information and analytics' },
           { name: 'Risk Management', href: '/services#risk', description: 'Comprehensive risk management solutions' },
-          { name: 'Settlement Services', href: '/services#settlement', description: 'Secure and efficient trade settlement' }
+          { name: 'Settlement Services', href: '/services#settlement', description: 'Secure and efficient trade settlement' },
+          { name: 'AML/CFT Supervisory', href: '/services/aml-cft', description: 'Anti-Money Laundering and Counter Financing of Terrorism compliance' }
         ]
       },
       { 
@@ -144,6 +145,7 @@ const navigation = computed(() => [
       }
     ]
   },
+  { name: 'RTI', href: '/rti' },
   { 
     name: 'Media', 
     href: '/blog',
@@ -160,12 +162,6 @@ const navigation = computed(() => [
         items: [
           { name: 'Videos', href: '/media/videos', description: 'Video content and presentations' },
           { name: 'Photo Gallery', href: '/media/gallery', description: 'Event photos and visual content' }
-        ]
-      },
-      { 
-        title: 'Information Access',
-        items: [
-          { name: 'RTI Portal', href: '/rti', description: 'Right to Information access and applications' }
         ]
       }
     ]
@@ -262,7 +258,7 @@ const navigateToApplication = () => {
 
         <!-- Desktop Navigation - Center -->
         <div class="hidden xl:flex items-center justify-center flex-1">
-          <div class="flex items-center space-x-0.5 rounded-full px-2 py-1.5 backdrop-blur-sm border max-w-4xl"
+          <div class="flex items-center space-x-0.5 rounded-full px-2 py-1.5 backdrop-blur-sm border max-w-5xl"
                :class="isDarkMode ? 'bg-slate-800/90 border-slate-700/50' : 'bg-gray-100/80 border-gray-200/50'">
             <div
               v-for="item in navigation"
@@ -404,10 +400,10 @@ const navigateToApplication = () => {
 
         <!-- Medium Screen Navigation (Tablets) -->
         <div class="hidden lg:flex xl:hidden items-center justify-center flex-1">
-          <div class="flex items-center space-x-1 rounded-full px-2 py-1.5 backdrop-blur-sm border max-w-3xl"
+          <div class="flex items-center space-x-1 rounded-full px-2 py-1.5 backdrop-blur-sm border max-w-4xl"
                :class="isDarkMode ? 'bg-slate-800/90 border-slate-700/50' : 'bg-gray-100/80 border-gray-200/50'">
             <div
-              v-for="item in navigation.slice(0, 5)"
+              v-for="item in navigation.slice(0, 7)"
               :key="item.name"
               class="relative"
               @mouseenter="item.dropdown ? (clearDropdownTimeout(), toggleDropdown(item.name)) : null"
@@ -492,7 +488,7 @@ const navigateToApplication = () => {
               >
                 <div class="px-4 space-y-2">
                   <router-link
-                    v-for="item in navigation.slice(5)"
+                    v-for="item in navigation.slice(7)"
                     :key="item.name"
                     :to="item.href"
                     class="block px-3 py-2 text-sm font-medium rounded-lg transition-colors"
@@ -537,10 +533,6 @@ const navigateToApplication = () => {
             <MagnifyingGlassIcon class="h-5 w-5" :class="isDarkMode ? 'text-slate-300' : 'text-gray-600'" />
           </button>
 
-          <!-- Language Switcher -->
-          <div class="hidden lg:flex items-center">
-            <LanguageSwitcher />
-          </div>
 
           <!-- Dark Mode Toggle -->
           <button
@@ -670,8 +662,6 @@ const navigateToApplication = () => {
                 <span class="text-sm font-medium">{{ isDarkMode ? 'Light' : 'Dark' }}</span>
               </button>
 
-              <!-- Language Switcher -->
-              <LanguageSwitcher />
             </div>
 
             <!-- Mobile Apply Button -->

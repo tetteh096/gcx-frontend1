@@ -7,6 +7,7 @@ import AboutLeadershipView from '../views/AboutLeadershipView.vue'
 import AboutPartnershipView from '../views/AboutPartnershipView.vue'
 import ContactView from '../views/ContactView.vue'
 import ServiceView from '../views/ServiceView.vue'
+import AMLCFTView from '../views/AMLCFTView.vue'
 import MembershipView from '../views/MembershipView.vue'
 import MembershipApplicationView from '../views/MembershipApplicationView.vue'
 import MarketDataView from '../views/MarketDataView.vue'
@@ -66,6 +67,11 @@ const router = createRouter({
       path: '/services',
       name: 'services',
       component: ServiceView
+    },
+    {
+      path: '/services/aml-cft',
+      name: 'aml-cft',
+      component: AMLCFTView
     },
     {
       path: '/membership',
@@ -274,7 +280,7 @@ const router = createRouter({
   ]
 })
 
-// Navigation guard for protected routes
+// Navigation guard for protected routes and page transitions
 router.beforeEach(async (to, from, next) => {
   const { useAuth } = await import('../composables/useAuth')
   const { initializeAuth, isAuthenticated } = useAuth()

@@ -82,16 +82,13 @@ onMounted(async () => {
 })
 
 // Computed properties for dynamic content
-const whyJoinTitle = computed(() => whyJoinContent.value?.section_title || staticWhyJoinContent.section_title)
-const whyJoinSubtitle = computed(() => whyJoinContent.value?.section_subtitle || staticWhyJoinContent.section_subtitle)
+const whyJoinTitleText = computed(() => whyJoinContent.value?.section_title || staticWhyJoinContent.section_title)
+const whyJoinSubtitleText = computed(() => whyJoinContent.value?.section_subtitle || staticWhyJoinContent.section_subtitle)
 
 const ctaTitle = computed(() => ctaContent.value?.main_title || staticCtaContent.main_title)
 const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaContent.main_subtitle)
 </script>
 
-<style scoped>
-/* Custom styles for the home page */
-</style>
 
 <template>
   <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
@@ -99,16 +96,35 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
     <HeroSection />
     
          <!-- 2. Why Join Us Section -->
-     <section class="py-12 transition-colors duration-300" :class="isDarkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-white via-white to-yellow-50'">
+     <section 
+       class="py-12 transition-colors duration-300" 
+       :class="isDarkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-white via-white to-yellow-50'"
+     >
        <div class="max-w-5xl mx-auto px-4 sm:px-6">
          <div class="text-center mb-12">
-           <h2 class="text-3xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ whyJoinTitle }}</h2>
-           <p class="text-lg mb-2 transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">{{ whyJoinSubtitle }}</p>
+          <h2 
+            class="text-3xl font-bold mb-4" 
+            :class="isDarkMode ? 'text-white' : 'text-slate-900'"
+          >
+            {{ whyJoinTitleText }}
+          </h2>
+          <p 
+            class="text-lg mb-2"
+            :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'"
+          >
+            {{ whyJoinSubtitleText }}
+          </p>
          </div>
          
-         <div class="grid lg:grid-cols-3 gap-8">
+         <div 
+           ref="cardsStagger.container"
+           class="grid lg:grid-cols-3 gap-8"
+         >
            <!-- What is GCX -->
-           <div class="rounded-2xl p-6 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
+           <div 
+             class="rounded-2xl p-6 shadow-lg border hover:shadow-xl" 
+             :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100'"
+           >
              <div class="w-full h-40 mb-4 rounded-xl overflow-hidden">
                <img :src="getImagePath('/trading dashboard.jpg')" alt="Trading Platform" class="w-full h-full object-cover" />
              </div>
@@ -119,7 +135,10 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
            </div>
            
            <!-- Benefits to Members -->
-           <div class="rounded-2xl p-6 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
+           <div 
+             class="rounded-2xl p-6 shadow-lg border hover:shadow-xl" 
+             :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100'"
+           >
              <div class="w-full h-40 mb-4 rounded-xl overflow-hidden">
                <img :src="getImagePath('/crop.jpg')" alt="Agricultural Trading" class="w-full h-full object-cover" />
              </div>
@@ -130,7 +149,10 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
            </div>
            
            <!-- Benefits to Society -->
-           <div class="rounded-2xl p-6 shadow-lg border transition-all duration-300 hover:shadow-xl" :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100 hover:shadow-xl'">
+           <div 
+             class="rounded-2xl p-6 shadow-lg border hover:shadow-xl" 
+             :class="isDarkMode ? 'bg-slate-800 border-slate-700 hover:shadow-xl hover:shadow-slate-900/50' : 'bg-white border-yellow-100'"
+           >
              <div class="w-full h-40 mb-4 rounded-xl overflow-hidden">
                <img :src="getImagePath('/trading.jpg')" alt="Trading Platform" class="w-full h-full object-cover" />
              </div>
@@ -144,32 +166,42 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
      </section>
      
      <!-- 4. Services Section -->
-     <ServicesSection />
-     
-     <!-- 5. Market Data Section with Graphs -->
-     <MarketDataSection />
-     
-     <!-- 6. Join the Exchange Section -->
-     <MembershipWidget />
-     
-     <!-- 7. Commodities Carousel Section -->
-     <CommoditiesCarousel />
-     
-     <!-- 8. Partners Section -->
-     <PartnersSection />
-     
-     <!-- 9. News & Insights Section -->
-     <NewsInsightsSection />
-     
-     <!-- 10. Upcoming Events Section -->
-     <EventsSection />
+    <ServicesSection />
+    
+    <!-- 5. Market Data Section with Graphs -->
+    <MarketDataSection />
+    
+    <!-- 6. Join the Exchange Section -->
+    <MembershipWidget />
+    
+    <!-- 7. Commodities Carousel Section -->
+    <CommoditiesCarousel />
+    
+    <!-- 8. Partners Section -->
+    <PartnersSection />
+    
+    <!-- 9. News & Insights Section -->
+    <NewsInsightsSection />
+    
+    <!-- 10. Upcoming Events Section -->
+    <EventsSection />
      
      <!-- 11. CTA Section -->
-    <section class="py-12 bg-gradient-to-r from-yellow-500 to-yellow-600">
+    <section 
+      class="py-12 bg-gradient-to-r from-yellow-500 to-yellow-600"
+    >
       <div class="max-w-4xl mx-auto px-4 sm:px-6">
         <div class="text-center mb-12">
-          <h1 class="text-3xl font-bold text-black mb-4">{{ ctaTitle }}</h1>
-          <p class="text-lg text-black/80 mb-2">{{ ctaSubtitle }}</p>
+          <h1 
+            class="text-3xl font-bold text-black mb-4"
+          >
+            {{ ctaTitle }}
+          </h1>
+          <p 
+            class="text-lg text-black/80 mb-2"
+          >
+            {{ ctaSubtitle }}
+          </p>
         </div>
         
         <div class="grid lg:grid-cols-2 gap-8">

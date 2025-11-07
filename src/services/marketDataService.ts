@@ -73,7 +73,6 @@ class MarketDataService {
 
       return parsed
     } catch (error) {
-      console.warn('Error reading from cache:', error)
       localStorage.removeItem(key)
       return null
     }
@@ -90,7 +89,6 @@ class MarketDataService {
       }
       localStorage.setItem(key, JSON.stringify(cacheData))
     } catch (error) {
-      console.warn('Error saving to cache:', error)
     }
   }
 
@@ -101,12 +99,10 @@ class MarketDataService {
     // Try to get from cache first
     const cached = this.getFromCache<MarketDataResponse>(this.CACHE_KEY_CLOSING_PRICES)
     if (cached) {
-      console.log('📦 Using cached market data (age:', Math.round((Date.now() - cached.timestamp) / 1000 / 60), 'minutes)')
       return cached.data
     }
 
     try {
-      console.log('🌐 Fetching fresh market data from Firebase...')
       const response = await this.axiosInstance.get<MarketDataResponse>(
         `${FIREBASE_BASE_URL}/closing_prices.json`
       )
@@ -114,11 +110,8 @@ class MarketDataService {
       // Save to cache
       this.saveToCache(this.CACHE_KEY_CLOSING_PRICES, response.data)
       
-      console.log('✅ Market data fetched and cached successfully:', response.data.header?.timestamp)
-      console.log('🔍 Firebase API Response Sample:', JSON.stringify(Object.values(response.data.data).slice(0, 3), null, 2))
       return response.data
     } catch (error) {
-      console.error('❌ Error fetching closing prices:', error)
       throw new Error('Failed to fetch market data. Please try again later.')
     }
   }
@@ -130,12 +123,10 @@ class MarketDataService {
     // Try to get from cache first
     const cached = this.getFromCache<Record<string, CommoditySymbolData>>(this.CACHE_KEY_COMMODITY_SYMBOLS)
     if (cached) {
-      console.log('📦 Using cached commodity symbols (age:', Math.round((Date.now() - cached.timestamp) / 1000 / 60), 'minutes)')
       return cached.data
     }
 
     try {
-      console.log('🌐 Fetching fresh commodity symbols from Firebase...')
       const response = await this.axiosInstance.get<Record<string, CommoditySymbolData>>(
         `${FIREBASE_BASE_URL}/commodity_symbols.json`
       )
@@ -143,10 +134,8 @@ class MarketDataService {
       // Save to cache
       this.saveToCache(this.CACHE_KEY_COMMODITY_SYMBOLS, response.data)
       
-      console.log('✅ Commodity symbols fetched and cached successfully')
       return response.data
     } catch (error) {
-      console.error('❌ Error fetching commodity symbols:', error)
       throw new Error('Failed to fetch commodity symbols. Please try again later.')
     }
   }
@@ -191,10 +180,8 @@ class MarketDataService {
         return (a.DeliveryCentre || '').localeCompare(b.DeliveryCentre || '')
       })
 
-      console.log('🔍 Processed Market Data Sample:', JSON.stringify(combinedData.slice(0, 3), null, 2))
       return combinedData
     } catch (error) {
-      console.error('❌ Error getting combined market data:', error)
       throw error
     }
   }
@@ -209,7 +196,6 @@ class MarketDataService {
         item.Commodity.toLowerCase().includes(commodityType.toLowerCase())
       )
     } catch (error) {
-      console.error('❌ Error filtering market data by commodity:', error)
       throw error
     }
   }
@@ -224,7 +210,6 @@ class MarketDataService {
         item.DeliveryCentre?.toLowerCase().includes(centreName.toLowerCase())
       )
     } catch (error) {
-      console.error('❌ Error filtering market data by delivery centre:', error)
       throw error
     }
   }
@@ -238,7 +223,6 @@ class MarketDataService {
       const commodities = [...new Set(allData.map(item => item.Commodity))]
       return commodities.sort()
     } catch (error) {
-      console.error('❌ Error getting unique commodities:', error)
       throw error
     }
   }
@@ -252,7 +236,6 @@ class MarketDataService {
       const centres = [...new Set(allData.map(item => item.DeliveryCentre).filter(Boolean))]
       return centres.sort()
     } catch (error) {
-      console.error('❌ Error getting unique delivery centres:', error)
       throw error
     }
   }
@@ -271,7 +254,6 @@ class MarketDataService {
         item.DeliveryCentre?.toLowerCase().includes(term)
       )
     } catch (error) {
-      console.error('❌ Error searching market data:', error)
       throw error
     }
   }
@@ -288,7 +270,6 @@ class MarketDataService {
            close: number[]
          }> {
            try {
-             console.log(`🌐 Fetching real historical data for ${symbol} from Firebase...`)
              
              // Create a new axios instance with longer timeout for historical data
              const historicalAxios = axios.create({
@@ -303,7 +284,6 @@ class MarketDataService {
                `${FIREBASE_BASE_URL}.json`
              )
              
-             console.log('🔍 Firebase response keys:', Object.keys(response.data))
              
              // Find the symbol's historical data by searching through all entries
              let historicalData = null
@@ -313,13 +293,11 @@ class MarketDataService {
              for (const [key, value] of Object.entries(response.data)) {
                if (value && typeof value === 'object' && 'closingPrices' in value && 'symbol' in value) {
                  const item = value as any
-                 console.log(`🔍 Checking main entry ${key}: symbol=${item.symbol}, hasClosingPrices=${!!item.closingPrices}`)
                  
                  if (item.closingPrices && Array.isArray(item.closingPrices) && item.closingPrices.length > 0) {
                    if (item.symbol === symbol) {
                      historicalData = item.closingPrices
                      foundSymbol = item.symbol
-                     console.log(`✅ Found exact match for ${symbol}: ${historicalData.length} records`)
                      break
                    }
                  }
@@ -328,20 +306,17 @@ class MarketDataService {
              
              // If no exact match found, search through nested entries (like harold@gcx,com,gh)
              if (!historicalData) {
-               console.log(`⚠️ No exact match in main structure, searching nested entries...`)
                
                for (const [outerKey, outerValue] of Object.entries(response.data)) {
                  if (outerValue && typeof outerValue === 'object') {
                    for (const [innerKey, innerValue] of Object.entries(outerValue)) {
                      if (innerValue && typeof innerValue === 'object' && 'closingPrices' in innerValue && 'symbol' in innerValue) {
                        const item = innerValue as any
-                       console.log(`🔍 Checking nested entry ${outerKey}/${innerKey}: symbol=${item.symbol}, hasClosingPrices=${!!item.closingPrices}`)
                        
                        if (item.closingPrices && Array.isArray(item.closingPrices) && item.closingPrices.length > 0) {
                          if (item.symbol === symbol) {
                            historicalData = item.closingPrices
                            foundSymbol = item.symbol
-                           console.log(`✅ Found exact match for ${symbol} in nested entry: ${historicalData.length} records`)
                            break
                          }
                        }
@@ -354,7 +329,6 @@ class MarketDataService {
              
              // If still no exact match found, use the first available symbol with data
              if (!historicalData) {
-               console.log(`⚠️ No exact match for ${symbol}, using first available symbol...`)
                
                for (const [outerKey, outerValue] of Object.entries(response.data)) {
                  if (outerValue && typeof outerValue === 'object') {
@@ -365,7 +339,6 @@ class MarketDataService {
                        if (item.closingPrices && Array.isArray(item.closingPrices) && item.closingPrices.length > 0) {
                          historicalData = item.closingPrices
                          foundSymbol = item.symbol
-                         console.log(`✅ Using available symbol ${item.symbol} for ${symbol}: ${historicalData.length} records`)
                          break
                        }
                      }
@@ -376,7 +349,6 @@ class MarketDataService {
              }
              
              if (!historicalData || historicalData.length === 0) {
-               console.error(`❌ No historical data found for symbol: ${symbol}`)
                throw new Error(`No historical data found for symbol: ${symbol}`)
              }
 
@@ -385,13 +357,11 @@ class MarketDataService {
          
          // If no data after filtering, use all available data but limit to reasonable amount
          if (filteredData.length === 0) {
-           console.log('⚠️ No data in time period, using all available data (limited to 30 points)')
            filteredData = historicalData.slice(-30) // Take last 30 records
          }
          
          // If still no data, create a fallback with current price
          if (filteredData.length === 0) {
-           console.log('⚠️ No historical data available, creating fallback data')
            const currentPrice = 1000 // Default fallback price
            const days = 30
            const fallbackData = []
@@ -423,7 +393,6 @@ class MarketDataService {
              // Check if data is too flat (all same values) and add realistic variation
              const uniqueValues = new Set(data)
              if (uniqueValues.size <= 2 && data.length > 5) {
-               console.log('📊 Data is too flat, adding realistic price variations...')
                const basePrice = data[0]
                const volatility = basePrice * 0.03 // 3% volatility
                
@@ -436,10 +405,8 @@ class MarketDataService {
                })
              }
              
-             console.log(`✅ Real historical data loaded for ${foundSymbol} (requested: ${symbol}): ${data.length} data points`)
              return { labels, data, high, low, open, close }
            } catch (error) {
-             console.error('❌ Error getting historical data:', error)
              throw error
            }
          }
@@ -522,7 +489,6 @@ class MarketDataService {
         bottomPerformers: sortedByChange.slice(-5).reverse()
       }
     } catch (error) {
-      console.error('❌ Error getting market statistics:', error)
       throw error
     }
   }
@@ -549,9 +515,7 @@ class MarketDataService {
     try {
       localStorage.removeItem(this.CACHE_KEY_CLOSING_PRICES)
       localStorage.removeItem(this.CACHE_KEY_COMMODITY_SYMBOLS)
-      console.log('🗑️ Market data cache cleared')
     } catch (error) {
-      console.warn('Error clearing cache:', error)
     }
   }
 

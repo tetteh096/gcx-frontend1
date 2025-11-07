@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { ExclamationTriangleIcon, NewspaperIcon } from '@heroicons/vue/24/outline'
 import { useI18n } from '../../composables/useI18n'
 import axios from '../../plugins/axios'
+import { DataCache, CACHE_KEYS, CACHE_DURATIONS } from '../../utils/dataCache'
 
 const { t } = useI18n()
 
@@ -46,13 +47,26 @@ const duplicatedNewsItems = computed(() => {
 })
 
 // Methods
-const fetchNewsItems = async () => {
+const fetchNewsItems = async (skipCache = false) => {
   try {
     isLoading.value = true
     error.value = null
+    
+    // Check cache first - news updates every 30 minutes (unless skipped)
+    if (!skipCache) {
+      const cached = DataCache.get<NewsItem[]>(CACHE_KEYS.NEWS_ITEMS)
+      if (cached) {
+        newsItems.value = cached
+        isLoading.value = false
+        return
+      }
+    }
+    
     const { data } = await axios.get('/api/news', { params: { limit: 20 } })
     if (data?.success && data?.data) {
       newsItems.value = data.data
+      // Cache for 30 minutes
+      DataCache.set(CACHE_KEYS.NEWS_ITEMS, newsItems.value, CACHE_DURATIONS.THIRTY_MINUTES)
     } else {
       throw new Error(data?.error || 'Failed to fetch news')
     }
@@ -62,6 +76,11 @@ const fetchNewsItems = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const refreshNews = async () => {
+  DataCache.clear(CACHE_KEYS.NEWS_ITEMS)
+  return fetchNewsItems(true)
 }
 
 const fetchBreakingNews = async () => {
@@ -280,6 +299,24 @@ onMounted(() => {
         <div v-else class="flex items-center space-x-4 flex-1 text-gray-400">
           <span class="text-sm">No news available</span>
         </div>
+
+        <!-- Refresh Button -->
+        <button
+          @click="refreshNews"
+          :disabled="isLoading"
+          title="Refresh news"
+          class="flex-shrink-0 ml-4 p-2 hover:bg-yellow-500/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg 
+            class="w-5 h-5 text-yellow-500 transition-transform duration-300" 
+            :class="{ 'animate-spin': isLoading }"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
       </div>
     </div>
   </div>

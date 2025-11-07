@@ -95,47 +95,14 @@ const formatVolume = (symbol: string): string => {
 const updateTickerData = () => {
   if (globalMarketData.value.length > 0) {
     commodities.value = convertToTickerFormat(globalMarketData.value)
-    console.log('✅ Ticker data updated:', commodities.value.length, 'items')
   } else {
-    // Fallback to mock data
-    commodities.value = [
-      {
-        symbol: 'GAPWM2',
-        name: 'White Maize',
-        price: 1880.00,
-        change: 30.00,
-        changePercent: 1.62,
-        volume: '2.4M MT',
-        avatar: '🌽',
-        color: 'bg-yellow-500'
-      },
-      {
-        symbol: 'GAPYM2', 
-        name: 'Yellow Maize',
-        price: 1200.00,
-        change: -20.00,
-        changePercent: -1.64,
-        volume: '2.1M MT',
-        avatar: '🌽',
-        color: 'bg-yellow-400'
-      },
-      {
-        symbol: 'GEJWM2',
-        name: 'White Maize',
-        price: 4030.00,
-        change: 50.00,
-        changePercent: 1.26,
-        volume: '1.8M MT',
-        avatar: '🌽',
-        color: 'bg-yellow-500'
-      }
-    ]
+    // No data available
+    commodities.value = []
   }
 }
 
 // Manual refresh function
 const refreshData = async () => {
-  console.log('🔄 Manual refresh triggered')
   await refreshMarketData()
   updateTickerData()
 }

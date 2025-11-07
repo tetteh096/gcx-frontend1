@@ -2,9 +2,27 @@
   <div class="space-y-20">
     <!-- Clean Header Section -->
     <div class="text-center">
-      <h2 class="text-5xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-        {{ getContent('leadership_title', 'Executive Management') }}
-      </h2>
+      <div class="flex items-center justify-center gap-4 mb-6">
+        <h2 class="text-5xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          {{ getContent('leadership_title', 'Executive Management') }}
+        </h2>
+        <button
+          @click="refreshExecutiveMembers"
+          :disabled="loading"
+          title="Refresh executive members"
+          class="p-2 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg 
+            class="w-6 h-6 text-yellow-600 dark:text-yellow-400 transition-transform duration-300" 
+            :class="{ 'animate-spin': loading }"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+      </div>
       <div class="w-24 h-0.5 bg-yellow-500 rounded-full mx-auto mb-8"></div>
       <p class="text-lg transition-colors duration-300 max-w-3xl mx-auto leading-relaxed" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
         {{ getContent('leadership_subtitle', 'Experienced leaders driving Ghana Commodity Exchange\'s strategic vision and operational excellence.') }}
@@ -134,6 +152,7 @@ import { usePageContentEditor } from '../../composables/usePageContentEditor'
 import { getImageUrl } from '../../utils/imageUrl'
 import axios from '../../plugins/axios'
 import ProfileSlider from '../Common/ProfileSlider.vue'
+import { DataCache, CACHE_KEYS, CACHE_DURATIONS } from '../../utils/dataCache'
 
 interface ExecutiveMember {
   id: number
@@ -163,11 +182,22 @@ const showProfile = ref(false)
 const { getContent } = usePageContentEditor('about')
 
 // Methods
-const loadExecutiveMembers = async () => {
+const loadExecutiveMembers = async (skipCache = false) => {
   loading.value = true
   error.value = ''
   
   try {
+    // Check cache first - executive members rarely change (unless skipped)
+    if (!skipCache) {
+      const cacheKey = 'gcx_team_members_executive'
+      const cached = DataCache.get<ExecutiveMember[]>(cacheKey)
+      if (cached) {
+        executiveMembers.value = cached
+        loading.value = false
+        return
+      }
+    }
+    
     // Add timeout to prevent hanging requests
     const response = await axios.get('/api/team-members?type=executive', {
       timeout: 10000 // 10 second timeout
@@ -176,6 +206,8 @@ const loadExecutiveMembers = async () => {
     // Backend returns { success: true, data: [...] }
     const apiData = response.data.data || []
     executiveMembers.value = apiData
+    // Cache for 24 hours (executive team rarely changes)
+    DataCache.set('gcx_team_members_executive', apiData, CACHE_DURATIONS.TWENTY_FOUR_HOURS)
   } catch (err: any) {
     console.error('Failed to load executive members:', err)
     error.value = err.response?.data?.error || err.message || 'Failed to load executive members'
@@ -183,6 +215,11 @@ const loadExecutiveMembers = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const refreshExecutiveMembers = async () => {
+  DataCache.clear('gcx_team_members_executive')
+  await loadExecutiveMembers(true)
 }
 
 const handleImageError = (event: Event) => {

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
 import { CalendarIcon, MapPinIcon, ClockIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { isDarkMode } from '../../utils/darkMode'
+import { DataCache, CACHE_DURATIONS } from '../../utils/dataCache'
 import eventService, { type Event } from '../../services/eventService'
 
 const router = useRouter()
@@ -16,20 +17,44 @@ const pastEvents = ref<Event[]>([])
 const loading = ref(true)
 
 // Fetch events from API
-const fetchEvents = async () => {
+const fetchEvents = async (skipCache = false) => {
   try {
     loading.value = true
+    
+    // Check cache first for upcoming events - events rarely change (unless skipped)
+    if (!skipCache) {
+      const cachedUpcoming = DataCache.get<Event[]>('gcx_events_upcoming')
+      const cachedPast = DataCache.get<Event[]>('gcx_events_past')
+      
+      if (cachedUpcoming && cachedPast) {
+        upcomingEvents.value = cachedUpcoming
+        pastEvents.value = cachedPast
+        loading.value = false
+        return
+      }
+    }
+    
     // Fetch only 3 upcoming and 3 past events
     const upcoming = await eventService.getUpcomingEvents(3)
     const past = await eventService.getPastEvents(3)
     
     upcomingEvents.value = upcoming
     pastEvents.value = past
+    
+    // Cache for 24 hours (events rarely change)
+    DataCache.set('gcx_events_upcoming', upcoming, CACHE_DURATIONS.TWENTY_FOUR_HOURS)
+    DataCache.set('gcx_events_past', past, CACHE_DURATIONS.TWENTY_FOUR_HOURS)
   } catch (error) {
     console.error('Failed to fetch events:', error)
   } finally {
     loading.value = false
   }
+}
+
+const refreshEvents = async () => {
+  DataCache.clear('gcx_events_upcoming')
+  DataCache.clear('gcx_events_past')
+  await fetchEvents(true)
 }
 
 const getCurrentEvents = () => {
@@ -62,7 +87,25 @@ onMounted(() => {
     <div class="max-w-[1600px] mx-auto px-8">
       <!-- Section Header -->
       <div class="text-center mb-16">
-        <h2 class="text-5xl font-bold mb-6 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Upcoming Events</h2>
+        <div class="flex items-center justify-center gap-4 mb-6">
+          <h2 class="text-5xl font-bold transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Upcoming Events</h2>
+          <button
+            @click="refreshEvents"
+            :disabled="loading"
+            title="Refresh events"
+            class="p-2 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg 
+              class="w-6 h-6 text-yellow-600 dark:text-yellow-400 transition-transform duration-300" 
+              :class="{ 'animate-spin': loading }"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
         <p class="text-xl max-w-3xl mx-auto transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Join us for exciting events and educational opportunities</p>
       </div>
       

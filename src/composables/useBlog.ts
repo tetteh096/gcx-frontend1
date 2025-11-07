@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { blogAPI } from '../services/api'
 import type { BlogPost, CreatePostRequest, UpdatePostRequest } from '../types/cms'
+import { DataCache, CACHE_KEYS, CACHE_DURATIONS } from '../utils/dataCache'
 
 const posts = ref<BlogPost[]>([])
 const currentPost = ref<BlogPost | null>(null)
@@ -33,10 +34,20 @@ export function useBlog() {
   }
 
   // Get public posts for website
-  const fetchPublicPosts = async () => {
+  const fetchPublicPosts = async (skipCache = false) => {
     try {
       isLoading.value = true
       error.value = null
+      
+      // Check cache first (unless explicitly skipped)
+      if (!skipCache) {
+        const cached = DataCache.get<BlogPost[]>(CACHE_KEYS.BLOG_POSTS)
+        if (cached) {
+          posts.value = cached
+          isLoading.value = false
+          return { success: true, fromCache: true }
+        }
+      }
       
       const response = await blogAPI.getPublicPosts()
       
@@ -49,16 +60,32 @@ export function useBlog() {
         posts.value = []
       }
       
+      // Cache for 12 hours (blog rarely changes)
+      DataCache.set(CACHE_KEYS.BLOG_POSTS, posts.value, CACHE_DURATIONS.TWELVE_HOURS)
       
       return { success: true }
     } catch (err: any) {
-      console.error('API Error:', err)
+      console.error('Blog API Error:', err)
+      
+      // If it's an auth error, silently fail (blog is optional)
+      if (err.response?.status === 401) {
+        console.warn('Blog endpoint requires authentication. Blog section will not be displayed.')
+        posts.value = []
+        return { success: false, error: 'Blog endpoint requires authentication' }
+      }
+      
       const message = err.response?.data?.error || 'Failed to fetch posts'
       error.value = message
       return { success: false, error: message }
     } finally {
       isLoading.value = false
     }
+  }
+
+  // Refresh blog posts (clear cache and fetch fresh data)
+  const refreshBlogPosts = async () => {
+    DataCache.clear(CACHE_KEYS.BLOG_POSTS)
+    return fetchPublicPosts(true)
   }
 
   // Get single post
@@ -207,5 +234,6 @@ export function useBlog() {
     updatePost,
     deletePost,
     clearError,
+    refreshBlogPosts,
   }
 }

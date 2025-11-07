@@ -39,6 +39,39 @@ const submitSuccess = ref(false)
 const submitError = ref(false)
 const errorMessage = ref('')
 
+// Animation state
+const heroVisible = ref(false)
+const formSectionVisible = ref(false)
+const infoSectionVisible = ref(false)
+const mapSectionVisible = ref(false)
+
+// Setup intersection observers
+onMounted(() => {
+  // Observe sections for animation
+  const observerOptions = { threshold: 0.1 }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        if (entry.target.classList.contains('hero-section')) heroVisible.value = true
+        if (entry.target.classList.contains('form-section')) formSectionVisible.value = true
+        if (entry.target.classList.contains('info-section')) infoSectionVisible.value = true
+        if (entry.target.classList.contains('map-section')) mapSectionVisible.value = true
+      }
+    })
+  }, observerOptions)
+
+  // Find and observe elements
+  const heroEl = document.querySelector('.hero-section')
+  const formEl = document.querySelector('.form-section')
+  const infoEl = document.querySelector('.info-section')
+  const mapEl = document.querySelector('.map-section')
+
+  if (heroEl) observer.observe(heroEl)
+  if (formEl) observer.observe(formEl)
+  if (infoEl) observer.observe(infoEl)
+  if (mapEl) observer.observe(mapEl)
+})
+
 const handleSubmit = async () => {
   isSubmitting.value = true
   submitError.value = false
@@ -321,7 +354,11 @@ const initLeafletMap = () => {
 <template>
   <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
     <!-- Hero Section -->
-    <section class="relative py-20 transition-colors duration-300" :class="isDarkMode ? 'bg-gradient-to-br from-slate-800 to-slate-900' : 'bg-gradient-to-br from-yellow-50 to-yellow-100'">
+    <section class="hero-section relative py-20 transition-all duration-700 ease-out" 
+      :class="[
+        isDarkMode ? 'bg-gradient-to-br from-slate-800 to-slate-900' : 'bg-gradient-to-br from-yellow-50 to-yellow-100',
+        heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      ]">
       <div class="absolute inset-0 bg-black/5"></div>
       <div class="relative max-w-7xl mx-auto px-6">
         <div class="text-center">
@@ -339,7 +376,10 @@ const initLeafletMap = () => {
     <div class="max-w-7xl mx-auto px-6 py-16">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
         <!-- Contact Form -->
-        <section class="space-y-8">
+        <section class="form-section space-y-8 transition-all duration-700 ease-out"
+          :class="[
+            formSectionVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
+          ]">
           <div>
             <h2 class="text-3xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
               Send us a Message
@@ -455,7 +495,10 @@ const initLeafletMap = () => {
         </section>
 
         <!-- Contact Information -->
-        <section class="space-y-8">
+        <section class="info-section space-y-8 transition-all duration-700 ease-out"
+          :class="[
+            infoSectionVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+          ]">
           <div>
             <h2 class="text-3xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
               Contact Information
@@ -543,7 +586,10 @@ const initLeafletMap = () => {
       </div>
 
       <!-- Google Map Section -->
-      <section class="mt-20">
+      <section class="map-section mt-20 transition-all duration-700 ease-out"
+        :class="[
+          mapSectionVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        ]">
         <div class="text-center mb-8">
           <h2 class="text-3xl font-bold mb-4 transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
             Find Us

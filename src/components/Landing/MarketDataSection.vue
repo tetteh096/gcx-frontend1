@@ -182,26 +182,9 @@ const convertToDisplayFormat = (data: ProcessedMarketData[]): DisplayCommodity[]
 const updateMarketData = () => {
   if (globalMarketData.value.length > 0) {
     commodities.value = convertToDisplayFormat(globalMarketData.value)
-    console.log('✅ Market data updated for section:', commodities.value.length, 'items')
   } else {
-         // Fallback to basic mock data
-         commodities.value = [
-           {
-             symbol: 'GTUWM2',
-             name: 'White Maize',
-             openingPrice: 6220.00,
-             closingPrice: 6220.00,
-             priceChange: 0.00,
-             changePercent: 0.00,
-             high: 6220.00,
-             low: 6220.00,
-             volume: '2.4M MT',
-             lastUpdate: '14:30 GMT',
-             trend: 'neutral',
-             type: 'cash-settled',
-             category: 'Grains'
-           }
-         ]
+    // No data available
+    commodities.value = []
   }
 }
 
@@ -220,7 +203,6 @@ const getRealPriceData = async (symbol: string, timeRange: '3M' | '6M' | '1Y' = 
       price: price
     }))
   } catch (error) {
-    console.error('❌ Error getting real price data:', error)
     // Fallback to basic data if historical data fails
     return [{
       time: new Date().toLocaleDateString('en-GH', { month: 'short', day: 'numeric' }),
@@ -238,20 +220,15 @@ const chartData = ref({
 // Load real chart data
 const loadChartData = async () => {
   if (!selectedCommodity.value) {
-    console.log('❌ No selected commodity for chart')
     chartData.value = { labels: [], datasets: [] }
     return
   }
   
   try {
-    console.log(`🔄 Loading chart data for ${selectedCommodity.value.symbol} (${selectedTimeRange.value})`)
     const priceData = await getRealPriceData(selectedCommodity.value.symbol, selectedTimeRange.value)
     
-    console.log('📊 Chart data received:', priceData.length, 'points')
-    console.log('📊 Sample data:', priceData.slice(0, 3))
     
     if (priceData.length === 0) {
-      console.log('⚠️ No price data received, triggering fallback')
       throw new Error('No price data available')
     }
 
@@ -274,16 +251,13 @@ const loadChartData = async () => {
       ]
     }
     
-    console.log('✅ Chart data updated:', chartData.value.labels.length, 'labels,', chartData.value.datasets[0].data.length, 'data points')
   } catch (error) {
-    console.error('❌ Error loading chart data:', error)
     
     // Fallback: create a realistic chart with price variations
     if (selectedCommodity.value) {
       const currentPrice = selectedCommodity.value.closingPrice
       const basePrice = typeof currentPrice === 'string' ? parseFloat(currentPrice) : currentPrice
       
-      console.log('📊 Creating fallback chart with base price:', basePrice)
       
       // Generate a realistic price trend over time
       const days = 30 // Show last 30 days for better trend visualization
@@ -346,15 +320,6 @@ const loadChartData = async () => {
           }
         ]
       }
-      
-      console.log('📊 Using realistic fallback chart data with price variations:', data.length, 'points')
-      console.log('📊 Price range:', Math.min(...data), 'to', Math.max(...data))
-      console.log('📊 Chart data structure:', {
-        labels: labels.length,
-        data: data.length,
-        firstDataPoint: data[0],
-        lastDataPoint: data[data.length - 1]
-      })
     } else {
       chartData.value = { labels: [], datasets: [] }
     }
@@ -486,7 +451,6 @@ const getTrendColor = (trend: 'up' | 'down' | 'neutral') => {
 
 // Manual refresh function
 const refreshData = async () => {
-  console.log('🔄 Manual refresh triggered')
   await refreshMarketData()
   updateMarketData()
 }

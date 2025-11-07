@@ -309,7 +309,7 @@ onMounted(() => {
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="w-full bg-gradient-to-r from-green-500 to-yellow-500 hover:from-green-600 hover:to-yellow-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
+              class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed text-lg"
             >
               <span v-if="isSubmitting" class="flex items-center justify-center gap-2">
                 <svg class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

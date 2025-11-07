@@ -35,8 +35,19 @@ axios.defaults.baseURL = getBackendURL()
 // Add request interceptor for common headers
 axios.interceptors.request.use(
   (config) => {
-    // Add JWT token if available
+    // Add JWT token if available (for authenticated endpoints)
     const token = localStorage.getItem('auth_token')
+    
+    // Public endpoints that don't require auth
+    const publicEndpoints = [
+      '/api/cms/posts', // Public blog posts
+      '/api/market-data', // Market data
+      '/api/commodities' // Commodity information
+    ]
+    
+    // Check if this is a public endpoint and we don't have a token
+    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint))
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

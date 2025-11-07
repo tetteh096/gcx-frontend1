@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { isDarkMode } from '../utils/darkMode'
+import { DataCache, CACHE_DURATIONS } from '../utils/dataCache'
 import eventService, { type Event } from '../services/eventService'
 
 const { t } = useI18n()
@@ -65,18 +66,37 @@ const clearFilters = () => {
 }
 
 // Fetch events on mount
-const fetchEvents = async () => {
+const fetchEvents = async (skipCache = false) => {
   try {
     loading.value = true
     error.value = null
+    
+    // Check cache first - past events rarely change (unless skipped)
+    if (!skipCache) {
+      const cacheKey = 'gcx_events_archived'
+      const cached = DataCache.get<Event[]>(cacheKey)
+      if (cached) {
+        events.value = cached
+        loading.value = false
+        return
+      }
+    }
+    
     const data = await eventService.getPastEvents(50)
     events.value = data
+    // Cache for 24 hours (events rarely change)
+    DataCache.set('gcx_events_archived', data, CACHE_DURATIONS.TWENTY_FOUR_HOURS)
   } catch (err: any) {
     console.error('Failed to fetch events:', err)
     error.value = 'Failed to load events. Please try again later.'
   } finally {
     loading.value = false
   }
+}
+
+const refreshEvents = async () => {
+  DataCache.clear('gcx_events_archived')
+  await fetchEvents(true)
 }
 
 onMounted(() => {
@@ -104,6 +124,22 @@ onMounted(() => {
         <h1 class="text-5xl lg:text-7xl font-bold mb-6 text-white leading-tight">
           Past Events
         </h1>
+        <button
+          @click="refreshEvents"
+          :disabled="loading"
+          title="Refresh events"
+          class="inline-flex items-center gap-2 mb-8 px-4 py-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg 
+            class="w-6 h-6 text-white transition-transform duration-300" 
+            :class="{ 'animate-spin': loading }"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
         <p class="text-xl lg:text-2xl max-w-4xl mx-auto text-white/80 mb-12 leading-relaxed">
           Explore our historical events, conferences, and programs that have shaped Ghana's commodity trading landscape
         </p>
