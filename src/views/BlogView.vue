@@ -8,6 +8,7 @@ import BlogFilters from '../components/Blog/BlogFilters.vue'
 import BlogPostsGrid from '../components/Blog/BlogPostsGrid.vue'
 import { useBlog } from '../composables/useBlog'
 import { getImageUrl } from '../utils/imageUrl'
+import Footer from '../components/Footer.vue'
 
 const { posts, fetchPublicPosts, isLoading } = useBlog()
 
@@ -195,6 +196,8 @@ onMounted(loadPosts)
         />
       </div>
     </section>
+
+    <Footer />
   </div>
 </template>
 

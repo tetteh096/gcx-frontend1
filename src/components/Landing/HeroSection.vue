@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { ChevronRightIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
+import { RouterLink } from 'vue-router'
 
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
 import { useI18n } from '../../composables/useI18n'
@@ -18,27 +19,29 @@ const heroHeight = computed(() => {
 
 // Market stats
 const marketStats = ref([
-  { label: "Total Volume", value: "₵2.4B", change: "+12.5%", positive: true },
-  { label: "Active Traders", value: "1,247", change: "+8.2%", positive: true },
-  { label: "Commodities Listed", value: "15", change: "+2", positive: true },
-  { label: "Market Cap", value: "₵8.9B", change: "+5.1%", positive: true }
+  { label: 'Value Settled', value: '₵2B+', description: 'Contracts cleared since launch' },
+  { label: 'Warehouse Network', value: '9', description: 'Certified storage sites nationwide' },
+  { label: 'Delivery Centres', value: '8+', description: 'Strategic hubs across Ghana' },
+  { label: 'Active Commodities', value: '5', description: 'Maize, Rice, Soya, Sorghum, Sesame' }
 ])
 
-// Live prices
+// Commodity snapshot (T+1 indicative)
 const commodityPrices = ref([
-  { symbol: "GAPWM2", name: "Maize", price: 1880, change: 0, volume: "2.4M" },
-  { symbol: "GEJWM2", name: "Soybean", price: 4030, change: +125, volume: "1.8M" },
-  { symbol: "GKIYM2", name: "Cocoa", price: 7335, change: -85, volume: "3.1M" },
-  { symbol: "GSAWM2", name: "Sorghum", price: 4745, change: +67, volume: "890K" }
+  { symbol: 'GAPWM2', name: 'White Maize', deliveryCentre: 'Afram Plains' },
+  { symbol: 'GAPYM2', name: 'Yellow Maize', deliveryCentre: 'Afram Plains' },
+  { symbol: 'GKUYM2', name: 'Yellow Soya Bean', deliveryCentre: 'Kumasi' },
+  { symbol: 'GSRSM2', name: 'Sorghum', deliveryCentre: 'Saboba' },
+  { symbol: 'GARRC2', name: 'Rice', deliveryCentre: 'Tamale' },
+  { symbol: 'GSESM2', name: 'Sesame', deliveryCentre: 'Tamale' }
 ])
 
 // Animated counter
 const animatedValue = ref(0)
-const targetValue = 2400000000 // 2.4B
+const targetValue = 2000000000 // 2.0B+
 
 // Slider functionality
 const currentSlide = ref(0)
-let slideInterval: number
+let slideInterval: number | undefined
 
 const nextSlide = () => {
   currentSlide.value = (currentSlide.value + 1) % 3
@@ -59,6 +62,7 @@ const startSlideShow = () => {
 const stopSlideShow = () => {
   if (slideInterval) {
     clearInterval(slideInterval)
+    slideInterval = undefined
   }
 }
 
@@ -83,6 +87,10 @@ onMounted(() => {
   
   // Start slider
   startSlideShow()
+})
+
+onBeforeUnmount(() => {
+  stopSlideShow()
 })
 </script>
 
@@ -117,12 +125,18 @@ onMounted(() => {
                   
                   <!-- CTA Buttons -->
                   <div class="flex flex-col sm:flex-row gap-4 mb-12">
-                    <button class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                      {{ t('pages.home.hero.cta.startTrading') }}
-                    </button>
-                    <button class="border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all">
-                      {{ t('pages.home.hero.cta.viewPlatform') }}
-                    </button>
+                    <RouterLink
+                      to="/market-data"
+                      class="inline-flex items-center justify-center bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                    >
+                      View Market Data
+                    </RouterLink>
+                    <RouterLink
+                      to="/membership"
+                      class="inline-flex items-center justify-center border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all"
+                    >
+                      Membership Options
+                    </RouterLink>
                   </div>
 
                   <!-- Animated Stats -->
@@ -132,8 +146,9 @@ onMounted(() => {
                       <div class="text-slate-400 text-sm">{{ t('pages.home.statistics.tradingVolume') }}</div>
                     </div>
                     <div class="text-center lg:text-left">
-                      <div class="text-3xl font-bold text-green-400">1,247+</div>
-                      <div class="text-slate-400 text-sm">{{ t('pages.home.statistics.activeMembers') }}</div>
+                      <div class="text-2xl font-semibold text-slate-300 uppercase tracking-wide">Warehouse Network</div>
+                      <div class="text-3xl font-bold text-green-400 mt-2">Nine (9)</div>
+                      <div class="text-slate-400 text-sm mt-1">Certified locations nationwide</div>
                     </div>
                   </div>
                 </div>
@@ -155,8 +170,8 @@ onMounted(() => {
                       >
                         <div class="text-2xl font-bold text-white mb-1">{{ stat.value }}</div>
                         <div class="text-slate-300 text-xs mb-2">{{ stat.label }}</div>
-                        <div :class="stat.positive ? 'text-green-400' : 'text-red-400'" class="text-sm font-medium">
-                          {{ stat.change }}
+                        <div class="text-slate-400 text-xs">
+                          {{ stat.description }}
                         </div>
                       </div>
                     </div>
@@ -164,7 +179,7 @@ onMounted(() => {
                     <!-- Quick Prices -->
                     <div class="space-y-2">
                       <div 
-                        v-for="(commodity, index) in commodityPrices.slice(0, 4)" 
+                        v-for="commodity in commodityPrices" 
                         :key="commodity.symbol"
                         class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
                       >
@@ -174,13 +189,12 @@ onMounted(() => {
                           </div>
                           <div>
                             <div class="text-white font-medium text-sm">{{ commodity.name }}</div>
-                            <div class="text-slate-400 text-xs">{{ commodity.volume }} vol</div>
+                            <div class="text-slate-400 text-xs">{{ commodity.symbol }}</div>
                           </div>
                         </div>
                         <div class="text-right">
-                          <div class="text-white font-bold">₵{{ commodity.price.toLocaleString() }}</div>
-                          <div :class="commodity.change > 0 ? 'text-green-400' : commodity.change < 0 ? 'text-red-400' : 'text-slate-400'" class="text-xs">
-                            {{ commodity.change > 0 ? '+' : '' }}{{ commodity.change }}
+                          <div class="text-slate-300 text-xs">
+                            {{ commodity.deliveryCentre }}
                           </div>
                         </div>
                       </div>
@@ -223,12 +237,18 @@ onMounted(() => {
                   
                   <!-- CTA Buttons -->
                   <div class="flex flex-col sm:flex-row gap-4 mb-12">
-                    <button class="bg-green-500 hover:bg-green-400 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                      Join as Farmer
-                    </button>
-                    <button class="border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all">
-                      Learn More
-                    </button>
+                    <RouterLink
+                      to="/membership"
+                      class="inline-flex items-center justify-center bg-green-500 hover:bg-green-400 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                    >
+                      Become a Member
+                    </RouterLink>
+                    <RouterLink
+                      to="/commodities"
+                      class="inline-flex items-center justify-center border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all"
+                    >
+                      Browse Commodities
+                    </RouterLink>
                   </div>
                 </div>
 
@@ -267,7 +287,7 @@ onMounted(() => {
                         </div>
                         <div>
                           <div class="text-white font-semibold">Market Access</div>
-                          <div class="text-slate-300 text-sm">Connect with buyers nationwide</div>
+                          <div class="text-slate-300 text-sm">Nationwide delivery network</div>
                         </div>
                       </div>
                     </div>
@@ -304,17 +324,23 @@ onMounted(() => {
                   </h1>
                   
                   <p class="text-xl text-slate-300 mb-8 max-w-lg">
-                    Access cutting-edge trading technology with real-time data, advanced analytics, and secure execution for professional traders.
+                    We provide market data, warehousing, quality assurance, and settlement services that connect farmers, traders, and buyers across Ghana.
                   </p>
                   
                   <!-- CTA Buttons -->
                   <div class="flex flex-col sm:flex-row gap-4 mb-12">
-                    <button class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                      Start Trading
-                    </button>
-                    <button class="border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all">
-                      View Platform
-                    </button>
+                    <RouterLink
+                      to="/resources"
+                      class="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                    >
+                      Download Resources
+                    </RouterLink>
+                    <RouterLink
+                      to="/contact"
+                      class="inline-flex items-center justify-center border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all"
+                    >
+                      Contact GCX
+                    </RouterLink>
                   </div>
                 </div>
 
@@ -322,38 +348,38 @@ onMounted(() => {
                 <div class="lg:mt-0 mt-12">
                   <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
                     <div class="flex items-center justify-between mb-6">
-                      <h3 class="text-white font-bold text-lg">Platform Features</h3>
+                      <h3 class="text-white font-bold text-lg">Exchange Services</h3>
                       <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                     </div>
                     
                     <div class="space-y-4">
                       <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
                         <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                          <span class="text-white font-bold">⚡</span>
+                          <span class="text-white font-bold">📈</span>
                         </div>
                         <div>
-                          <div class="text-white font-semibold">Real-time Data</div>
-                          <div class="text-slate-300 text-sm">Live market updates</div>
+                          <div class="text-white font-semibold">Market Information</div>
+                          <div class="text-slate-300 text-sm">Daily price discovery & analytics</div>
                         </div>
                       </div>
                       
                       <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
                         <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                          <span class="text-white font-bold">📊</span>
+                          <span class="text-white font-bold">🏬</span>
                         </div>
                         <div>
-                          <div class="text-white font-semibold">Advanced Analytics</div>
-                          <div class="text-slate-300 text-sm">Professional charts & tools</div>
+                          <div class="text-white font-semibold">Warehousing Network</div>
+                          <div class="text-slate-300 text-sm">Certified storage & quality control</div>
                         </div>
                       </div>
                       
                       <div class="flex items-center p-4 bg-white/5 rounded-xl border border-white/10">
                         <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                          <span class="text-white font-bold">🔒</span>
+                          <span class="text-white font-bold">🤝</span>
                         </div>
                         <div>
-                          <div class="text-white font-semibold">Secure Execution</div>
-                          <div class="text-slate-300 text-sm">Bank-grade security</div>
+                          <div class="text-white font-semibold">Settlement Support</div>
+                          <div class="text-slate-300 text-sm">Robust clearing & risk management</div>
                         </div>
                       </div>
                     </div>

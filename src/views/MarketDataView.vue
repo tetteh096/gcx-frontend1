@@ -6,6 +6,7 @@ import { isDarkMode } from '../utils/darkMode'
 import { marketDataService } from '../services/marketDataService'
 import MarketOverview from '../components/MarketData/MarketOverview.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue'
+import Footer from '../components/Footer.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -359,5 +360,7 @@ onMounted(async () => {
       :isOpen="showSubscriptionModal" 
       @close="showSubscriptionModal = false" 
     />
+    
+    <Footer />
   </div>
 </template>

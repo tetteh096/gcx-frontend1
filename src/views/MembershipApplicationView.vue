@@ -5,6 +5,7 @@ import { isDarkMode } from '../utils/darkMode'
 import RulesRegulations from '../components/Membership/RulesRegulations.vue'
 import ApplicationProcess from '../components/Membership/ApplicationProcess.vue'
 import ApplicationForms from '../components/Membership/ApplicationForms.vue'
+import Footer from '../components/Footer.vue'
 
 type Section = { label: string; key: string }
 const sections: Section[] = [
@@ -87,6 +88,8 @@ watch(() => route.hash, setActiveFromHash)
         <div v-else-if="active === 'forms'" id="ma-forms"><ApplicationForms /></div>
       </div>
     </section>
+    
+    <Footer />
   </div>
 </template>
 

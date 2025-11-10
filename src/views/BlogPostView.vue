@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { isDarkMode } from '../utils/darkMode'
 import { useBlog } from '../composables/useBlog'
 import { getImageUrl } from '../utils/imageUrl'
+import Footer from '../components/Footer.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -367,6 +368,8 @@ const sharePost = () => {
         </div>
       </div>
     </section>
+    
+    <Footer />
   </div>
 </template>
 
