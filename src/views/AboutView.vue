@@ -55,22 +55,22 @@ watch(() => route.hash, setActiveFromHash)
 <template>
   <div class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
     <!-- Compact Hero Section -->
-    <section class="relative py-20 lg:py-32 transition-colors duration-300 overflow-hidden" :class="isDarkMode ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-yellow-50 via-white to-yellow-50'">
+    <section class="relative py-20 lg:py-32 transition-colors duration-300 overflow-hidden" :class="isDarkMode ? '' : ''">
       <!-- Background Image -->
       <div class="absolute inset-0">
         <img 
           :src="getImage('hero_image', '/trading dashboard.jpg')" 
           :alt="getContent('hero_title', 'GCX Trading Platform')" 
-          class="w-full h-full object-cover opacity-60 dark:opacity-50"
+          class="w-full h-full object-cover"
         />
-        <div class="absolute inset-0 bg-gradient-to-r from-yellow-50/70 via-white/60 to-yellow-50/70 dark:from-slate-900/70 dark:via-slate-800/60 dark:to-slate-900/70"></div>
+        <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/60' : 'bg-black/25'"></div>
       </div>
       
       <!-- Background Elements -->
-      <div class="absolute inset-0 opacity-30">
-        <div class="absolute top-10 left-10 w-72 h-72 bg-yellow-200 dark:bg-yellow-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 animate-pulse"></div>
-        <div class="absolute top-0 right-10 w-72 h-72 bg-yellow-300 dark:bg-yellow-500 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-yellow-400 dark:bg-yellow-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 animate-pulse delay-500"></div>
+      <div v-if="isDarkMode" class="absolute inset-0 opacity-30">
+        <div class="absolute top-10 left-10 w-72 h-72 bg-yellow-600 rounded-full mix-blend-soft-light filter blur-xl opacity-20 animate-pulse"></div>
+        <div class="absolute top-0 right-10 w-72 h-72 bg-yellow-500 rounded-full mix-blend-soft-light filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-yellow-500 rounded-full mix-blend-soft-light filter blur-xl opacity-20 animate-pulse delay-500"></div>
       </div>
       
       <div class="relative max-w-7xl mx-auto px-4">
@@ -96,12 +96,19 @@ watch(() => route.hash, setActiveFromHash)
           
           <!-- CTA Buttons -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold rounded-xl hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300 shadow-lg hover:shadow-xl">
-              Explore Platform
-            </button>
-            <button class="px-6 py-3 border-2 border-yellow-500 font-semibold rounded-xl transition-all duration-300 shadow-lg" :class="isDarkMode ? 'text-yellow-400 hover:bg-yellow-900/20 bg-slate-900/50' : 'text-yellow-700 hover:bg-yellow-50 bg-white/80'">
-              Learn More
-            </button>
+            <router-link
+              to="/market-data"
+              class="inline-flex items-center justify-center px-6 py-3 bg-yellow-500 text-black font-semibold rounded-xl hover:bg-yellow-400 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              Market Data
+            </router-link>
+            <router-link
+              to="/membership"
+              class="inline-flex items-center justify-center px-6 py-3 border-2 border-white/70 font-semibold rounded-xl transition-all duration-300 shadow-lg"
+              :class="isDarkMode ? 'text-white hover:bg-white/10' : 'text-white hover:bg-white/10'"
+            >
+              Membership
+            </router-link>
           </div>
         </div>
       </div>

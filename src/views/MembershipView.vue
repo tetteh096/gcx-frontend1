@@ -58,12 +58,12 @@ watch(() => route.hash, setActiveFromHash)
       <div class="absolute inset-0">
         <img src="/maize.jpg" alt="{{ t('navigation.menu.membership') }}" class="w-full h-full object-cover" />
         <div class="absolute inset-0"
-             :class="isDarkMode ? 'bg-slate-900/40' : 'bg-white/40'">
+             :class="isDarkMode ? 'bg-slate-900/50' : 'bg-black/25'">
         </div>
       </div>
       <div class="relative max-w-[1600px] mx-auto px-4 text-center">
-        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Membership Information</h1>
-        <p class="text-lg max-w-3xl mx-auto mb-8" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Learn about types, benefits, rights & obligations, membership list, and brokers.</p>
+        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3 text-white">Membership Information</h1>
+        <p class="text-lg max-w-3xl mx-auto mb-8" :class="isDarkMode ? 'text-slate-300' : 'text-white'">Learn about types, benefits, rights & obligations, membership list, and brokers.</p>
         
         <!-- Quick Access Links -->
         <div class="flex flex-wrap justify-center gap-4 mt-8">

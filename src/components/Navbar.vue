@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
+import type { CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import { MagnifyingGlassIcon, ChevronDownIcon, SunIcon, MoonIcon } from '@heroicons/vue/24/outline'
 import { isDarkMode, toggleDarkMode } from '../utils/darkMode'
@@ -173,6 +174,8 @@ const navigation = computed(() => [
 const openDropdown = ref<string | null>(null)
 const openMobileDropdown = ref<string | null>(null)
 let dropdownTimeout: number | null = null
+const navContainer = ref<HTMLElement | null>(null)
+const dropdownStyles = ref<Record<string, CSSProperties>>({})
 
 // Methods
 const toggleMenu = () => {
@@ -188,18 +191,59 @@ const toggleMobileDropdown = (itemName: string) => {
   openMobileDropdown.value = openMobileDropdown.value === itemName ? null : itemName
 }
 
+const openDropdownMenu = (itemName: string) => {
+  if (dropdownTimeout) {
+    clearTimeout(dropdownTimeout)
+    dropdownTimeout = null
+  }
+  openDropdown.value = itemName
+  if (isWideDropdown(itemName)) {
+    nextTick(() => {
+      const rect = navContainer.value?.getBoundingClientRect()
+      if (rect) {
+        const offset = 80
+        dropdownStyles.value[itemName] = {
+          position: 'fixed',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          top: `${Math.max(rect.bottom - offset, rect.top + 4)}px`
+        }
+      }
+    })
+  } else {
+    delete dropdownStyles.value[itemName]
+  }
+}
+
 const toggleDropdown = (itemName: string) => {
   if (dropdownTimeout) {
     clearTimeout(dropdownTimeout)
     dropdownTimeout = null
   }
   openDropdown.value = openDropdown.value === itemName ? null : itemName
+  if (openDropdown.value && isWideDropdown(itemName)) {
+    nextTick(() => {
+      const rect = navContainer.value?.getBoundingClientRect()
+      if (rect) {
+        const offset = 80
+        dropdownStyles.value[itemName] = {
+          position: 'fixed',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          top: `${Math.max(rect.bottom - offset, rect.top + 4)}px`
+        }
+      }
+    })
+  } else {
+    delete dropdownStyles.value[itemName]
+  }
 }
 
 const closeDropdown = () => {
   dropdownTimeout = setTimeout(() => {
     openDropdown.value = null
-  }, 500) // 500ms delay before closing - reduced since gap is fixed
+    dropdownStyles.value = {}
+  }, 220)
 }
 
 const clearDropdownTimeout = () => {
@@ -223,6 +267,8 @@ const navigateToApplication = () => {
   router.push('/membership/application')
   closeMenu()
 }
+
+const isWideDropdown = (name: string) => name === 'About'
 </script>
 
 <template>
@@ -233,6 +279,7 @@ const navigateToApplication = () => {
       navbarTop,
       isDarkMode ? 'bg-slate-900/95 border-slate-700/50 shadow-slate-900/20' : 'bg-white/95 border-gray-200/50 shadow-gray-200/20'
     ]"
+    ref="navContainer"
   >
     <!-- Main navbar content -->
     <div class="w-full px-6">
@@ -264,12 +311,12 @@ const navigateToApplication = () => {
               v-for="item in navigation"
               :key="item.name"
               class="relative"
-              @mouseenter="item.dropdown ? (clearDropdownTimeout(), toggleDropdown(item.name)) : null"
+              @mouseenter="item.dropdown ? (clearDropdownTimeout(), openDropdownMenu(item.name)) : null"
               @mouseleave="closeDropdown"
             >
               <router-link 
                 :to="item.href"
-                @click="item.dropdown ? $event.preventDefault() : null"
+                @click="item.dropdown ? (toggleDropdown(item.name), $event.preventDefault()) : null"
                 class="px-2.5 py-2 text-xs font-medium rounded-full transition-all flex items-center whitespace-nowrap"
                 :class="$route.path === item.href 
                   ? (isDarkMode ? 'bg-slate-700 shadow-sm text-white' : 'bg-white shadow-sm text-black')
@@ -282,118 +329,168 @@ const navigateToApplication = () => {
               </router-link>
               
               <!-- Large Dropdown Menu -->
-              <div
-                v-if="item.dropdown && openDropdown === item.name"
-                class="absolute top-full left-0 mt-0 w-[600px] max-w-[90vw] rounded-xl shadow-lg border py-4 z-50 transition-all duration-300"
-                :class="isDarkMode ? 'bg-slate-900 border-slate-600' : 'bg-white border-gray-300'"
-                @mouseenter="clearDropdownTimeout()"
-                @mouseleave="closeDropdown"
-              >
-                <div class="grid grid-cols-2 gap-3 px-4">
-                  <!-- Left Column -->
-                      <div class="space-y-2">
-                    <div v-for="(section, index) in item.dropdown.slice(0, Math.ceil(item.dropdown.length / 2))" :key="index">
-                      <h4 class="text-xs font-semibold uppercase tracking-wide mb-2 text-gray-600"
-                          :class="isDarkMode ? 'text-slate-400' : 'text-gray-600'">
-                        {{ section.title }}
-                      </h4>
-                      <div class="space-y-1">
+              <transition name="fade-slide">
+                <div
+                  v-if="item.dropdown && openDropdown === item.name"
+                  :class="[
+                    'mt-2 rounded-xl shadow-lg border py-4 z-50 transition-all duration-300 origin-top',
+                    isDarkMode ? 'bg-slate-900 border-slate-600' : 'bg-white border-gray-300',
+                    isWideDropdown(item.name)
+                      ? 'w-[min(800px,88vw)]'
+                      : 'absolute top-full left-0 w-[560px] max-w-[85vw]'
+                  ]"
+                  :style="isWideDropdown(item.name) ? dropdownStyles[item.name] : undefined"
+                  @mouseenter="clearDropdownTimeout()"
+                  @mouseleave="closeDropdown"
+                >
+                  <div v-if="isWideDropdown(item.name)" class="px-6">
+                    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr">
+                      <div v-for="section in item.dropdown" :key="section.title" class="space-y-3">
+                        <h4 class="text-xs font-semibold uppercase tracking-wide mb-2"
+                            :class="isDarkMode ? 'text-slate-400' : 'text-gray-600'">
+                          {{ section.title }}
+                        </h4>
+                        <div class="space-y-1">
                           <component
                             :is="(dropdownItem as any).external ? 'a' : 'router-link'"
-                        v-for="dropdownItem in section.items"
-                        :key="dropdownItem.name"
+                            v-for="dropdownItem in section.items"
+                            :key="dropdownItem.name"
                             :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
                             :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
                             :target="(dropdownItem as any).external ? '_blank' : undefined"
                             :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
-                            class="group block p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:border-gray-200"
-                            :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
+                            class="group block p-3 rounded-lg transition-all duration-200 border"
+                            :class="isDarkMode ? 'border-slate-700/60 hover:border-yellow-500/60 hover:bg-slate-800' : 'border-gray-200 hover:border-yellow-400 hover:bg-yellow-50/60'"
                           >
-                            <div class="flex items-start justify-between">
+                            <div class="flex items-start justify-between gap-2">
                               <div class="flex-1">
-                                <h5 class="font-medium text-sm mb-0.5 transition-colors text-black group-hover:text-yellow-500"
-                                    :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-black group-hover:text-yellow-500'">
+                                <h5 class="font-medium text-sm mb-0.5 transition-colors"
+                                    :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-gray-900 group-hover:text-yellow-600'">
                                   {{ dropdownItem.name }}
                                 </h5>
-                                <p class="text-xs leading-relaxed text-gray-600 group-hover:text-gray-500"
-                                   :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-gray-600 group-hover:text-gray-500'">
+                                <p class="text-xs leading-relaxed transition-colors"
+                                   :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-gray-600 group-hover:text-gray-700'">
                                   {{ dropdownItem.description }}
                                 </p>
                               </div>
-                              <svg class="w-4 h-4 transition-colors text-gray-400 group-hover:text-yellow-500" 
-                                   :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-gray-400 group-hover:text-yellow-500'" 
+                              <svg class="w-4 h-4 transition-colors"
+                                   :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-300' : 'text-gray-400 group-hover:text-yellow-500'"
                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                               </svg>
                             </div>
                           </component>
-                    </div>
-                    </div>
-                  </div>
-
-                  <!-- Right Column -->
-                      <div class="space-y-2">
-                    <div v-for="(section, index) in item.dropdown.slice(Math.ceil(item.dropdown.length / 2))" :key="index">
-                      <h4 class="text-xs font-semibold uppercase tracking-wide mb-2 text-gray-600"
-                          :class="isDarkMode ? 'text-slate-400' : 'text-gray-600'">
-                        {{ section.title }}
-                      </h4>
-                      <div class="space-y-1">
-                          <component
-                            :is="(dropdownItem as any).external ? 'a' : 'router-link'"
-                        v-for="dropdownItem in section.items"
-                        :key="dropdownItem.name"
-                            :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
-                            :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
-                            :target="(dropdownItem as any).external ? '_blank' : undefined"
-                            :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
-                            class="group block p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:border-gray-200"
-                            :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
-                          >
-                            <div class="flex items-start justify-between">
-                              <div class="flex-1">
-                                <h5 class="font-medium text-sm mb-0.5 transition-colors text-black group-hover:text-yellow-500"
-                                    :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-black group-hover:text-yellow-500'">
-                                  {{ dropdownItem.name }}
-                                </h5>
-                                <p class="text-xs leading-relaxed text-gray-600 group-hover:text-gray-500"
-                                   :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-gray-600 group-hover:text-gray-500'">
-                                  {{ dropdownItem.description }}
-                                </p>
-                              </div>
-                              <svg class="w-4 h-4 transition-colors text-gray-400 group-hover:text-yellow-500" 
-                                   :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-gray-400 group-hover:text-yellow-500'" 
-                                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                              </svg>
-                            </div>
-                          </component>
-                    </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Bottom CTA Section -->
-                <div class="mt-4 pt-4 border-t" :class="isDarkMode ? 'border-slate-700' : 'border-gray-200'">
-                  <div class="px-6">
-                    <div class="rounded-lg p-3 border"
-                         :class="isDarkMode ? 'bg-gradient-to-r from-yellow-900/30 to-yellow-800/30 border-yellow-700/30' : 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200'">
-                      <div class="flex items-center justify-between">
-                        <div>
-                          <h4 class="font-semibold text-sm mb-0.5" :class="isDarkMode ? 'text-yellow-300' : 'text-yellow-800'">Ready to Get Started?</h4>
-                          <p class="text-xs" :class="isDarkMode ? 'text-yellow-200' : 'text-yellow-700'">Join GCX and access our comprehensive trading platform</p>
                         </div>
-                        <button 
-                          @click="navigateToApplication"
-                          class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-3 py-1.5 rounded-lg text-sm transition-all transform hover:scale-105 shadow-lg"
-                        >
-                          Apply
-                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else class="grid grid-cols-2 gap-3 px-4">
+                    <!-- Left Column -->
+                    <div class="space-y-2">
+                      <div v-for="(section, index) in item.dropdown.slice(0, Math.ceil(item.dropdown.length / 2))" :key="index">
+                        <h4 class="text-xs font-semibold uppercase tracking-wide mb-2"
+                            :class="isDarkMode ? 'text-slate-400' : 'text-gray-600'">
+                          {{ section.title }}
+                        </h4>
+                        <div class="space-y-1">
+                          <component
+                            :is="(dropdownItem as any).external ? 'a' : 'router-link'"
+                            v-for="dropdownItem in section.items"
+                            :key="dropdownItem.name"
+                            :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
+                            :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
+                            :target="(dropdownItem as any).external ? '_blank' : undefined"
+                            :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
+                            class="group block p-2 rounded-lg transition-all duration-200"
+                            :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
+                          >
+                            <div class="flex items-start justify-between">
+                              <div class="flex-1">
+                                <h5 class="font-medium text-sm mb-0.5 transition-colors"
+                                    :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-black group-hover:text-yellow-500'">
+                                  {{ dropdownItem.name }}
+                                </h5>
+                                <p class="text-xs leading-relaxed transition-colors"
+                                   :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-gray-600 group-hover:text-gray-500'">
+                                  {{ dropdownItem.description }}
+                                </p>
+                              </div>
+                              <svg class="w-4 h-4 transition-colors"
+                                   :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-gray-400 group-hover:text-yellow-500'"
+                                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                              </svg>
+                            </div>
+                          </component>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-2">
+                      <div v-for="(section, index) in item.dropdown.slice(Math.ceil(item.dropdown.length / 2))" :key="index">
+                        <h4 class="text-xs font-semibold uppercase tracking-wide mb-2"
+                            :class="isDarkMode ? 'text-slate-400' : 'text-gray-600'">
+                          {{ section.title }}
+                        </h4>
+                        <div class="space-y-1">
+                          <component
+                            :is="(dropdownItem as any).external ? 'a' : 'router-link'"
+                            v-for="dropdownItem in section.items"
+                            :key="dropdownItem.name"
+                            :to="(dropdownItem as any).external ? undefined : dropdownItem.href"
+                            :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
+                            :target="(dropdownItem as any).external ? '_blank' : undefined"
+                            :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
+                            class="group block p-2 rounded-lg transition-all duration-200"
+                            :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
+                          >
+                            <div class="flex items-start justify-between">
+                              <div class="flex-1">
+                                <h5 class="font-medium text-sm mb-0.5 transition-colors"
+                                    :class="isDarkMode ? 'text-white group-hover:text-yellow-300' : 'text-black group-hover:text-yellow-500'">
+                                  {{ dropdownItem.name }}
+                                </h5>
+                                <p class="text-xs leading-relaxed transition-colors"
+                                   :class="isDarkMode ? 'text-slate-300 group-hover:text-slate-200' : 'text-gray-600 group-hover:text-gray-500'">
+                                  {{ dropdownItem.description }}
+                                </p>
+                              </div>
+                              <svg class="w-4 h-4 transition-colors"
+                                   :class="isDarkMode ? 'text-slate-500 group-hover:text-yellow-400' : 'text-gray-400 group-hover:text-yellow-500'"
+                                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                              </svg>
+                            </div>
+                          </component>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Bottom CTA Section -->
+                  <div class="mt-4 pt-4 border-t" :class="isDarkMode ? 'border-slate-700' : 'border-gray-200'">
+                    <div class="px-6">
+                      <div class="rounded-lg p-3 border"
+                           :class="isDarkMode ? 'bg-gradient-to-r from-yellow-900/30 to-yellow-800/30 border-yellow-700/30' : 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200'">
+                        <div class="flex items-center justify-between">
+                          <div>
+                            <h4 class="font-semibold text-sm mb-0.5" :class="isDarkMode ? 'text-yellow-300' : 'text-yellow-800'">Ready to Get Started?</h4>
+                            <p class="text-xs" :class="isDarkMode ? 'text-yellow-200' : 'text-yellow-700'">Join GCX and access our comprehensive trading platform</p>
+                          </div>
+                          <button 
+                            @click="navigateToApplication"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-3 py-1.5 rounded-lg text-sm transition-all transform hover:scale-105 shadow-lg"
+                          >
+                            Apply
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </transition>
             </div>
           </div>
         </div>
@@ -683,3 +780,16 @@ const navigateToApplication = () => {
   <!-- Spacer for fixed navbar -->
   <div class="h-20"></div>
 </template>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+}
+</style>

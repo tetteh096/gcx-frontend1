@@ -163,9 +163,9 @@ onMounted(async () => {
             brokers, merchants etc.) to trade anywhere in the country, region and the world.
           </p>
           <div class="flex flex-wrap gap-3">
-            <span class="px-4 py-2 bg-yellow-200 dark:bg-yellow-900/30 text-yellow-900 dark:text-yellow-200 text-base font-medium rounded-lg">Global Access</span>
-            <span class="px-4 py-2 bg-green-200 dark:bg-green-900/30 text-green-900 dark:text-green-200 text-base font-medium rounded-lg">Real-time Trading</span>
-            <span class="px-4 py-2 bg-blue-200 dark:bg-blue-900/30 text-blue-900 dark:text-blue-200 text-base font-medium rounded-lg">Price Discovery</span>
+            <span class="px-4 py-2 bg-yellow-500 text-white dark:bg-yellow-900/40 dark:text-yellow-200 text-sm font-semibold rounded-lg shadow-sm">Global Access</span>
+            <span class="px-4 py-2 bg-green-500 text-white dark:bg-green-900/40 dark:text-green-200 text-sm font-semibold rounded-lg shadow-sm">Real-time Trading</span>
+            <span class="px-4 py-2 bg-blue-500 text-white dark:bg-blue-900/40 dark:text-blue-200 text-sm font-semibold rounded-lg shadow-sm">Price Discovery</span>
           </div>
         </div>
       </div>
@@ -190,9 +190,9 @@ onMounted(async () => {
             product drying and grading, and re-packaging.
           </p>
           <div class="flex flex-wrap gap-3">
-            <span class="px-4 py-2 bg-green-200 dark:bg-green-900/30 text-green-900 dark:text-green-200 text-base font-medium rounded-lg">Secure Storage</span>
-            <span class="px-4 py-2 bg-purple-200 dark:bg-purple-900/30 text-purple-900 dark:text-purple-200 text-base font-medium rounded-lg">Quality Grading</span>
-            <span class="px-4 py-2 bg-red-200 dark:bg-red-900/30 text-red-900 dark:text-red-200 text-base font-medium rounded-lg">Collateral Management</span>
+            <span class="px-4 py-2 bg-green-500 text-white dark:bg-green-900/40 dark:text-green-200 text-sm font-semibold rounded-lg shadow-sm">Secure Storage</span>
+            <span class="px-4 py-2 bg-purple-500 text-white dark:bg-purple-900/40 dark:text-purple-200 text-sm font-semibold rounded-lg shadow-sm">Quality Grading</span>
+            <span class="px-4 py-2 bg-red-500 text-white dark:bg-red-900/40 dark:text-red-200 text-sm font-semibold rounded-lg shadow-sm">Collateral Management</span>
           </div>
         </div>
       </div>

@@ -90,11 +90,11 @@ onMounted(async () => {
     <section class="relative py-14 lg:py-20 overflow-hidden">
       <div class="absolute inset-0">
         <img src="/trading dashboard.jpg" alt="{{ t('navigation.menu.marketData') }}" class="w-full h-full object-cover" />
-        <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/40' : 'bg-white/40'"></div>
+        <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/50' : 'bg-black/25'"></div>
       </div>
       <div class="relative max-w-[1600px] mx-auto px-4 text-center">
-        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ t('navigation.menu.marketData') }}</h1>
-        <p class="text-lg max-w-3xl mx-auto mb-8" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+        <h1 class="text-4xl lg:text-5xl font-extrabold mb-3 text-white">{{ t('navigation.menu.marketData') }}</h1>
+        <p class="text-lg max-w-3xl mx-auto mb-8" :class="isDarkMode ? 'text-slate-300' : 'text-white'">
           Access premium market data, live prices, and advanced trading tools with our subscription service.
         </p>
         

@@ -45,6 +45,7 @@ interface DisplayCommodity {
   trend: 'up' | 'down' | 'neutral'
   type: string
   category: string
+  grade?: string
 }
 
 // Market data state - use global state
@@ -54,6 +55,8 @@ const error = globalError
 
        // Priority symbols for the ticker (the main ones to display)
        const prioritySymbols = ['GAPWM2', 'GAPYM2', 'GEJWM2', 'GSAWM2', 'GKUWM2', 'GKUYM2', 'GTAYSB2', 'GTUWM2', 'GKIWM2', 'GTAWM2']
+
+const toTabKey = (type: string) => type.toLowerCase().replace(/\s+/g, '_')
 
 // Group commodities by type
 const groupCommoditiesByType = (data: DisplayCommodity[]) => {
@@ -69,7 +72,12 @@ const groupCommoditiesByType = (data: DisplayCommodity[]) => {
   
   // Sort within each group by symbol
   Object.keys(groups).forEach(type => {
-    groups[type].sort((a, b) => a.symbol.localeCompare(b.symbol))
+    groups[type].sort((a, b) => {
+      if (a.grade && b.grade && a.grade !== b.grade) {
+        return a.grade.localeCompare(b.grade)
+      }
+      return a.symbol.localeCompare(b.symbol)
+    })
   })
   
   return groups
@@ -78,23 +86,28 @@ const groupCommoditiesByType = (data: DisplayCommodity[]) => {
 // Get commodity type from name
 const getCommodityType = (commodityName: string): string => {
   const name = commodityName.toLowerCase()
-  if (name.includes('maize') || name.includes('corn')) return 'Maize'
+  if (name.includes('maize') || name.includes('corn')) {
+    if (name.includes('white')) return 'White Maize'
+    if (name.includes('yellow')) return 'Yellow Maize'
+    return 'Maize'
+  }
   if (name.includes('soya') || name.includes('soybean')) return 'Soya Bean'
   if (name.includes('rice') || name.includes('milled')) return 'Rice'
   if (name.includes('sesame')) return 'Sesame'
+  if (name.includes('sorghum')) return 'Sorghum'
   return 'Other'
 }
 
 // Get commodity tabs in specific order (only for commodities that exist in data)
 const commodityTabs = computed(() => {
   const groups = groupCommoditiesByType(commodities.value)
-  const tabOrder = ['Maize', 'Soya Bean', 'Rice', 'Sesame']
+  const tabOrder = ['White Maize', 'Yellow Maize', 'Soya Bean', 'Rice', 'Sesame', 'Sorghum']
   const tabs: Array<{ key: string; label: string }> = []
   
   tabOrder.forEach(type => {
     if (groups[type] && groups[type].length > 0) {
       tabs.push({
-        key: type.toLowerCase().replace(' ', '_'),
+        key: toTabKey(type),
         label: type
       })
     }
@@ -104,7 +117,7 @@ const commodityTabs = computed(() => {
   Object.keys(groups).forEach(type => {
     if (!tabOrder.includes(type) && type !== 'Other' && groups[type].length > 0) {
       tabs.push({
-        key: type.toLowerCase().replace(' ', '_'),
+        key: toTabKey(type),
         label: type
       })
     }
@@ -116,9 +129,7 @@ const commodityTabs = computed(() => {
 // Get filtered commodities based on selected tab
 const filteredCommodities = computed(() => {
   const groups = groupCommoditiesByType(commodities.value)
-  const tabType = Object.keys(groups).find(type => 
-    type.toLowerCase().replace(' ', '_') === selectedTab.value
-  )
+  const tabType = Object.keys(groups).find(type => toTabKey(type) === selectedTab.value)
   
   return tabType ? groups[tabType] : []
 })
@@ -137,6 +148,13 @@ const convertToDisplayFormat = (data: ProcessedMarketData[]): DisplayCommodity[]
       if (commodity.toLowerCase().includes('sesame')) return 'Oilseeds'
       if (commodity.toLowerCase().includes('sorghum')) return 'Grains'
       return 'Other'
+    }
+    
+    const getGrade = (item: ProcessedMarketData): string => {
+      if (item.Grade && item.Grade.trim().length > 0) {
+        return item.Grade.trim().toUpperCase()
+      }
+      return item.Symbol.slice(-2).toUpperCase()
     }
     
     // Determine contract type
@@ -173,7 +191,8 @@ const convertToDisplayFormat = (data: ProcessedMarketData[]): DisplayCommodity[]
       lastUpdate: item.LastTradeDate,
       trend: item.isPositiveChange ? 'up' : (parseFloat(item.PriceChange) < 0 ? 'down' : 'neutral'),
       type: getContractType(item.Symbol),
-      category: getCommodityCategory(item.Commodity)
+      category: getCommodityCategory(item.Commodity),
+      grade: getGrade(item)
     }
   })
 }
@@ -190,7 +209,7 @@ const updateMarketData = () => {
 
 const selectedCommodity = ref<DisplayCommodity | null>(null)
 const selectedTimeRange = ref<'3M' | '6M' | '1Y'>('3M')
-const selectedTab = ref<string>('maize')
+const selectedTab = ref<string>(toTabKey('White Maize'))
 
 // Get real historical data for charts
 const getRealPriceData = async (symbol: string, timeRange: '3M' | '6M' | '1Y' = '3M') => {
@@ -421,6 +440,33 @@ const selectCommodity = (commodity: DisplayCommodity) => {
   selectedCommodity.value = commodity
 }
 
+const gradeVariants = computed(() => {
+  if (!selectedCommodity.value) {
+    return []
+  }
+  const type = getCommodityType(selectedCommodity.value.name)
+  const group = groupCommoditiesByType(commodities.value)[type] || []
+  const variants = new Map<string, DisplayCommodity>()
+  group.forEach(item => {
+    const gradeKey = (item.grade || 'Standard').toUpperCase()
+    if (!variants.has(gradeKey)) {
+      variants.set(gradeKey, item)
+    }
+  })
+  return Array.from(variants.entries()).map(([grade, commodity]) => ({
+    grade,
+    commodity
+  }))
+})
+
+const selectGradeVariant = (commodity: DisplayCommodity) => {
+  const typeKey = toTabKey(getCommodityType(commodity.name))
+  if (selectedTab.value !== typeKey) {
+    selectedTab.value = typeKey
+  }
+  selectedCommodity.value = commodity
+}
+
 // Get price change class
 const getPriceChangeClass = (change: number) => {
   if (change > 0) return 'text-green-500'
@@ -460,6 +506,15 @@ watch(globalMarketData, () => {
   updateMarketData()
   if (commodities.value.length > 0 && !selectedCommodity.value) {
     selectedCommodity.value = commodities.value[0]
+  }
+}, { immediate: true })
+
+watch(commodityTabs, (tabs) => {
+  if (tabs.length === 0) {
+    return
+  }
+  if (!tabs.some(tab => tab.key === selectedTab.value)) {
+    selectedTab.value = tabs[0].key
   }
 }, { immediate: true })
 
@@ -625,6 +680,14 @@ onUnmounted(() => {
                         <div class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
                           {{ commodity.name }}
                         </div>
+                        <div v-if="commodity.grade" class="mt-1">
+                          <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full"
+                                :class="selectedCommodity?.symbol === commodity.symbol 
+                                  ? 'bg-red-100 text-red-600' 
+                                  : (isDarkMode ? 'bg-slate-700 text-slate-200' : 'bg-slate-200 text-slate-700')">
+                            Grade {{ commodity.grade }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -664,6 +727,10 @@ onUnmounted(() => {
                 <p class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
                   {{ selectedCommodity.name }}
                 </p>
+                <p v-if="selectedCommodity.grade" class="text-xs mt-1 uppercase tracking-wide font-semibold"
+                   :class="isDarkMode ? 'text-yellow-300' : 'text-yellow-600'">
+                  Grade {{ selectedCommodity.grade }}
+                </p>
               </div>
               <div class="text-right">
                 <div class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
@@ -678,6 +745,21 @@ onUnmounted(() => {
                   </span>
                 </div>
               </div>
+            </div>
+
+            <!-- Grade Variants -->
+            <div v-if="selectedCommodity && gradeVariants.length > 1" class="flex flex-wrap justify-center gap-2 mb-4">
+              <button
+                v-for="variant in gradeVariants"
+                :key="variant.grade"
+                @click="selectGradeVariant(variant.commodity)"
+                class="px-3 py-1 text-xs font-semibold rounded-full border transition-all duration-200"
+                :class="variant.commodity.symbol === selectedCommodity.symbol
+                  ? 'bg-red-600 border-red-600 text-white shadow'
+                  : (isDarkMode ? 'border-slate-600 text-slate-200 hover:bg-slate-700' : 'border-slate-300 text-slate-700 hover:bg-slate-100')"
+              >
+                Grade {{ variant.grade }}
+              </button>
             </div>
 
             <!-- Time Range Controls -->
@@ -724,6 +806,18 @@ onUnmounted(() => {
             <div v-if="selectedCommodity" class="mt-6 p-4 rounded-lg border" :class="isDarkMode ? 'border-slate-600 bg-slate-700' : 'border-slate-200 bg-slate-50'">
               <h4 class="text-sm font-semibold mb-3" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Price Summary</h4>
               <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span class="text-sm text-slate-500">Grade:</span>
+                  <span class="ml-2 font-semibold uppercase" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+                    {{ selectedCommodity?.grade || 'N/A' }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-sm text-slate-500">Contract:</span>
+                  <span class="ml-2 font-semibold capitalize" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+                    {{ (selectedCommodity?.type || 'cash-settled').replace('-', ' ') }}
+                  </span>
+                </div>
                 <div>
                   <span class="text-slate-500">Open:</span>
                   <span class="ml-2 font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">

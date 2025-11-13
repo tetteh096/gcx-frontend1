@@ -24,7 +24,7 @@ const subscribe = () => {
   <section class="relative py-24 overflow-hidden">
     <div class="absolute inset-0">
       <img src="/trading dashboard.jpg" alt="GCX Blog" class="w-full h-full object-cover" />
-      <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/60' : 'bg-white/80'"></div>
+      <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/60' : 'bg-black/25'"></div>
     </div>
     <div class="relative max-w-[1600px] mx-auto px-4 text-center">
       <div class="max-w-4xl mx-auto">
@@ -32,10 +32,10 @@ const subscribe = () => {
           <div class="inline-block px-4 py-2 rounded-full mb-6" :class="isDarkMode ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'">
             <span class="text-base font-semibold">Our Blog</span>
           </div>
-          <h1 class="text-5xl lg:text-6xl font-bold mb-6" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          <h1 class="text-5xl lg:text-6xl font-bold mb-6 text-white">
             Stories and Insights
           </h1>
-          <p class="text-xl max-w-3xl mx-auto mb-10" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+          <p class="text-xl max-w-3xl mx-auto mb-10" :class="isDarkMode ? 'text-slate-300' : 'text-white'">
             Subscribe to learn about new trading features, the latest in agricultural technology, market solutions, and industry updates.
           </p>
         </div>
