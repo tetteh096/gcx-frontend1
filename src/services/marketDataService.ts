@@ -384,27 +384,13 @@ class MarketDataService {
          filteredData.sort((a, b) => new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime())
              
              const labels = filteredData.map(item => this.formatDateLabel(item.sessionDate, period))
-             let data = filteredData.map(item => parseFloat(item.closing))
+             const data = filteredData.map(item => parseFloat(item.closing))
              const high = filteredData.map(item => parseFloat(item.high))
              const low = filteredData.map(item => parseFloat(item.low))
              const open = filteredData.map(item => parseFloat(item.opening))
              const close = filteredData.map(item => parseFloat(item.closing))
              
-             // Check if data is too flat (all same values) and add realistic variation
-             const uniqueValues = new Set(data)
-             if (uniqueValues.size <= 2 && data.length > 5) {
-               const basePrice = data[0]
-               const volatility = basePrice * 0.03 // 3% volatility
-               
-               data = data.map((price, index) => {
-                 const trend = (Math.random() - 0.5) * volatility * 0.1 // Small trend
-                 const dailyVariation = (Math.random() - 0.5) * volatility * 0.2 // Daily variation
-                 const timeComponent = Math.sin(index * 0.1) * volatility * 0.1 // Cyclical component
-                 
-                 return Math.round((basePrice + trend + dailyVariation + timeComponent) * 100) / 100
-               })
-             }
-             
+             // Return actual data as-is from Firebase, no artificial variation
              return { labels, data, high, low, open, close }
            } catch (error) {
              throw error
