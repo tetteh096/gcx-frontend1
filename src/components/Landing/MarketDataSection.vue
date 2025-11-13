@@ -505,7 +505,9 @@ const refreshData = async () => {
 watch(globalMarketData, () => {
   updateMarketData()
   if (commodities.value.length > 0 && !selectedCommodity.value) {
-    selectedCommodity.value = commodities.value[0]
+    // Default to White Maize if available, otherwise first commodity
+    const whiteMaize = commodities.value.find(c => c.type === 'White Maize')
+    selectedCommodity.value = whiteMaize || commodities.value[0]
   }
 }, { immediate: true })
 
@@ -536,9 +538,10 @@ watch(selectedTimeRange, () => {
 onMounted(() => {
   updateMarketData()
   
-  // Set selected commodity to first one after loading
+  // Set selected commodity to White Maize if available, otherwise first one
   if (commodities.value.length > 0) {
-    selectedCommodity.value = commodities.value[0]
+    const whiteMaize = commodities.value.find(c => c.type === 'White Maize')
+    selectedCommodity.value = whiteMaize || commodities.value[0]
   }
 })
 
