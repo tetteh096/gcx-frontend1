@@ -547,7 +547,7 @@ onMounted(async () => {
 
       <!-- Top Performers -->
       <div class="rounded-xl border p-6 shadow-lg transition-all duration-200 hover:shadow-xl" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
-        <h3 class="text-lg font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Top Volume Performers</h3>
+        <h3 class="text-lg font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Top Performers</h3>
         <div class="space-y-3">
           <div
             v-for="(item, index) in topPerformers"

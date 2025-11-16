@@ -578,8 +578,8 @@ onUnmounted(() => {
       <!-- Quick Stats -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="p-4 rounded-xl border text-center transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
-          <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Volume</div>
-          <div class="text-xl font-bold text-green-500">₵2.4B</div>
+          <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Contracts</div>
+          <div class="text-xl font-bold text-green-500">{{ commodities.length }}</div>
         </div>
         <div class="p-4 rounded-xl border text-center transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
           <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Active Contracts</div>

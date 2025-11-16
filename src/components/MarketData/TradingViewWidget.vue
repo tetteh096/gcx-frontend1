@@ -32,7 +32,7 @@ onMounted(() => {
     "hide_side_toolbar": false,
     "hide_top_toolbar": false,
     "hide_legend": false,
-    "hide_volume": false,
+    "hide_volume": true,
     "hotlist": false,
     "interval": props.interval || "D",
     "locale": "en",

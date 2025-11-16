@@ -78,8 +78,7 @@ const generatePriceData = (days: number, basePrice: number = 2000) => {
       open: currentPrice - Math.random() * 20,
       high: currentPrice + Math.random() * 30,
       low: currentPrice - Math.random() * 30,
-      close: currentPrice,
-      volume: Math.floor(Math.random() * 1000) + 500
+      close: currentPrice
     })
   }
   
@@ -153,8 +152,7 @@ onMounted(() => {
       open: lastPrice.close,
       high: Math.max(lastPrice.close, newPrice),
       low: Math.min(lastPrice.close, newPrice),
-      close: newPrice,
-      volume: Math.floor(Math.random() * 1000) + 500
+      close: newPrice
     })
     
     // Keep only last 200 data points for better zoom experience
@@ -189,7 +187,7 @@ const tradingViewConfig = computed(() => ({
   hide_side_toolbar: false, // Show side toolbar for zoom controls
   hide_top_toolbar: false,
   hide_legend: false,
-  hide_volume: false,
+  hide_volume: true,
   hotlist: false,
   interval: timeFrame.value,
   locale: "en",
@@ -214,11 +212,11 @@ const tradingViewConfig = computed(() => ({
   container_id: `tradingview_chart_${props.symbol}`,
   // Add zoom controls
   toolbar_bg: isDarkMode.value ? "#1f2937" : "#ffffff",
-  enable_volume: true,
+  enable_volume: false,
   // Enable chart interactions
   studies_overrides: {},
-  disabled_features: [],
-  enabled_features: ["use_localstorage_for_settings", "volume_force_overlay"],
+  disabled_features: ["volume_force_overlay"],
+  enabled_features: ["use_localstorage_for_settings"],
   // Enable zoom and pan
   overrides: {
     "paneProperties.background": isDarkMode.value ? "#1f2937" : "#ffffff",
@@ -479,7 +477,7 @@ const chartOptions = computed(() => ({
      </div>
 
     <!-- Technical Indicators -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 gap-6">
       <!-- RSI Chart -->
       <div class="rounded-xl border p-6 shadow-lg transition-all duration-200 hover:shadow-xl" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
         <h4 class="text-lg font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">RSI (14)</h4>
@@ -507,28 +505,10 @@ const chartOptions = computed(() => ({
         </div>
       </div>
 
-      <!-- Volume Chart -->
-      <div class="rounded-xl border p-6 shadow-lg transition-all duration-200 hover:shadow-xl" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
-        <h4 class="text-lg font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Volume</h4>
-        <div class="h-40 relative">
-          <!-- Volume Chart Placeholder -->
-          <div class="w-full h-full flex items-end justify-between px-4">
-            <div 
-              v-for="(item, index) in priceData.slice(-20)" 
-              :key="index"
-              class="w-2 bg-gradient-to-t from-blue-500 to-blue-600 rounded-t opacity-80 shadow-md transition-all duration-200 hover:shadow-lg"
-              :style="{ height: `${Math.min(100, (item.volume / 1500) * 100)}%` }"
-            ></div>
-          </div>
-        </div>
-        <div class="text-xs mt-3 font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-          Average Volume: {{ Math.round(priceData.reduce((acc, item) => acc + item.volume, 0) / priceData.length) }} MT
-        </div>
-      </div>
     </div>
 
     <!-- Price Statistics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
       <div class="p-4 rounded-xl border text-center transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
         <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">24h High</div>
         <div class="text-xl font-bold text-green-500">
@@ -540,13 +520,6 @@ const chartOptions = computed(() => ({
         <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">24h Low</div>
         <div class="text-xl font-bold text-red-500">
           {{ Math.min(...priceData.slice(-24).map(d => d.low)).toFixed(2) }}
-        </div>
-      </div>
-      
-      <div class="p-4 rounded-xl border text-center transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
-        <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">24h Volume</div>
-        <div class="text-xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-          {{ priceData.slice(-24).reduce((acc, d) => acc + d.volume, 0).toLocaleString() }} MT
         </div>
       </div>
       
