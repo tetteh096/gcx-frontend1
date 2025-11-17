@@ -359,6 +359,7 @@ const isWideDropdown = (name: string) => name === 'About'
                             :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
                             :target="(dropdownItem as any).external ? '_blank' : undefined"
                             :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
+                            @click="closeDropdown"
                             class="group block p-3 rounded-lg transition-all duration-200 border"
                             :class="isDarkMode ? 'border-slate-700/60 hover:border-yellow-500/60 hover:bg-slate-800' : 'border-gray-200 hover:border-yellow-400 hover:bg-yellow-50/60'"
                           >
@@ -402,6 +403,7 @@ const isWideDropdown = (name: string) => name === 'About'
                             :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
                             :target="(dropdownItem as any).external ? '_blank' : undefined"
                             :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
+                            @click="closeDropdown"
                             class="group block p-2 rounded-lg transition-all duration-200"
                             :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
                           >
@@ -443,6 +445,7 @@ const isWideDropdown = (name: string) => name === 'About'
                             :href="(dropdownItem as any).external ? dropdownItem.href : undefined"
                             :target="(dropdownItem as any).external ? '_blank' : undefined"
                             :rel="(dropdownItem as any).external ? 'noopener noreferrer' : undefined"
+                            @click="closeDropdown"
                             class="group block p-2 rounded-lg transition-all duration-200"
                             :class="isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'"
                           >

@@ -330,16 +330,16 @@ onBeforeUnmount(() => {
                   <!-- CTA Buttons -->
                   <div class="flex flex-col sm:flex-row gap-4 mb-12">
                     <RouterLink
-                      to="/resources"
+                      to="/market-data"
                       class="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg"
                     >
-                      Download Resources
+                      View Market Data
                     </RouterLink>
                     <RouterLink
-                      to="/contact"
+                      to="/membership"
                       class="inline-flex items-center justify-center border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all"
                     >
-                      Contact GCX
+                      Membership Options
                     </RouterLink>
                   </div>
                 </div>
