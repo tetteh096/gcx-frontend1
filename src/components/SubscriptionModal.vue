@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="subscription-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click="closeModal">
+  <div v-if="isOpen" class="subscription-modal fixed inset-0 bg-blue-900 bg-opacity-40 flex items-center justify-center z-50" @click="closeModal">
     <div class="modal-content rounded-2xl shadow-2xl w-11/12 max-w-4xl h-5/6 flex flex-col transform transition-all duration-300 ease-out" 
          :class="isDarkMode ? 'bg-slate-800' : 'bg-white'"
          @click.stop>
@@ -47,7 +47,7 @@
                 <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-                <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Historical data download (2 years)</span>
+                <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Historical data download (1 year)</span>
               </li>
               <li class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +111,7 @@
                 <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-                <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Complete historical data</span>
+                <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Historical data (3 years)</span>
               </li>
               <li class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,13 +170,13 @@
                   <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Live market data</span>
+                  <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Historical data (3 years)</span>
                 </li>
                 <li class="flex items-center gap-3">
                   <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Complete historical data</span>
+                  <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-gray-700'">Historical data (3 years)</span>
                 </li>
                 <li class="flex items-center gap-3">
                   <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,14 +273,14 @@ const closeModal = () => {
 }
 
 const redirectToMarketData = () => {
-  // Redirect to the market data app (localhost:3000 for now)
-  window.open('http://localhost:3000', '_blank')
+  // Redirect to the production market data app
+  window.open('https://gcx-marketdata-teg2.vercel.app', '_blank')
 }
 </script>
 
 <style scoped>
 .subscription-modal {
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
 }
 
 .modal-content {
