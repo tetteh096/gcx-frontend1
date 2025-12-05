@@ -177,16 +177,16 @@ const ctaSubtitle = computed(() => ctaContent.value?.main_subtitle || staticCtaC
     <!-- 7. Commodities Carousel Section -->
     <CommoditiesCarousel />
     
-    <!-- 8. Partners Section -->
+    <!-- 9. Partners Section -->
     <PartnersSection />
     
-    <!-- 9. News & Insights Section -->
+    <!-- 10. News & Insights Section -->
     <NewsInsightsSection />
     
-    <!-- 10. Upcoming Events Section -->
+    <!-- 11. Upcoming Events Section -->
     <EventsSection />
      
-     <!-- 11. CTA Section -->
+     <!-- 12. CTA Section -->
     <section 
       class="py-12 bg-gradient-to-r from-yellow-500 to-yellow-600"
     >

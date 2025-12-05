@@ -23,6 +23,7 @@ import GalleryView from '../views/GalleryView.vue'
 import LoginView from '../views/LoginView.vue'
 import CMSView from '../views/CMSView.vue'
 import SearchView from '../views/SearchView.vue'
+import USSDRegisterView from '../views/USSDRegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -142,6 +143,11 @@ const router = createRouter({
       path: '/search',
       name: 'search',
       component: SearchView
+    },
+    {
+      path: '/ussd-register',
+      name: 'ussd-register',
+      component: USSDRegisterView
     },
     {
       path: '/cms',
