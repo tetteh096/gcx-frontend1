@@ -13,6 +13,7 @@ import MembershipApplicationView from '../views/MembershipApplicationView.vue'
 import MarketDataView from '../views/MarketDataView.vue'
 import ResourcesView from '../views/ResourcesView.vue'
 import CareersView from '../views/CareersView.vue'
+import JobFunctionAreaView from '../views/JobFunctionAreaView.vue'
 import CommoditiesView from '../views/CommoditiesView.vue'
 import VideosView from '../views/VideosView.vue'
 import RTIView from '../views/RTIView.vue'
@@ -98,6 +99,11 @@ const router = createRouter({
       path: '/careers',
       name: 'careers',
       component: CareersView
+    },
+    {
+      path: '/careers/functional-areas',
+      name: 'job-function-areas',
+      component: JobFunctionAreaView
     },
     {
       path: '/commodities',

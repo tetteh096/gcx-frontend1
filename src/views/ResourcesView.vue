@@ -98,6 +98,19 @@ const currentData = computed(() => {
 const filteredData = computed(() => {
   let data = currentData.value
 
+  // Filter by active tab (for publications)
+  if (activeTab.value === 'research' || activeTab.value === 'annual' || activeTab.value === 'policy') {
+    const categoryMap = {
+      'research': 'Research Papers',
+      'annual': 'Annual Reports',
+      'policy': 'Policy Documents'
+    }
+    const category = categoryMap[activeTab.value]
+    if (category) {
+      data = data.filter(item => item.category === category)
+    }
+  }
+
   // Filter by search query
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
@@ -108,7 +121,7 @@ const filteredData = computed(() => {
     )
   }
 
-  // Filter by category
+  // Filter by selected category (from dropdown)
   if (selectedCategory.value) {
     data = data.filter(item => item.category === selectedCategory.value)
   }
@@ -252,6 +265,10 @@ const navigateToTab = async (tab: string) => {
   activeTab.value = tab
   router.replace({ path: '/resources', hash: tab })
   
+  // Clear search and category filters when switching tabs
+  searchQuery.value = ''
+  selectedCategory.value = ''
+  
   // Fetch data based on tab
   switch (tab) {
     case 'research':
@@ -368,28 +385,31 @@ watch(() => route.hash, async (newHash) => {
       </div>
     </section>
 
-    <!-- Navigation Tabs - Hidden -->
-    <!-- <section class="py-8 px-4 sm:px-6 lg:px-8 backdrop-blur-sm transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800/80 border-b border-slate-700' : 'bg-white/80 border-b border-gray-200'">
-      <div class="max-w-7xl mx-auto">
-        <div class="flex flex-wrap justify-center gap-4">
-            <button
+    <!-- Navigation Tabs -->
+    <section class="py-8 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap justify-center items-center gap-2 lg:gap-4">
+          <button
             v-for="tab in publicationsTabs"
-              :key="tab.key"
-              @click="navigateToTab(tab.key)"
-            :class="[
-              'px-6 py-3 rounded-lg font-medium transition-all duration-200',
-              activeTab === tab.key
-                ? 'bg-blue-600 text-white shadow-lg'
-                : isDarkMode 
-                  ? 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                  : 'bg-white text-gray-700 hover:bg-blue-50'
-            ]"
-            >
+            :key="tab.key"
+            @click="navigateToTab(tab.key)"
+            class="group relative px-6 py-3 text-sm font-medium rounded-full transition-all duration-300"
+            :class="activeTab === tab.key 
+              ? (isDarkMode ? 'bg-yellow-500 text-black shadow-lg' : 'bg-yellow-500 text-white shadow-lg')
+              : (isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')"
+          >
+            {{ tab.label }}
+            <!-- Tooltip -->
+            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap"
+                 :class="isDarkMode ? 'bg-slate-700 text-slate-200' : 'bg-slate-800 text-white'">
               {{ tab.label }}
-            </button>
-          </div>
+              <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent"
+                   :class="isDarkMode ? 'border-t-slate-700' : 'border-t-slate-800'"></div>
+            </div>
+          </button>
+        </div>
       </div>
-    </section> -->
+    </section>
 
     <!-- Search and Filter Section -->
     <section class="py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-gray-50'">

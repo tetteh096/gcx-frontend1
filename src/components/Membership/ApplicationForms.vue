@@ -53,7 +53,7 @@ import { isDarkMode } from '../../utils/darkMode'
         </div>
 
         <div class="flex gap-3 mt-6">
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSeFA5YdSDTANSGENwA84-MXvQWGpmBv8anlL4VMMphJCj83fA/viewform" target="_blank" 
+          <a href="https://apps.gcx.com.gh/membership/" target="_blank" 
              class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
              :class="isDarkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@ import { isDarkMode } from '../../utils/darkMode'
         </div>
 
         <div class="flex gap-3 mt-6">
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSfgZz0k59swRgWT0GCMVKQFO0S219BGKhJAHfW7dQO0HlJVXg/viewform" target="_blank"
+          <a href="https://apps.gcx.com.gh/membership/" target="_blank"
              class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
              :class="isDarkMode ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-green-600 text-white'">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,10 +210,15 @@ import { isDarkMode } from '../../utils/darkMode'
         </div>
 
         <div class="mt-6">
-          <div class="text-center py-4 px-4 rounded-lg" :class="isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-slate-50 border border-slate-200'">
-            <p class="text-sm font-medium" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Contact GCX for application details</p>
-            <p class="text-xs mt-1" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Special application process applies</p>
-          </div>
+          <a href="http://104.236.10.13" target="_blank" rel="noopener noreferrer"
+             class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105"
+             :class="isDarkMode ? 'bg-orange-600 hover:bg-orange-500 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+            Apply as Supplier
+          </a>
+          <p class="text-xs mt-3 text-center" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Special application process applies</p>
         </div>
       </div>
 

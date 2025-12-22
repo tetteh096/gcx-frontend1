@@ -32,8 +32,7 @@ const isSliderOpen = ref(false)
 // Career categories
 const careerCategories = [
   'Job Openings',
-  'Internship', 
-  'Job Functional Areas'
+  'Internship'
 ]
 
 // Departments

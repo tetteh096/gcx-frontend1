@@ -140,8 +140,7 @@ const navigation = computed(() => [
         title: 'Career Opportunities',
         items: [
           { name: 'Job Openings', href: '/careers#openings', description: 'Current career opportunities at GCX' },
-          { name: 'Internship Programs', href: '/careers#internship', description: 'Student internship and training programs' },
-          { name: 'Functional Areas', href: '/careers#functional', description: 'Available job functions and departments' }
+          { name: 'Functional Areas', href: '/careers/functional-areas', description: 'Available job functions and departments' }
         ]
       }
     ]

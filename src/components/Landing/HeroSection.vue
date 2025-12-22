@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
                       to="/membership"
                       class="inline-flex items-center justify-center border-2 border-white/30 hover:border-white/60 text-white font-semibold py-4 px-8 rounded-xl transition-all"
                     >
-                      Membership Options
+                      Become a Member
                     </RouterLink>
                   </div>
 
@@ -289,7 +289,7 @@ onBeforeUnmount(() => {
                       </div>
                       
                       <a
-                        href="https://application.gcx.com.gh/shs-feeding" 
+                        href="http://104.236.10.13" 
                         target="_blank"
                         rel="noopener noreferrer"
                         class="relative z-50 w-full inline-flex items-center justify-center bg-green-500 hover:bg-green-400 text-white font-bold py-5 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg text-lg cursor-pointer"
@@ -337,7 +337,7 @@ onBeforeUnmount(() => {
                   </div>
                   
                   <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-                    Trade Anywhere
+                    Trade Anywhere with Our
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
                       USSD App
                     </span>
