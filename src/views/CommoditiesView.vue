@@ -123,14 +123,8 @@ onMounted(() => {
     <!-- Hero Section -->
     <section class="relative py-20 lg:py-32 overflow-hidden">
       <div class="absolute inset-0">
-        <img src="/Picture3.png" alt="Commodities Background" class="w-full h-full object-cover" />
-        <div class="absolute inset-0 bg-gradient-to-br from-green-900/80 via-slate-800/70 to-yellow-900/90"></div>
-      </div>
-      
-      <!-- Floating Elements -->
-      <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-40 -right-40 w-80 h-80 bg-yellow-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-green-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <img src="/USSD/commodity.jpg" alt="Commodities Background" class="w-full h-full object-cover" />
+        <div class="absolute inset-0 bg-black/70"></div>
       </div>
       
       <div class="relative max-w-7xl mx-auto px-4 text-center">
