@@ -149,11 +149,11 @@ onMounted(() => {
       @mouseleave="resumeTicker"
     >
       <!-- News Content -->
-      <div class="flex items-center py-3 px-4">
+      <div class="flex items-center py-2 md:py-3 px-2 md:px-4">
         <!-- News Icon -->
-        <div class="flex-shrink-0 mr-4">
-          <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-            <NewspaperIcon class="h-5 w-5 text-black" />
+        <div class="flex-shrink-0 mr-2 md:mr-4">
+          <div class="w-6 h-6 md:w-8 md:h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+            <NewspaperIcon class="h-4 w-4 md:h-5 md:w-5 text-black" />
           </div>
         </div>
 
@@ -174,7 +174,7 @@ onMounted(() => {
         <!-- Scrolling News Items -->
         <div v-else-if="newsItems.length > 0" class="flex-1 overflow-hidden">
           <div 
-            class="flex items-center py-1 px-4 space-x-6 news-ticker-scroll"
+            class="flex items-center py-1 px-2 md:px-4 space-x-4 md:space-x-6 news-ticker-scroll"
             :class="{ 'news-ticker-paused': isPaused }"
             @mouseenter="pauseTicker"
             @mouseleave="resumeTicker"
@@ -183,13 +183,13 @@ onMounted(() => {
             <div 
               v-for="(item, index) in newsItems" 
               :key="`first-${item.id}-${index}`"
-              class="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
+              class="flex items-center space-x-2 md:space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
               @click="handleNewsClick(item)"
             >
               <!-- Breaking News Badge -->
               <div 
                 v-if="item.is_breaking"
-                class="flex-shrink-0 px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-full animate-pulse"
+                class="flex-shrink-0 px-2 py-1 md:px-4 md:py-2 bg-red-500 text-white text-xs md:text-sm font-bold rounded-full animate-pulse"
               >
                 BREAKING
               </div>
@@ -198,36 +198,36 @@ onMounted(() => {
               <div 
                 v-if="item.category"
                 :class="getCategoryColor(item.category)"
-                class="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full"
+                class="flex-shrink-0 px-2 py-1 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full"
               >
                 {{ item.category.toUpperCase() }}
               </div>
 
               <!-- Full News Content -->
-              <div class="flex-shrink-0 flex items-center space-x-3">
-                <span class="text-white font-semibold text-base">
+              <div class="flex-shrink-0 flex items-center space-x-2 md:space-x-3">
+                <span class="text-white font-semibold text-xs md:text-base whitespace-nowrap">
                   <strong>{{ item.title }}</strong>
-                  <span v-if="item.content" class="text-gray-200 ml-3 text-base">
+                  <span v-if="item.content" class="text-gray-200 ml-2 md:ml-3 text-xs md:text-base">
                     - {{ item.content }}
                   </span>
                 </span>
               </div>
 
               <!-- Divider -->
-              <div class="flex-shrink-0 text-yellow-500 text-3xl font-bold">•</div>
+              <div class="flex-shrink-0 text-yellow-500 text-xl md:text-3xl font-bold">•</div>
             </div>
 
             <!-- Duplicate set for seamless loop -->
             <div 
               v-for="(item, index) in newsItems" 
               :key="`duplicate-${item.id}-${index}`"
-              class="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
+              class="flex items-center space-x-2 md:space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
               @click="handleNewsClick(item)"
             >
               <!-- Breaking News Badge -->
               <div 
                 v-if="item.is_breaking"
-                class="flex-shrink-0 px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-full animate-pulse"
+                class="flex-shrink-0 px-2 py-1 md:px-4 md:py-2 bg-red-500 text-white text-xs md:text-sm font-bold rounded-full animate-pulse"
               >
                 BREAKING
               </div>
@@ -236,36 +236,36 @@ onMounted(() => {
               <div 
                 v-if="item.category"
                 :class="getCategoryColor(item.category)"
-                class="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full"
+                class="flex-shrink-0 px-2 py-1 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full"
               >
                 {{ item.category.toUpperCase() }}
               </div>
 
               <!-- Full News Content -->
-              <div class="flex-shrink-0 flex items-center space-x-3">
-                <span class="text-white font-semibold text-base">
+              <div class="flex-shrink-0 flex items-center space-x-2 md:space-x-3">
+                <span class="text-white font-semibold text-xs md:text-base whitespace-nowrap">
                   <strong>{{ item.title }}</strong>
-                  <span v-if="item.content" class="text-gray-200 ml-3 text-base">
+                  <span v-if="item.content" class="text-gray-200 ml-2 md:ml-3 text-xs md:text-base">
                     - {{ item.content }}
                   </span>
                 </span>
               </div>
 
               <!-- Divider -->
-              <div class="flex-shrink-0 text-yellow-500 text-3xl font-bold">•</div>
+              <div class="flex-shrink-0 text-yellow-500 text-xl md:text-3xl font-bold">•</div>
             </div>
 
             <!-- Third set for even more seamless loop -->
             <div 
               v-for="(item, index) in newsItems" 
               :key="`triplicate-${item.id}-${index}`"
-              class="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
+              class="flex items-center space-x-2 md:space-x-4 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
               @click="handleNewsClick(item)"
             >
               <!-- Breaking News Badge -->
               <div 
                 v-if="item.is_breaking"
-                class="flex-shrink-0 px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-full animate-pulse"
+                class="flex-shrink-0 px-2 py-1 md:px-4 md:py-2 bg-red-500 text-white text-xs md:text-sm font-bold rounded-full animate-pulse"
               >
                 BREAKING
               </div>
@@ -274,23 +274,23 @@ onMounted(() => {
               <div 
                 v-if="item.category"
                 :class="getCategoryColor(item.category)"
-                class="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full"
+                class="flex-shrink-0 px-2 py-1 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full"
               >
                 {{ item.category.toUpperCase() }}
               </div>
 
               <!-- Full News Content -->
-              <div class="flex-shrink-0 flex items-center space-x-3">
-                <span class="text-white font-semibold text-base">
+              <div class="flex-shrink-0 flex items-center space-x-2 md:space-x-3">
+                <span class="text-white font-semibold text-xs md:text-base whitespace-nowrap">
                   <strong>{{ item.title }}</strong>
-                  <span v-if="item.content" class="text-gray-200 ml-3 text-base">
+                  <span v-if="item.content" class="text-gray-200 ml-2 md:ml-3 text-xs md:text-base">
                     - {{ item.content }}
                   </span>
                 </span>
               </div>
 
               <!-- Divider -->
-              <div class="flex-shrink-0 text-yellow-500 text-3xl font-bold">•</div>
+              <div class="flex-shrink-0 text-yellow-500 text-xl md:text-3xl font-bold">•</div>
             </div>
           </div>
         </div>
@@ -380,11 +380,20 @@ onMounted(() => {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .space-x-6 {
-    column-gap: 1rem;
+    column-gap: 0.75rem;
   }
   
   .space-x-4 {
     column-gap: 0.5rem;
   }
+  
+  .news-ticker-scroll {
+    animation-duration: 180s;
+  }
+}
+
+/* Ensure ticker doesn't get cut off vertically */
+.flex-1 {
+  min-height: 24px;
 }
 </style>
