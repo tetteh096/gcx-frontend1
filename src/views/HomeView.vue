@@ -37,7 +37,7 @@ const staticWhyJoinContent = {
   card2_description: 'As a member, you gain access to a wide range of market actors (buyers and sellers) thereby creating opportunities for you to increase your revenue stream in a simplified manner, and without risk.',
   card2_image: '/crop.jpg',
   card3_title: 'Benefits to Society',
-  card3_description: 'Apart from job creation, agricultural economic transformation will occur through the myriad of opportunities for value chain actors to achieve high levels of sustainable and equitable growth, from farmers who receive a premium on quality grains to traders who are guaranteed the right quality, with cash and contract settlement within a few days.',
+  card3_description: 'GCX drives agricultural economic transformation by creating sustainable opportunities across the value chain. Farmers receive fair prices for quality grains, traders gain access to reliable, certified commodities, and communities benefit from enhanced market efficiency, job creation, and accelerated economic development through transparent, efficient trading.',
   card3_image: '/trading.jpg'
 }
 

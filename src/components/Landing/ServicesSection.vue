@@ -93,7 +93,7 @@ const toggleService = (index: number) => {
           <!-- Floating Stats Card -->
           <div class="absolute -bottom-4 -left-4 rounded-lg p-4 shadow-xl border transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-100'">
             <div class="text-center">
-              <div class="text-2xl font-bold text-green-600 mb-1">5</div>
+              <div class="text-2xl font-bold text-green-600 mb-1">6</div>
               <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Active Commodities</div>
             </div>
           </div>

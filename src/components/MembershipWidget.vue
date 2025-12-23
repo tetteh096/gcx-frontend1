@@ -152,16 +152,16 @@ const navigateToApplication = () => {
           <!-- Quick Stats -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             <div class="text-center">
-              <div class="text-3xl font-bold text-black">500+</div>
-              <div class="text-sm text-black/70">{{ t('pages.home.statistics.activeMembers') }}</div>
+              <div class="text-3xl font-bold text-black">9</div>
+              <div class="text-sm text-black/70">Warehouse Network</div>
             </div>
             <div class="text-center">
-              <div class="text-3xl font-bold text-black">₵2.4B+</div>
-              <div class="text-sm text-black/70">Trading Volume</div>
+              <div class="text-3xl font-bold text-black">6</div>
+              <div class="text-sm text-black/70">Active Commodities</div>
             </div>
             <div class="text-center">
-              <div class="text-3xl font-bold text-black">24/7</div>
-              <div class="text-sm text-black/70">Market Access</div>
+              <div class="text-3xl font-bold text-black">T+1</div>
+              <div class="text-sm text-black/70">Settlement Cycle</div>
             </div>
           </div>
         </div>

@@ -19,10 +19,8 @@ const heroHeight = computed(() => {
 
 // Market stats
 const marketStats = ref([
-  { label: 'Value Settled', value: '₵2B+', description: 'Contracts cleared since launch' },
   { label: 'Warehouse Network', value: '9', description: 'Certified storage sites nationwide' },
-  { label: 'Delivery Centres', value: '8+', description: 'Strategic hubs across Ghana' },
-  { label: 'Active Commodities', value: '5', description: 'Maize, Rice, Soya, Sorghum, Sesame' }
+  { label: 'Active Commodities', value: '6', description: 'Trading across Ghana' }
 ])
 
 // Commodity snapshot (T+1 indicative)
@@ -34,10 +32,6 @@ const commodityPrices = ref([
   { symbol: 'GARRC2', name: 'Rice', deliveryCentre: 'Tamale' },
   { symbol: 'GSESM2', name: 'Sesame', deliveryCentre: 'Tamale' }
 ])
-
-// Animated counter
-const animatedValue = ref(0)
-const targetValue = 2000000000 // 2.0B+
 
 // Slider functionality
 const currentSlide = ref(0)
@@ -79,25 +73,7 @@ const handleMouseLeave = () => {
   startSlideShow()
 }
 
-const formatNumber = (num: number) => {
-  if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B'
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-  return num.toString()
-}
-
 onMounted(() => {
-  // Animate the main counter
-  const duration = 2000
-  const increment = targetValue / (duration / 16)
-  const timer = setInterval(() => {
-    animatedValue.value += increment
-    if (animatedValue.value >= targetValue) {
-      animatedValue.value = targetValue
-      clearInterval(timer)
-    }
-  }, 16)
-  
   // Start slider
   startSlideShow()
 })
@@ -159,12 +135,12 @@ onBeforeUnmount(() => {
             <!-- Mobile Stats Row -->
             <div class="grid grid-cols-2 gap-4 px-4">
               <div class="bg-white/10 backdrop-blur rounded-lg p-3 text-center">
-                <div class="text-xl font-bold text-yellow-400">₵{{ formatNumber(animatedValue) }}</div>
-                <div class="text-slate-400 text-xs mt-1">Value Settled</div>
+                <div class="text-xl font-bold text-blue-400">9</div>
+                <div class="text-slate-400 text-xs mt-1">Warehouse Network</div>
               </div>
               <div class="bg-white/10 backdrop-blur rounded-lg p-3 text-center">
-                <div class="text-xl font-bold text-green-400">9</div>
-                <div class="text-slate-400 text-xs mt-1">Warehouses</div>
+                <div class="text-xl font-bold text-green-400">6</div>
+                <div class="text-slate-400 text-xs mt-1">Active Commodities</div>
               </div>
             </div>
           </div>
@@ -205,16 +181,17 @@ onBeforeUnmount(() => {
                     </RouterLink>
                   </div>
 
-                  <!-- Animated Stats -->
+                  <!-- Verified Stats -->
                   <div class="grid grid-cols-2 gap-6">
                     <div class="text-left">
-                      <div class="text-2xl lg:text-3xl font-bold text-yellow-400">₵{{ formatNumber(animatedValue) }}</div>
-                      <div class="text-slate-400 text-sm">{{ t('pages.home.statistics.tradingVolume') }}</div>
+                      <div class="text-lg lg:text-2xl font-semibold text-slate-300 uppercase tracking-wide">Warehouse Network</div>
+                      <div class="text-2xl lg:text-3xl font-bold text-blue-400 mt-2">9</div>
+                      <div class="text-slate-400 text-sm mt-1">Certified storage sites nationwide</div>
                     </div>
                     <div class="text-left">
-                      <div class="text-lg lg:text-2xl font-semibold text-slate-300 uppercase tracking-wide">Warehouse Network</div>
-                      <div class="text-2xl lg:text-3xl font-bold text-green-400 mt-2">Nine (9)</div>
-                      <div class="text-slate-400 text-sm mt-1">Certified locations nationwide</div>
+                      <div class="text-lg lg:text-2xl font-semibold text-slate-300 uppercase tracking-wide">Active Commodities</div>
+                      <div class="text-2xl lg:text-3xl font-bold text-green-400 mt-2">6</div>
+                      <div class="text-slate-400 text-sm mt-1">Trading across Ghana</div>
                     </div>
                   </div>
                 </div>

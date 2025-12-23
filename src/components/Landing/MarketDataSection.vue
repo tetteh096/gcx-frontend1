@@ -587,20 +587,20 @@ onUnmounted(() => {
         </div>
         <div class="p-4 rounded-xl border text-center transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
           <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Commodities</div>
-          <div class="text-xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ commodityTabs.length }}</div>
+          <div class="text-xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">6</div>
         </div>
         <div class="p-4 rounded-xl border text-center transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
-          <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Market Status</div>
-          <div class="text-xl font-bold text-green-500">OPEN</div>
+          <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Market Hours</div>
+          <div class="text-xl font-bold text-green-500">8AM - 4PM GMT</div>
         </div>
       </div>
 
       <!-- Trading Interface -->
-      <div class="bg-white rounded-2xl shadow-2xl overflow-hidden" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
+      <div class="bg-white rounded-2xl shadow-2xl overflow-visible relative z-10" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 relative z-10">
           <!-- Left Panel - Commodity List -->
-          <div class="p-6" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">
+          <div class="p-6" :class="isDarkMode ? 'bg-slate-800' : 'bg-white'">`
 
             <!-- Commodity Type Tabs -->
             <div v-if="!isLoading && !error && commodities.length > 0" class="mb-6">
@@ -660,7 +660,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Commodity List -->
-            <div v-else-if="commodities.length > 0" class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+            <div v-else-if="commodities.length > 0" class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
               <div
                 v-for="(commodity, index) in filteredCommodities"
                 :key="`commodity-${commodity.symbol}-${index}`"
@@ -705,6 +705,9 @@ onUnmounted(() => {
                       <span :class="getPriceChangeClass(commodity.priceChange)">
                         {{ commodity.priceChange > 0 ? '+' : '' }}{{ commodity.priceChange.toFixed(2) }}
                       </span>
+                    </div>
+                    <div v-if="commodity.lastUpdate" class="text-xs mt-1" :class="isDarkMode ? 'text-slate-500' : 'text-slate-400'">
+                      {{ commodity.lastUpdate }}
                     </div>
                   </div>
                 </div>
@@ -925,40 +928,3 @@ onUnmounted(() => {
   background: #64748b;
 }
 </style>
-
-    selectedCommodity.value = commodities.value[0]
-
-  }
-
-})
-
-
-
-// Watch for tab changes and update selected commodity
-
-const selectFirstCommodityInTab = () => {
-
-  if (filteredCommodities.value.length > 0) {
-
-    selectedCommodity.value = filteredCommodities.value[0]
-
-  }
-
-}
-
-
-
-// Watch for tab changes
-
-watch(selectedTab, () => {
-
-  selectFirstCommodityInTab()
-
-})
-
-
-
-onUnmounted(() => {
-
-  // No cleanup needed - global system handles it
-})
