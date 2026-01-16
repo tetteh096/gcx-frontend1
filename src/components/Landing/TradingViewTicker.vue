@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 import { useTickerVisibility } from '../../composables/useTickerVisibility'
@@ -15,6 +15,7 @@ interface TickerCommodity {
   volume: string
   avatar: string
   color: string
+  lastTradeDate: string
 }
 
 // Real GCX commodity data with custom avatars
@@ -62,6 +63,9 @@ const convertToTickerFormat = (data: ProcessedMarketData[]): TickerCommodity[] =
   return selectedData.map(item => {
     const avatarInfo = commodityAvatars[item.Commodity] || getDefaultAvatar(item.Commodity)
     
+    // Format the last trade date for this commodity
+    const formattedDate = formatTradeDate(item.LastTradeDate)
+    
     return {
       symbol: item.Symbol,
       name: item.Commodity,
@@ -70,7 +74,8 @@ const convertToTickerFormat = (data: ProcessedMarketData[]): TickerCommodity[] =
       changePercent: item.priceChangePercent || 0,
       volume: formatVolume(item.Symbol),
       avatar: avatarInfo.avatar,
-      color: avatarInfo.color
+      color: avatarInfo.color,
+      lastTradeDate: formattedDate
     }
   })
 }
@@ -89,6 +94,78 @@ const formatVolume = (symbol: string): string => {
   }
   
   return baseVolumes[symbol] || '500K MT'
+}
+
+// Helper function to parse dates more robustly
+const parseDate = (dateString: string): Date | null => {
+  if (!dateString || dateString.trim() === '') return null
+  
+  // Try parsing as ISO string first
+  let date = new Date(dateString)
+  if (!isNaN(date.getTime())) {
+    return date
+  }
+  
+  // Try different formats
+  const dateStr = String(dateString).trim()
+  
+  // Try YYYY-MM-DD format
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+    date = new Date(dateStr)
+    if (!isNaN(date.getTime())) return date
+  }
+  
+  // Try DD/MM/YYYY or MM/DD/YYYY
+  if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+    const parts = dateStr.split('/')
+    if (parts.length === 3) {
+      // Try MM/DD/YYYY first
+      date = new Date(`${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+      // Try DD/MM/YYYY
+      date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+    }
+  }
+  
+  // Try DD-MM-YYYY or MM-DD-YYYY
+  if (dateStr.match(/^\d{1,2}-\d{1,2}-\d{4}/)) {
+    const parts = dateStr.split('-')
+    if (parts.length === 3) {
+      // Try MM-DD-YYYY first
+      date = new Date(`${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+      // Try DD-MM-YYYY
+      date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+    }
+  }
+  
+  return null
+}
+
+// Format a single trade date
+const formatTradeDate = (dateString: string): string => {
+  try {
+    if (!dateString || dateString.trim() === '') {
+      return ''
+    }
+    
+    const date = parseDate(dateString)
+    if (!date) {
+      return ''
+    }
+    
+    // Format as "DD MMM YYYY"
+    return date.toLocaleDateString('en-GH', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+  } catch (error) {
+    console.error('Error formatting trade date:', error)
+    return ''
+  }
 }
 
 // Convert global market data to ticker format
@@ -127,9 +204,15 @@ const resumeScrolling = () => {
 
 // Get change color class
 const getChangeColor = (change: number) => {
-  if (change > 0) return 'text-green-500'
-  if (change < 0) return 'text-red-500'
-  return 'text-slate-500'
+  if (isDarkMode.value) {
+    if (change > 0) return 'text-green-400 bg-green-900/30'
+    if (change < 0) return 'text-red-400 bg-red-900/30'
+    return 'text-slate-400 bg-slate-800/30'
+  } else {
+    if (change > 0) return 'text-green-700 bg-green-50'
+    if (change < 0) return 'text-red-700 bg-red-50'
+    return 'text-slate-600 bg-slate-100'
+  }
 }
 
 // Get change icon
@@ -156,19 +239,21 @@ onMounted(() => {
 
 <template>
   <div 
-    class="fixed left-0 right-0 z-50 transition-all duration-500 ease-in-out" 
+    class="fixed left-0 right-0 z-[60] transition-all duration-500 ease-in-out shadow-lg" 
     :class="[
-      isVisible ? 'top-0' : '-top-12',
-      isDarkMode ? 'bg-slate-900 border-b border-slate-700' : 'bg-white border-b border-slate-200'
+      isVisible ? 'top-0' : '-top-14',
+      isDarkMode 
+        ? 'bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 border-b border-slate-700/50' 
+        : 'bg-gradient-to-r from-white via-slate-50 to-white border-b border-slate-200/50'
     ]"
   >
     <!-- Custom Commodity Ticker -->
-    <div class="relative overflow-hidden h-10 md:h-12">
+    <div class="relative overflow-hidden h-14 md:h-14">
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center h-full px-4">
         <div class="flex items-center space-x-2">
-          <div class="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
-          <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+          <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+          <span class="text-xs" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
             Loading market data...
           </span>
         </div>
@@ -177,8 +262,8 @@ onMounted(() => {
       <!-- Error State -->
       <div v-else-if="error" class="flex items-center h-full px-4">
         <div class="flex items-center space-x-2">
-          <div class="w-4 h-4 bg-red-500 rounded-full"></div>
-          <span class="text-sm" :class="isDarkMode ? 'text-red-300' : 'text-red-600'">
+          <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+          <span class="text-xs" :class="isDarkMode ? 'text-red-300' : 'text-red-600'">
             {{ error }}
           </span>
         </div>
@@ -187,7 +272,7 @@ onMounted(() => {
       <!-- Ticker Container -->
       <div 
         v-else-if="commodities.length > 0"
-        class="flex items-center py-1 px-4 space-x-4 md:space-x-6 ticker-scroll h-full"
+        class="flex items-center py-1.5 px-4 space-x-3 md:space-x-4 ticker-scroll h-full"
         :class="{ 'ticker-paused': isPaused }"
         @mouseenter="pauseScrolling"
         @mouseleave="resumeScrolling"
@@ -196,31 +281,39 @@ onMounted(() => {
         <div 
           v-for="commodity in commodities" 
           :key="commodity.symbol"
-          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-1.5 py-0.5"
-          :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'"
+          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-2 py-1 border backdrop-blur-sm"
+          :class="isDarkMode 
+            ? 'hover:bg-slate-800/80 border-slate-700/50 bg-slate-900/50' 
+            : 'hover:bg-slate-50/80 border-slate-200/50 bg-white/50'"
         >
           <!-- Commodity Avatar -->
-          <div class="w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
+          <div class="w-5 h-5 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md ring-1 ring-white/20" :class="commodity.color">
             {{ commodity.avatar }}
           </div>
           
           <!-- Commodity Info -->
-          <div class="flex flex-col">
-            <div class="flex items-center space-x-1">
-              <span class="font-bold text-xs md:text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          <div class="flex flex-col min-w-[100px]">
+            <div class="flex items-center space-x-1 mb-0.5">
+              <span class="font-bold text-[10px] md:text-xs leading-tight" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ commodity.name }}
               </span>
-              <span class="text-xs font-mono hidden md:inline" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                ({{ commodity.symbol }})
+              <span class="text-[9px] font-mono hidden md:inline px-1 py-0.5 rounded bg-slate-200/50" :class="isDarkMode ? 'text-slate-300 bg-slate-800/50' : 'text-slate-600'">
+                {{ commodity.symbol }}
               </span>
             </div>
-            <div class="flex items-center space-x-1">
-              <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            <div class="flex items-center space-x-1.5">
+              <span class="font-bold text-xs md:text-sm" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ formatPrice(commodity.price) }}
               </span>
-              <span class="text-xs font-medium" :class="getChangeColor(commodity.change)">
-                {{ getChangeIcon(commodity.change) }} {{ commodity.change > 0 ? '+' : '' }}{{ commodity.changePercent.toFixed(2) }}%
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-0.5" :class="getChangeColor(commodity.change)">
+                <span>{{ getChangeIcon(commodity.change) }}</span>
+                <span>{{ commodity.change > 0 ? '+' : '' }}{{ commodity.changePercent.toFixed(2) }}%</span>
               </span>
+            </div>
+            <div v-if="commodity.lastTradeDate" class="text-[8px] mt-0.5 font-medium leading-tight whitespace-nowrap flex items-center gap-0.5" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <span class="w-1 h-1 rounded-full animate-pulse" :class="isDarkMode ? 'bg-green-400' : 'bg-green-500'"></span>
+              <span class="text-[8px]">As at</span>
+              <span class="font-semibold text-[8px]">{{ commodity.lastTradeDate }}</span>
             </div>
           </div>
         </div>
@@ -229,31 +322,39 @@ onMounted(() => {
         <div 
           v-for="commodity in commodities" 
           :key="`duplicate-${commodity.symbol}`"
-          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-1.5 py-0.5"
-          :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'"
+          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-2 py-1 border backdrop-blur-sm"
+          :class="isDarkMode 
+            ? 'hover:bg-slate-800/80 border-slate-700/50 bg-slate-900/50' 
+            : 'hover:bg-slate-50/80 border-slate-200/50 bg-white/50'"
         >
           <!-- Commodity Avatar -->
-          <div class="w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
+          <div class="w-5 h-5 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md ring-1 ring-white/20" :class="commodity.color">
             {{ commodity.avatar }}
           </div>
           
           <!-- Commodity Info -->
-          <div class="flex flex-col">
-            <div class="flex items-center space-x-1">
-              <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          <div class="flex flex-col min-w-[100px]">
+            <div class="flex items-center space-x-1 mb-0.5">
+              <span class="font-bold text-[10px] md:text-xs leading-tight" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ commodity.name }}
               </span>
-              <span class="text-xs font-mono hidden md:inline" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                ({{ commodity.symbol }})
+              <span class="text-[9px] font-mono hidden md:inline px-1 py-0.5 rounded bg-slate-200/50" :class="isDarkMode ? 'text-slate-300 bg-slate-800/50' : 'text-slate-600'">
+                {{ commodity.symbol }}
               </span>
             </div>
-            <div class="flex items-center space-x-1">
-              <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            <div class="flex items-center space-x-1.5">
+              <span class="font-bold text-xs md:text-sm" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ formatPrice(commodity.price) }}
               </span>
-              <span class="text-xs font-medium" :class="getChangeColor(commodity.change)">
-                {{ getChangeIcon(commodity.change) }} {{ commodity.change > 0 ? '+' : '' }}{{ commodity.changePercent.toFixed(2) }}%
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-0.5" :class="getChangeColor(commodity.change)">
+                <span>{{ getChangeIcon(commodity.change) }}</span>
+                <span>{{ commodity.change > 0 ? '+' : '' }}{{ commodity.changePercent.toFixed(2) }}%</span>
               </span>
+            </div>
+            <div v-if="commodity.lastTradeDate" class="text-[8px] mt-0.5 font-medium leading-tight whitespace-nowrap flex items-center gap-0.5" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <span class="w-1 h-1 rounded-full animate-pulse" :class="isDarkMode ? 'bg-green-400' : 'bg-green-500'"></span>
+              <span class="text-[8px]">As at</span>
+              <span class="font-semibold text-[8px]">{{ commodity.lastTradeDate }}</span>
             </div>
           </div>
         </div>
@@ -262,55 +363,68 @@ onMounted(() => {
         <div 
           v-for="commodity in commodities" 
           :key="`triplicate-${commodity.symbol}`"
-          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-1.5 py-0.5"
-          :class="isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'"
+          class="flex items-center space-x-1.5 md:space-x-2 flex-shrink-0 group cursor-pointer transition-all duration-200 rounded-md px-2 py-1 border backdrop-blur-sm"
+          :class="isDarkMode 
+            ? 'hover:bg-slate-800/80 border-slate-700/50 bg-slate-900/50' 
+            : 'hover:bg-slate-50/80 border-slate-200/50 bg-white/50'"
         >
           <!-- Commodity Avatar -->
-          <div class="w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg" :class="commodity.color">
+          <div class="w-5 h-5 md:w-5 md:h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md ring-1 ring-white/20" :class="commodity.color">
             {{ commodity.avatar }}
           </div>
           
           <!-- Commodity Info -->
-          <div class="flex flex-col">
-            <div class="flex items-center space-x-1">
-              <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+          <div class="flex flex-col min-w-[100px]">
+            <div class="flex items-center space-x-1 mb-0.5">
+              <span class="font-bold text-[10px] md:text-xs leading-tight" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ commodity.name }}
               </span>
-              <span class="text-xs font-mono hidden md:inline" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                ({{ commodity.symbol }})
+              <span class="text-[9px] font-mono hidden md:inline px-1 py-0.5 rounded bg-slate-200/50" :class="isDarkMode ? 'text-slate-300 bg-slate-800/50' : 'text-slate-600'">
+                {{ commodity.symbol }}
               </span>
             </div>
-            <div class="flex items-center space-x-1">
-              <span class="font-bold text-xs" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            <div class="flex items-center space-x-1.5">
+              <span class="font-bold text-xs md:text-sm" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                 {{ formatPrice(commodity.price) }}
               </span>
-              <span class="text-xs font-medium" :class="getChangeColor(commodity.change)">
-                {{ getChangeIcon(commodity.change) }} {{ commodity.change > 0 ? '+' : '' }}{{ commodity.changePercent.toFixed(2) }}%
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-0.5" :class="getChangeColor(commodity.change)">
+                <span>{{ getChangeIcon(commodity.change) }}</span>
+                <span>{{ commodity.change > 0 ? '+' : '' }}{{ commodity.changePercent.toFixed(2) }}%</span>
               </span>
+            </div>
+            <div v-if="commodity.lastTradeDate" class="text-[8px] mt-0.5 font-medium leading-tight whitespace-nowrap flex items-center gap-0.5" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+              <span class="w-1 h-1 rounded-full animate-pulse" :class="isDarkMode ? 'bg-green-400' : 'bg-green-500'"></span>
+              <span class="text-[8px]">As at</span>
+              <span class="font-semibold text-[8px]">{{ commodity.lastTradeDate }}</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Refresh Button -->
-      <div class="absolute right-2 top-1/2 transform -translate-y-1/2">
+      <div class="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
         <button 
           @click="refreshData"
           :disabled="isLoading"
-          class="w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
-          :class="isLoading ? 'bg-blue-500' : 'bg-green-500 hover:bg-green-600'"
+          class="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 hover:scale-110"
+          :class="isLoading 
+            ? 'bg-blue-500 animate-pulse' 
+            : (isDarkMode 
+              ? 'bg-green-600 hover:bg-green-500' 
+              : 'bg-green-500 hover:bg-green-600')"
           :title="isLoading ? 'Refreshing...' : 'Refresh data'"
         >
           <svg 
             v-if="!isLoading"
-            class="w-2.5 h-2.5 text-white" 
+            class="w-3 h-3 text-white" 
             fill="none" 
             stroke="currentColor" 
+            stroke-width="2.5"
             viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
           </svg>
-          <div v-else class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          <div v-else class="w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         </button>
       </div>
     </div>
@@ -329,8 +443,18 @@ onMounted(() => {
 }
 
 .ticker-scroll {
-  animation: ticker-scroll 25s linear infinite;
+  animation: ticker-scroll 30s linear infinite;
   width: max-content;
+}
+
+/* Smooth hover effects */
+.group:hover {
+  transform: translateY(-1px);
+}
+
+/* Enhanced shadow on hover */
+.group:hover .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .ticker-paused {
@@ -360,5 +484,21 @@ onMounted(() => {
   .space-x-2 {
     column-gap: 0.5rem;
   }
+}
+
+/* Glass morphism effect */
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Smooth transitions */
+.group {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced ring effect on avatars */
+.ring-2 {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 </style>

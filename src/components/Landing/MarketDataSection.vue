@@ -134,6 +134,77 @@ const filteredCommodities = computed(() => {
   return tabType ? groups[tabType] : []
 })
 
+// Helper function to parse dates more robustly (moved before convertToDisplayFormat)
+const parseDate = (dateString: string): Date | null => {
+  if (!dateString || dateString.trim() === '') return null
+  
+  // Try parsing as ISO string first
+  let date = new Date(dateString)
+  if (!isNaN(date.getTime())) {
+    return date
+  }
+  
+  // Try different formats
+  const dateStr = String(dateString).trim()
+  
+  // Try YYYY-MM-DD format
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+    date = new Date(dateStr)
+    if (!isNaN(date.getTime())) return date
+  }
+  
+  // Try DD/MM/YYYY or MM/DD/YYYY
+  if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+    const parts = dateStr.split('/')
+    if (parts.length === 3) {
+      // Try MM/DD/YYYY first
+      date = new Date(`${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+      // Try DD/MM/YYYY
+      date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+    }
+  }
+  
+  // Try DD-MM-YYYY or MM-DD-YYYY
+  if (dateStr.match(/^\d{1,2}-\d{1,2}-\d{4}/)) {
+    const parts = dateStr.split('-')
+    if (parts.length === 3) {
+      // Try MM-DD-YYYY first
+      date = new Date(`${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+      // Try DD-MM-YYYY
+      date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+    }
+  }
+  
+  return null
+}
+
+// Format a single trade date
+const formatTradeDate = (dateString: string): string => {
+  try {
+    if (!dateString || dateString.trim() === '') {
+      return ''
+    }
+    
+    const date = parseDate(dateString)
+    if (!date) {
+      return ''
+    }
+    
+    // Format as "DD MMM YYYY"
+    return date.toLocaleDateString('en-GH', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+  } catch (error) {
+    return ''
+  }
+}
+
 // Convert Firebase data to display format
 const convertToDisplayFormat = (data: ProcessedMarketData[]): DisplayCommodity[] => {
   // Use all data, not just priority items
@@ -188,7 +259,7 @@ const convertToDisplayFormat = (data: ProcessedMarketData[]): DisplayCommodity[]
       high: parseFloat(item.HighPrice) || 0,
       low: parseFloat(item.LowPrice) || 0,
       volume: getVolume(item.Symbol),
-      lastUpdate: item.LastTradeDate,
+      lastUpdate: formatTradeDate(item.LastTradeDate),
       trend: item.isPositiveChange ? 'up' : (parseFloat(item.PriceChange) < 0 ? 'down' : 'neutral'),
       type: getContractType(item.Symbol),
       category: getCommodityCategory(item.Commodity),
@@ -570,7 +641,7 @@ onUnmounted(() => {
         <h2 class="text-4xl lg:text-5xl font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
           Follow the Prices and <span class="text-red-500">Trends</span>
         </h2>
-        <p class="text-lg max-w-3xl mx-auto" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+        <p class="text-lg max-w-3xl mx-auto mb-2" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
           Real-time commodity trading data and market analysis for Ghana's agricultural exchange
         </p>
       </div>
@@ -706,8 +777,8 @@ onUnmounted(() => {
                         {{ commodity.priceChange > 0 ? '+' : '' }}{{ commodity.priceChange.toFixed(2) }}
                       </span>
                     </div>
-                    <div v-if="commodity.lastUpdate" class="text-xs mt-1" :class="isDarkMode ? 'text-slate-500' : 'text-slate-400'">
-                      {{ commodity.lastUpdate }}
+                    <div v-if="commodity.lastUpdate" class="text-xs mt-1 font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
+                      As at {{ commodity.lastUpdate }}
                     </div>
                   </div>
                 </div>

@@ -12,6 +12,7 @@ interface Commodity {
   trend: 'up' | 'down' | 'neutral'
   deliveryCentre?: string
   grade?: string
+  lastTradeDate?: string
 }
 
 interface MarketCategory {
@@ -92,62 +93,18 @@ const filteredData = computed(() => {
   return data
 })
 
-// Top performers (by price)
-const topPerformers = computed(() => {
-  const allCommodities = marketData.value.flatMap(cat => cat.commodities)
-  return allCommodities
-    .sort((a, b) => b.price - a.price)
-    .slice(0, 5)
-})
 
-// Market highlights
-const marketHighlights = computed(() => {
-  const allCommodities = marketData.value.flatMap(cat => cat.commodities)
-  
-  if (allCommodities.length === 0) {
-    return [
-      {
-        title: 'Market Data Available',
-        description: 'Real-time commodity prices from multiple delivery centres across Ghana.',
-        type: 'info',
-        date: new Date().toLocaleDateString('en-GH'),
-        icon: '📊'
-      }
-    ]
-  }
-  
-  const highestPriced = allCommodities.reduce((max, item) => item.price > max.price ? item : max, allCommodities[0])
-  const lowestPriced = allCommodities.reduce((min, item) => item.price < min.price ? item : min, allCommodities[0])
-  
-  return [
-    {
-      title: `${marketData.value.length} Commodity Categories`,
-      description: `Trading data available for ${allCommodities.length} contracts across ${marketData.value.length} commodity types.`,
-    type: 'info',
-      date: new Date().toLocaleDateString('en-GH'),
-    icon: '📊'
-  },
-  {
-      title: `Highest: ${highestPriced.symbol}`,
-      description: `${highestPriced.name} at GHC ${highestPriced.price.toLocaleString()} per MT from ${highestPriced.deliveryCentre || 'various centres'}.`,
-    type: 'positive',
-      date: new Date().toLocaleDateString('en-GH'),
-    icon: '📈'
-  },
-  {
-      title: 'Multi-Centre Trading',
-      description: 'Commodity prices available from delivery centres including Ejura, Kumasi, Techiman, and more.',
-    type: 'announcement',
-      date: new Date().toLocaleDateString('en-GH'),
-    icon: '🎯'
-  }
-  ]
-})
 
 const getChangeClass = (change: number) => {
-  if (change > 0) return 'text-green-500 bg-green-500/10 border-green-500/20'
-  if (change < 0) return 'text-red-500 bg-red-500/10 border-red-500/20'
-  return 'text-slate-500 bg-slate-500/10 border-slate-500/20'
+  if (isDarkMode.value) {
+    if (change > 0) return 'text-green-400 bg-green-900/30 border-green-700/30'
+    if (change < 0) return 'text-red-400 bg-red-900/30 border-red-700/30'
+    return 'text-slate-400 bg-slate-800/30 border-slate-700/30'
+  } else {
+    if (change > 0) return 'text-green-700 bg-green-50 border-green-200'
+    if (change < 0) return 'text-red-700 bg-red-50 border-red-200'
+    return 'text-slate-600 bg-slate-100 border-slate-200'
+  }
 }
 
 const getTrendIcon = (trend: 'up' | 'down' | 'neutral') => {
@@ -166,6 +123,78 @@ const selectCommodity = (commodity: Commodity) => {
   selectedCommodity.value = commodity
 }
 
+// Helper function to parse dates more robustly
+const parseDate = (dateString: string): Date | null => {
+  if (!dateString || dateString.trim() === '') return null
+  
+  // Try parsing as ISO string first
+  let date = new Date(dateString)
+  if (!isNaN(date.getTime())) {
+    return date
+  }
+  
+  // Try different formats
+  const dateStr = String(dateString).trim()
+  
+  // Try YYYY-MM-DD format
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+    date = new Date(dateStr)
+    if (!isNaN(date.getTime())) return date
+  }
+  
+  // Try DD/MM/YYYY or MM/DD/YYYY
+  if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+    const parts = dateStr.split('/')
+    if (parts.length === 3) {
+      // Try MM/DD/YYYY first
+      date = new Date(`${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+      // Try DD/MM/YYYY
+      date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+    }
+  }
+  
+  // Try DD-MM-YYYY or MM-DD-YYYY
+  if (dateStr.match(/^\d{1,2}-\d{1,2}-\d{4}/)) {
+    const parts = dateStr.split('-')
+    if (parts.length === 3) {
+      // Try MM-DD-YYYY first
+      date = new Date(`${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+      // Try DD-MM-YYYY
+      date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`)
+      if (!isNaN(date.getTime())) return date
+    }
+  }
+  
+  return null
+}
+
+// Format a single trade date
+const formatTradeDate = (dateString: string): string => {
+  try {
+    if (!dateString || dateString.trim() === '') {
+      return ''
+    }
+    
+    const date = parseDate(dateString)
+    if (!date) {
+      return ''
+    }
+    
+    // Format as "DD MMM YYYY"
+    return date.toLocaleDateString('en-GH', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+  } catch (error) {
+    console.error('Error formatting trade date:', error)
+    return ''
+  }
+}
+
 // Convert Firebase data to our Commodity interface
 const convertToCommodity = (data: ProcessedMarketData): Commodity => {
   const price = parseFloat(data.ClosingPrice) || 0
@@ -179,7 +208,8 @@ const convertToCommodity = (data: ProcessedMarketData): Commodity => {
     change: priceChange,
     trend,
     deliveryCentre: data.DeliveryCentre || 'Standard',
-    grade: data.Grade || 'Grade A'
+    grade: data.Grade || 'Grade A',
+    lastTradeDate: formatTradeDate(data.LastTradeDate)
   }
 }
 
@@ -312,7 +342,7 @@ onMounted(async () => {
 
     <!-- Market Summary Cards -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
+      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-xl hover:scale-[1.02]" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
         <div class="flex items-center justify-between">
           <div>
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Contracts</div>
@@ -328,7 +358,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
+      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-xl hover:scale-[1.02]" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
         <div class="flex items-center justify-between">
           <div>
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Average Price</div>
@@ -336,7 +366,7 @@ onMounted(async () => {
               GHC {{ marketStats.avgPrice }}
             </div>
           </div>
-          <div class="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <div class="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
             </svg>
@@ -344,7 +374,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
+      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-xl hover:scale-[1.02]" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
         <div class="flex items-center justify-between">
           <div>
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Total Contracts</div>
@@ -360,26 +390,26 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
+      <div class="p-6 rounded-xl border transition-all duration-200 hover:shadow-xl hover:scale-[1.02]" :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-750' : 'border-slate-200 bg-white hover:bg-slate-50'">
         <div class="flex items-center justify-between">
           <div>
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Market Status</div>
             <div class="text-2xl font-bold text-green-500">OPEN</div>
           </div>
-          <div class="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+          <div class="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg">
+            <div class="w-3 h-3 bg-white rounded-full animate-pulse shadow-sm"></div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Filters and Search -->
-    <div v-if="!loading && !error" class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+    <div v-if="!loading && !error" class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 p-4 rounded-xl border backdrop-blur-sm" :class="isDarkMode ? 'border-slate-700 bg-slate-800/50' : 'border-slate-200 bg-white/50'">
       <div class="flex items-center gap-4">
         <!-- Category Filter -->
         <select
           v-model="selectedCategory"
-          class="px-4 py-3 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="px-4 py-3 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           :class="isDarkMode ? 'bg-slate-800 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'"
         >
           <option value="all">All Categories</option>
@@ -392,7 +422,7 @@ onMounted(async () => {
         <button
           @click="refreshData"
           :disabled="loading"
-          class="p-3 rounded-xl border transition-all duration-200 hover:shadow-lg disabled:opacity-50"
+          class="p-3 rounded-xl border transition-all duration-200 hover:shadow-lg disabled:opacity-50 hover:scale-105"
           :class="isDarkMode ? 'border-slate-700 bg-slate-800 hover:bg-slate-700' : 'border-slate-200 bg-white hover:bg-slate-50'"
         >
           <svg 
@@ -416,7 +446,7 @@ onMounted(async () => {
           v-model="searchTerm"
           type="text"
           placeholder="Search commodities..."
-          class="w-full px-4 py-3 pl-10 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="w-full px-4 py-3 pl-10 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           :class="isDarkMode ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'"
         />
         <svg class="absolute left-3 top-3 w-4 h-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,27 +456,36 @@ onMounted(async () => {
     </div>
 
     <!-- Unified Commodity Table -->
-    <div v-if="!loading && !error && allCommodities.length" class="rounded-xl border overflow-hidden shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
-        <div class="px-6 py-4 border-b" :class="isDarkMode ? 'border-slate-700 bg-gradient-to-r from-slate-900 to-slate-800' : 'border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100'">
-          <h3 class="text-lg font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-          All Commodities
-          </h3>
-          <p class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-          {{ allCommodities.length }} active contracts across {{ marketData.length }} commodity categories
-          </p>
+    <div v-if="!loading && !error && allCommodities.length" class="rounded-xl border overflow-hidden shadow-xl" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
+        <div class="px-6 py-5 border-b" :class="isDarkMode ? 'border-slate-700 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900' : 'border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50'">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+                All Commodities
+              </h3>
+              <p class="text-sm mt-1" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+                {{ allCommodities.length }} active contracts across {{ marketData.length }} commodity categories
+              </p>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg" :class="isDarkMode ? 'bg-green-900/20 border border-green-700/30' : 'bg-green-50 border border-green-200'">
+              <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span class="text-xs font-semibold" :class="isDarkMode ? 'text-green-400' : 'text-green-700'">Live Data</span>
+            </div>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead>
-              <tr :class="isDarkMode ? 'bg-slate-900 border-b border-slate-700' : 'bg-slate-50 border-b border-slate-200'">
-                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Symbol</th>
-              <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Commodity</th>
-              <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Grade</th>
-              <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Delivery Centre</th>
-                <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Price (GHC)</th>
-                <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Change</th>
-                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">Trend</th>
+              <tr :class="isDarkMode ? 'bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700' : 'bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200'">
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Symbol</th>
+              <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Commodity</th>
+              <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Grade</th>
+              <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Delivery Centre</th>
+                <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Price (GHC)</th>
+                <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Change</th>
+                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Trend</th>
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">Last Trade Date</th>
               </tr>
             </thead>
             <tbody>
@@ -454,16 +493,21 @@ onMounted(async () => {
               v-for="item in allCommodities"
                 :key="item.symbol"
               @click="selectCommodity(item)"
-              class="cursor-pointer border-b transition-all duration-200 group"
+              class="cursor-pointer border-b transition-all duration-200 group hover:shadow-sm"
                         :class="[
-              isDarkMode ? 'border-slate-700 hover:bg-slate-700' : 'border-slate-200 hover:bg-slate-200',
+              isDarkMode ? 'border-slate-700/50 hover:bg-slate-700/50' : 'border-slate-200/50 hover:bg-slate-50',
                 loading ? 'animate-pulse' : ''
             ]"
               >
                 <td class="px-6 py-4">
-                  <span class="font-mono font-bold text-sm bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                    {{ item.symbol }}
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-sm">
+                      {{ item.symbol.slice(0, 2) }}
+                    </div>
+                    <span class="font-mono font-bold text-sm bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+                      {{ item.symbol }}
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4">
                   <span class="text-sm font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
@@ -471,15 +515,21 @@ onMounted(async () => {
                   </span>
                 </td>
               <td class="px-6 py-4 text-center">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800" :class="isDarkMode ? 'bg-blue-900/20 text-blue-400' : ''">
+                <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold shadow-sm border" :class="isDarkMode ? 'bg-blue-900/30 text-blue-300 border-blue-700/30' : 'bg-blue-50 text-blue-700 border-blue-200'">
                   {{ item.grade || 'N/A' }}
                 </span>
               </td>
               <td class="px-6 py-4">
-                <span class="text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
-                  {{ item.deliveryCentre || 'N/A' }}
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-4 h-4" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  <span class="text-sm font-medium" :class="isDarkMode ? 'text-slate-300' : 'text-slate-700'">
+                    {{ item.deliveryCentre || 'N/A' }}
                   </span>
-                </td>
+                </div>
+              </td>
                 <td class="px-6 py-4 text-right">
                   <span class="text-sm font-mono font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
                   GHC {{ item.price.toLocaleString() }}
@@ -488,7 +538,7 @@ onMounted(async () => {
                 <td class="px-6 py-4 text-right">
                   <div class="flex items-center justify-end gap-1">
                     <span 
-                      class="text-sm font-mono font-bold px-2 py-1 rounded-lg border"
+                      class="text-xs font-semibold px-2.5 py-1 rounded-lg border backdrop-blur-sm"
                       :class="getChangeClass(item.change)"
                     >
                       {{ item.change >= 0 ? '+' : '' }}{{ item.change.toFixed(2) }}
@@ -497,11 +547,20 @@ onMounted(async () => {
                 </td>
                 <td class="px-6 py-4 text-center">
                   <span 
-                    class="text-lg font-bold"
+                    class="text-xl font-bold"
                     :class="getTrendColor(item.trend)"
                   >
                     {{ getTrendIcon(item.trend) }}
                   </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div v-if="item.lastTradeDate" class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full animate-pulse shadow-sm" :class="isDarkMode ? 'bg-green-400' : 'bg-green-500'"></span>
+                    <span class="text-xs font-medium" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
+                      {{ item.lastTradeDate }}
+                    </span>
+                  </div>
+                  <span v-else class="text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-700" :class="isDarkMode ? 'text-slate-500' : 'text-slate-400'">N/A</span>
                 </td>
               </tr>
             </tbody>
@@ -509,81 +568,10 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Market Highlights and Top Performers -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Market Highlights -->
-      <div class="rounded-xl border p-6 shadow-lg transition-all duration-200 hover:shadow-xl" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
-        <h3 class="text-lg font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Market Highlights</h3>
-        <div class="space-y-4">
-          <div
-            v-for="highlight in marketHighlights"
-            :key="highlight.title"
-            class="p-4 rounded-xl border-l-4 transition-all duration-200 hover:shadow-md"
-            :class="{
-              'border-blue-500 bg-blue-50 dark:bg-blue-900/10': highlight.type === 'info',
-              'border-green-500 bg-green-50 dark:bg-green-900/10': highlight.type === 'positive',
-              'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10': highlight.type === 'announcement'
-            }"
-          >
-            <div class="flex items-start justify-between">
-              <div class="flex items-start gap-3">
-                <span class="text-2xl">{{ highlight.icon }}</span>
-                <div>
-                  <h4 class="font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                    {{ highlight.title }}
-                  </h4>
-                  <p class="text-sm mt-1" :class="isDarkMode ? 'text-slate-300' : 'text-slate-600'">
-                    {{ highlight.description }}
-                  </p>
-                </div>
-              </div>
-              <span class="text-xs font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">
-                {{ highlight.date }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Top Performers -->
-      <div class="rounded-xl border p-6 shadow-lg transition-all duration-200 hover:shadow-xl" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
-        <h3 class="text-lg font-bold mb-4" :class="isDarkMode ? 'text-white' : 'text-slate-900'">Top Performers</h3>
-        <div class="space-y-3">
-          <div
-            v-for="(item, index) in topPerformers"
-            :key="item.symbol"
-            class="flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:shadow-md"
-            :class="isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-200'"
-          >
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold bg-gradient-to-br from-yellow-500 to-orange-500 text-white shadow-lg">
-                {{ index + 1 }}
-              </div>
-              <div>
-                <div class="font-bold text-sm" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                  {{ item.symbol }}
-                </div>
-                <div class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-                  {{ item.name }}
-                </div>
-              </div>
-            </div>
-            <div class="text-right">
-              <div class="text-sm font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                  GHC {{ item.price.toLocaleString() }}
-              </div>
-              <div class="text-xs" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
-                  {{ item.deliveryCentre || 'N/A' }}
-                </div>
-              </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Selected Commodity Details -->
     <div v-if="selectedCommodity" class="mt-6">
-      <div class="rounded-xl p-6 border shadow-lg" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
+      <div class="rounded-xl p-6 border shadow-xl transition-all duration-200 hover:shadow-2xl" :class="isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'">
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
             <div>
@@ -606,25 +594,25 @@ onMounted(async () => {
         </div>
         
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-105" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Current Price</div>
             <div class="text-2xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
               GHC {{ selectedCommodity.price.toLocaleString() }}
             </div>
           </div>
-          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-105" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Price Change</div>
             <div class="text-2xl font-bold" :class="selectedCommodity.change >= 0 ? 'text-green-600' : 'text-red-600'">
               {{ selectedCommodity.change >= 0 ? '+' : '' }}{{ selectedCommodity.change.toFixed(2) }}
             </div>
           </div>
-          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-105" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Grade</div>
             <div class="text-lg font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
               {{ selectedCommodity.grade || 'N/A' }}
             </div>
           </div>
-          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
+          <div class="text-center p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-105" :class="isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'">
             <div class="text-sm font-medium" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Delivery Centre</div>
             <div class="text-sm font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
               {{ selectedCommodity.deliveryCentre || 'N/A' }}
@@ -648,5 +636,33 @@ onMounted(async () => {
   50% {
     opacity: .5;
   }
+}
+
+/* Smooth table row transitions */
+tbody tr {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Enhanced hover effects */
+.group:hover {
+  transform: translateY(-1px);
+}
+
+/* Custom scrollbar for table */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
 }
 </style>

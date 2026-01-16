@@ -15,7 +15,7 @@ const { t } = useI18n()
 
 // Dynamic navbar positioning based on ticker visibility
 const navbarTop = computed(() => {
-  return isTickerVisible.value ? 'top-8 md:top-10' : 'top-0'
+  return isTickerVisible.value ? 'top-14' : 'top-0'
 })
 
 // Simplified navigation structure
