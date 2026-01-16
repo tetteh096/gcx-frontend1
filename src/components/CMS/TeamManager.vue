@@ -76,14 +76,33 @@
         </button>
       </div>
 
+      <div class="mb-4 p-4 rounded-lg border" :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-blue-50 border-blue-200'">
+        <div class="flex items-center gap-2 text-sm" :class="isDarkMode ? 'text-slate-300' : 'text-blue-700'">
+          <i class="pi pi-info-circle"></i>
+          <span>Drag and drop board members to reorder them. Chairman will appear first, then CEO, then others by order.</span>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div
-          v-for="member in boardMembers"
+          v-for="(member, index) in boardMembers"
           :key="member.id"
-          class="group shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border transform hover:-translate-y-1"
-          :class="isDarkMode 
-            ? 'bg-slate-800 border-slate-700 hover:border-blue-500' 
-            : 'bg-white border-slate-200 hover:border-blue-300'"
+          :data-id="member.id"
+          :data-index="index"
+          draggable="true"
+          @dragstart="handleDragStart($event, member, index)"
+          @dragover.prevent="handleDragOver($event, index)"
+          @drop="handleDrop($event, index, 'board')"
+          @dragenter="handleDragEnter($event)"
+          @dragleave="handleDragLeave($event)"
+          class="group shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border transform hover:-translate-y-1 cursor-move"
+          :class="[
+            isDarkMode 
+              ? 'bg-slate-800 border-slate-700 hover:border-blue-500' 
+              : 'bg-white border-slate-200 hover:border-blue-300',
+            draggedIndex === index ? 'opacity-50 border-blue-500' : '',
+            dragOverIndex === index ? 'border-blue-500 ring-2 ring-blue-300' : ''
+          ]"
         >
           <!-- Image Section - Increased Height -->
           <div class="relative h-64 overflow-hidden">
@@ -121,6 +140,9 @@
               <div class="flex items-center space-x-2 mb-3">
                 <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
                   {{ member.title }}
+                </span>
+                <span v-if="member.order_index" class="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
+                  #{{ member.order_index }}
                 </span>
               </div>
             </div>
@@ -710,7 +732,7 @@ interface TeamMember {
   description: string
   image?: string
   type: 'board' | 'executive' | 'functional'
-  order?: number
+  order_index?: number
   // Social Media Handles
   linkedin_url?: string
   twitter_url?: string
@@ -742,6 +764,11 @@ const saving = ref(false)
 const boardMembers = ref<TeamMember[]>([])
 const executiveMembers = ref<TeamMember[]>([])
 const functionalMembers = ref<TeamMember[]>([])
+
+// Drag and drop state
+const draggedMember = ref<TeamMember | null>(null)
+const draggedIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
 
 const memberForm = ref<MemberForm>({
   name: '',
@@ -906,6 +933,83 @@ const deleteMember = async (type: 'board' | 'executive' | 'functional', id: stri
   }
 }
 
+// Drag and drop handlers
+const handleDragStart = (event: DragEvent, member: TeamMember, index: number) => {
+  draggedMember.value = member
+  draggedIndex.value = index
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', member.id)
+  }
+}
+
+const handleDragOver = (event: DragEvent, index: number) => {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+  dragOverIndex.value = index
+}
+
+const handleDragEnter = (event: DragEvent) => {
+  event.preventDefault()
+}
+
+const handleDragLeave = (event: DragEvent) => {
+  dragOverIndex.value = null
+}
+
+const handleDrop = async (event: DragEvent, dropIndex: number, type: 'board' | 'executive' | 'functional') => {
+  event.preventDefault()
+  dragOverIndex.value = null
+  
+  if (!draggedMember.value || draggedIndex.value === null) return
+  
+  const members = type === 'board' ? boardMembers.value : type === 'executive' ? executiveMembers.value : functionalMembers.value
+  
+  // Reorder the array
+  const newMembers = [...members]
+  const [removed] = newMembers.splice(draggedIndex.value, 1)
+  newMembers.splice(dropIndex, 0, removed)
+  
+  // Update local state immediately for better UX
+  if (type === 'board') {
+    boardMembers.value = newMembers
+  } else if (type === 'executive') {
+    executiveMembers.value = newMembers
+  } else {
+    functionalMembers.value = newMembers
+  }
+  
+  // Update order_index for all members
+  const reorderData = newMembers.map((member, index) => ({
+    id: parseInt(member.id),
+    order_index: index + 1
+  }))
+  
+  try {
+    const response = await axios.put('/api/team-members/reorder', {
+      team_type: type,
+      members: reorderData
+    })
+    
+    if (response.data.success) {
+      // Reload to ensure consistency with backend sorting
+      await loadTeamMembers()
+    } else {
+      throw new Error(response.data.error || 'Failed to reorder')
+    }
+  } catch (error: any) {
+    console.error('Failed to reorder members:', error)
+    // Revert on error
+    await loadTeamMembers()
+    alert('Failed to save order. Please try again.')
+  }
+  
+  draggedMember.value = null
+  draggedIndex.value = null
+}
+
 // Lifecycle
 onMounted(() => {
   loadTeamMembers()
@@ -945,6 +1049,15 @@ onMounted(() => {
 /* Smooth animations */
 .group:hover .group-hover\:scale-110 {
   transform: scale(1.1);
+}
+
+/* Drag and drop styles */
+[draggable="true"] {
+  cursor: move;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
 }
 
 /* Gradient text */

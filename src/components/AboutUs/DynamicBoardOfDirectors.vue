@@ -32,7 +32,7 @@
     <!-- Professional Board Members Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
       <div 
-        v-for="member in boardMembers" 
+        v-for="member in sortedBoardMembers" 
         :key="member.id"
         class="group relative bg-white dark:bg-slate-800 rounded-none shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-0 cursor-pointer backdrop-blur-sm"
         @click="openProfile(member)"
@@ -180,6 +180,57 @@ const showProfile = ref(false)
 // Get content from CMS
 const { getContent } = usePageContentEditor('about')
 
+// Sort board members: Chairman first, then CEO, then by order_index
+const sortBoardMembers = (members: BoardMember[]): BoardMember[] => {
+  if (!members || members.length === 0) return members
+  
+  return [...members].sort((a, b) => {
+    const aTitle = a.title.toLowerCase().trim()
+    const bTitle = b.title.toLowerCase().trim()
+    
+    // Check for Chairman - must check this first
+    const aIsChairman = aTitle.includes('chairman') || aTitle.includes('board chairman')
+    const bIsChairman = bTitle.includes('chairman') || bTitle.includes('board chairman')
+    
+    // Check for CEO (but not Deputy CEO)
+    const aIsCEO = (aTitle.includes('chief executive officer') || aTitle.includes('ceo')) && !aTitle.includes('deputy')
+    const bIsCEO = (bTitle.includes('chief executive officer') || bTitle.includes('ceo')) && !bTitle.includes('deputy')
+    
+    // Priority 1: Chairman always comes first
+    if (aIsChairman && !bIsChairman) {
+      return -1 // a (Chairman) comes before b
+    }
+    if (!aIsChairman && bIsChairman) {
+      return 1 // b (Chairman) comes before a
+    }
+    
+    // Priority 2: CEO comes second (only if neither is Chairman)
+    if (!aIsChairman && !bIsChairman) {
+      if (aIsCEO && !bIsCEO) {
+        return -1 // a (CEO) comes before b
+      }
+      if (!aIsCEO && bIsCEO) {
+        return 1 // b (CEO) comes before a
+      }
+    }
+    
+    // Priority 3: Then by order_index
+    const aOrder = a.order_index || 999
+    const bOrder = b.order_index || 999
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder
+    }
+    
+    // Priority 4: Finally by name
+    return a.name.localeCompare(b.name)
+  })
+}
+
+// Computed property for sorted board members
+const sortedBoardMembers = computed(() => {
+  return sortBoardMembers(boardMembers.value)
+})
+
 // Methods
 const loadBoardMembers = async (skipCache = false) => {
   loading.value = true
@@ -191,7 +242,7 @@ const loadBoardMembers = async (skipCache = false) => {
       const cacheKey = 'gcx_team_members_board'
       const cached = DataCache.get<BoardMember[]>(cacheKey)
       if (cached) {
-        boardMembers.value = cached
+        boardMembers.value = sortBoardMembers(cached)
         loading.value = false
         return
       }
@@ -205,9 +256,18 @@ const loadBoardMembers = async (skipCache = false) => {
     // Backend returns { success: true, data: [...] }
     const apiData = response.data.data || []
     
-    boardMembers.value = apiData
-    // Cache for 24 hours (board rarely changes)
-    DataCache.set('gcx_team_members_board', apiData, CACHE_DURATIONS.TWENTY_FOUR_HOURS)
+    // Always sort the data on frontend to ensure correct order (Chairman first, then CEO)
+    const sortedData = sortBoardMembers(apiData)
+    
+    // Debug: Log the sorting result
+    console.log('🔍 Board Members Sorting:', {
+      before: apiData.map(m => ({ name: m.name, title: m.title })),
+      after: sortedData.map(m => ({ name: m.name, title: m.title }))
+    })
+    
+    boardMembers.value = sortedData
+    // Cache for 24 hours (board rarely changes) - cache the sorted version
+    DataCache.set('gcx_team_members_board', sortedData, CACHE_DURATIONS.TWENTY_FOUR_HOURS)
   } catch (err: any) {
     console.error('Failed to load board members:', err)
     error.value = err.response?.data?.error || err.message || 'Failed to load board members'
