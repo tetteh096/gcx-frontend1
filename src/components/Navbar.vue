@@ -39,9 +39,7 @@ const navigation = computed(() => [
         items: [
           { name: 'Trading Services', href: '/services#trading', description: 'Commodity trading and market access' },
           { name: 'Market Data', href: '/services#market-data', description: 'Real-time market information and analytics' },
-          { name: 'Risk Management', href: '/services#risk', description: 'Comprehensive risk management solutions' },
-          { name: 'Settlement Services', href: '/services#settlement', description: 'Secure and efficient trade settlement' },
-          { name: 'AML/CFT Supervisory', href: '/services/aml-cft', description: 'Anti-Money Laundering and Counter Financing of Terrorism compliance' }
+          { name: 'GCX Certification Program in Commodity Trading', href: 'https://apps.gcx.com.gh/onlineforms/', description: 'Certificate Programme in Commodity Trading (CPCT)', external: true }
         ]
       },
       { 
