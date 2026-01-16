@@ -49,7 +49,7 @@ export function useBlog() {
         }
       }
       
-      const response = await blogAPI.getPublicPosts()
+      const response = await blogAPI.getPublicPosts(skipCache)
       
       // Handle different response structures
       if (response.data) {
@@ -85,7 +85,7 @@ export function useBlog() {
   // Refresh blog posts (clear cache and fetch fresh data)
   const refreshBlogPosts = async () => {
     DataCache.clear(CACHE_KEYS.BLOG_POSTS)
-    return fetchPublicPosts(true)
+    return fetchPublicPosts(true) // Skip cache
   }
 
   // Get single post

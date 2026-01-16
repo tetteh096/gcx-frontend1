@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 import { useBlog } from '../../composables/useBlog'
@@ -7,7 +7,8 @@ import { useMedia } from '../../composables/useMedia'
 import { slugify, formatDate } from '../../utils/cms'
 import { getImageUrl } from '../../utils/imageUrl'
 import type { BlogPost, CreatePostRequest } from '../../types/cms'
-// import QuillEditor from './QuillEditor.vue' // Temporarily disabled
+import ImageGallery from './ImageGallery.vue'
+import Editor from '@tinymce/tinymce-vue'
 
 interface Props {
   post?: BlogPost | null
@@ -58,21 +59,18 @@ const activeTab = ref('content')
 const tagInput = ref('')
 const showImageLibrary = ref(false)
 const showPreview = ref(false)
-const isUploading = ref(false)
 const autoSlug = ref(true)
+const isUploading = ref(false)
 const wordCount = computed(() => {
   const text = formData.content.replace(/<[^>]*>/g, '')
   return text.trim().split(/\s+/).filter(word => word.length > 0).length
 })
 
-// Quill editor reference
-const quillEditor = ref()
+// TinyMCE editor reference
+const editorRef = ref<any>(null)
+const editorContent = ref('')
+const tinymceApiKey = import.meta.env.VITE_TINYMCE_API_KEY || ''
 
-// Handle image selection from gallery
-const handleImageSelected = (image: { url: string }) => {
-  formData.featured_image = image.url
-  showImageLibrary.value = false
-}
 
 // Image upload from computer
 const imageInput = ref<HTMLInputElement>()
@@ -80,65 +78,11 @@ const uploadImageFromComputer = () => {
   imageInput.value?.click()
 }
 
+// Handle editor image upload - TinyMCE handles this via images_upload_handler
+// This function is kept for compatibility but TinyMCE will use its own handler
 const handleEditorImageUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  // Check if it's an image
-  if (!file.type.startsWith('image/')) {
-    alert('Please select an image file')
-    return
-  }
-
-  // Check file size (5MB max - we'll compress if needed)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('⚠️ Image size should be less than 5MB. Please choose a smaller image.')
-    return
-  }
-
-  try {
-    isUploading.value = true
-    
-    // Always try server upload first (this should work now)
-    try {
-      const result = await uploadFile(file)
-      if (result.success && result.data) {
-        // Use the server URL - this is the preferred method
-        insertImageWithControls(result.data.url, 500)
-        console.log('✅ Image uploaded to server:', result.data.url)
-      } else {
-        throw new Error('Server upload failed')
-      }
-    } catch (uploadError) {
-      console.warn('⚠️ Server upload failed, attempting smart compression...', uploadError)
-      
-      // Fallback: Smart compression for base64 (only as last resort)
-      const compressedFile = await smartCompress(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string
-        if (base64) {
-          // Check base64 size before inserting
-          const sizeInMB = (base64.length * 3) / (4 * 1024 * 1024)
-          if (sizeInMB > 0.5) { // 500KB limit for base64
-            alert('⚠️ Image is still too large after compression. Please use a smaller image or try uploading to server.')
-            return
-          }
-          insertImageWithControls(base64, 500)
-          console.log('📁 Using compressed base64 fallback (size:', sizeInMB.toFixed(2), 'MB)')
-        }
-      }
-      reader.readAsDataURL(compressedFile)
-    }
-  } catch (error) {
-    console.error('Image upload error:', error)
-    alert('Failed to upload image. Please try again.')
-  } finally {
-    isUploading.value = false
-    // Clear the input
-    if (target) target.value = ''
-  }
+  // TinyMCE handles image uploads via the images_upload_handler in config
+  // This is kept for any custom image upload buttons if needed
 }
 
 // Smart compression function that maintains quality while reducing size
@@ -213,23 +157,107 @@ const smartCompress = (file: File): Promise<File> => {
 
 
 
-// Get content from Quill editor
+// Get content from TinyMCE editor
 const getEditorContent = () => {
-  return quillEditor.value?.getContent() || ''
+  return editorContent.value || formData.content
 }
 
-// Set content in Quill editor
+// Set content in TinyMCE editor
 const setEditorContent = (content: string) => {
-  quillEditor.value?.setContent(content)
+  editorContent.value = content
+  formData.content = content
 }
+
+// TinyMCE configuration
+const editorConfig = computed(() => {
+  const config: any = {
+    height: 600,
+    menubar: false,
+    toolbar_mode: 'sliding',
+    plugins: [
+      'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+      'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+      'insertdatetime', 'media', 'table', 'help', 'wordcount'
+    ],
+    toolbar: 'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent | removeformat | help | link image | code',
+    content_style: isDarkMode.value 
+      ? 'body { font-family: Inter, sans-serif; font-size: 16px; background-color: #1e293b; color: #f1f5f9; }'
+      : 'body { font-family: Inter, sans-serif; font-size: 16px; background-color: #ffffff; color: #1f2937; }',
+    skin: isDarkMode.value ? 'oxide-dark' : 'oxide',
+    content_css: isDarkMode.value ? 'dark' : 'default',
+    branding: false,
+    promotion: false,
+    automatic_uploads: true,
+    file_picker_types: 'image',
+    // Force CDN usage - don't set base_url, let the wrapper handle it with API key
+    base_url: undefined,
+    suffix: '.min',
+    images_upload_handler: async (blobInfo: any, progress: (percent: number) => void) => {
+      try {
+        isUploading.value = true
+        progress(0)
+        
+        // Convert blob to file
+        const file = new File([blobInfo.blob()], blobInfo.filename(), { type: blobInfo.blob().type })
+        
+        progress(50)
+        
+        // Upload to server (S3)
+        const result = await uploadFile(file)
+        if (result.success && result.data) {
+          progress(100)
+          return result.data.url
+        }
+        throw new Error('Upload failed')
+      } catch (error) {
+        console.error('Image upload error:', error)
+        throw error
+      } finally {
+        isUploading.value = false
+      }
+    },
+    setup: (editor: any) => {
+      editorRef.value = editor
+      editor.on('init', () => {
+        console.log('✅ TinyMCE initialized successfully')
+        if (formData.content) {
+          editor.setContent(formData.content)
+          editorContent.value = formData.content
+        }
+      })
+      editor.on('change keyup input', () => {
+        editorContent.value = editor.getContent()
+        formData.content = editor.getContent()
+      })
+    },
+    init_instance_callback: (editor: any) => {
+      console.log('TinyMCE instance ready:', editor)
+    }
+  }
+  
+  return config
+})
+
+// Watch for dark mode changes and update editor
+watch(isDarkMode, () => {
+  if (editorRef.value) {
+    // TinyMCE will automatically update via the computed config
+    editorRef.value.getBody().style.backgroundColor = isDarkMode.value ? '#1e293b' : '#ffffff'
+    editorRef.value.getBody().style.color = isDarkMode.value ? '#f1f5f9' : '#1f2937'
+  }
+})
 
 // Initialize form data
 
 
 onMounted(async () => {
-  
   // Fetch media files for the library
-  await fetchFiles()
+  try {
+    await fetchFiles()
+  } catch (error) {
+    // Media endpoint might not exist - that's okay, continue
+    console.warn('Media files endpoint not available:', error)
+  }
   
   if (props.post && props.isEditing) {
     Object.assign(formData, {
@@ -251,8 +279,15 @@ onMounted(async () => {
       author_notes: (props.post as any).author_notes || ''
     })
     
-    // Set content in Quill editor
-    setEditorContent(props.post.content)
+    // Set content in TinyMCE editor
+    editorContent.value = props.post.content
+    formData.content = props.post.content
+    // Update editor when it's ready (use nextTick to ensure editor is initialized)
+    setTimeout(() => {
+      if (editorRef.value) {
+        editorRef.value.setContent(props.post.content)
+      }
+    }, 100)
     
     autoSlug.value = false
   }
@@ -284,28 +319,10 @@ const removeTag = (index: number) => {
   formData.tags.splice(index, 1)
 }
 
-// Handle featured image upload
-const handleFeaturedImageUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  try {
-    isUploading.value = true
-    const result = await uploadFile(file)
-    if (result.success && result.data) {
-      formData.featured_image = result.data.url
-    }
-  } catch (err) {
-    console.error('Failed to upload image:', err)
-  } finally {
-    isUploading.value = false
-  }
-}
-
-// Select image from library
-const selectImage = (imageUrl: string) => {
-  formData.featured_image = imageUrl
+// Handle image selection from ImageGallery
+// ImageGallery component handles uploads to S3 automatically via /api/media endpoint
+const handleImageSelected = (image: { url: string; id?: string; name?: string }) => {
+  formData.featured_image = image.url
   showImageLibrary.value = false
 }
 
@@ -358,8 +375,20 @@ const handleImageError = (event: Event) => {
 // Save post
 const savePost = async () => {
   try {
-    // Get content from Quill editor
-    formData.content = getEditorContent()
+    // Get content from TinyMCE editor - ensure we get the latest content
+    if (editorRef.value) {
+      const contentFromEditor = editorRef.value.getContent()
+      formData.content = contentFromEditor || formData.content
+      editorContent.value = contentFromEditor
+    } else if (editorContent.value) {
+      formData.content = editorContent.value
+    }
+    
+    // Ensure we have content before saving
+    if (!formData.content || formData.content.trim() === '') {
+      alert('Please add some content to your post before saving.')
+      return
+    }
     
     // Auto-generate excerpt if empty
     if (!formData.excerpt && formData.content) {
@@ -385,9 +414,12 @@ const savePost = async () => {
 
     if (result.success && result.data) {
       emit('save', result.data)
+    } else if (result.error) {
+      alert(`Failed to save post: ${result.error}`)
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to save post:', err)
+    alert(`Failed to save post: ${err.message || 'Unknown error'}`)
   }
 }
 
@@ -464,7 +496,7 @@ const previewPost = () => {
             
             <button
               @click="savePost"
-              :disabled="isLoading || !formData.title || !formData.content"
+              :disabled="isLoading || !formData.title"
               class="px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
             >
               {{ isLoading ? 'Saving...' : isEditing ? 'Update Post' : 'Save Post' }}
@@ -589,7 +621,8 @@ const previewPost = () => {
             <img :src="formData.featured_image" alt="Featured image" class="w-full h-full object-cover" />
             <button
               @click="formData.featured_image = ''"
-              class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
+              class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+              title="Remove featured image"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -598,30 +631,19 @@ const previewPost = () => {
           </div>
         </div>
         
-        <div class="flex space-x-3">
-          <label class="flex items-center px-4 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                 :class="isDarkMode ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-300 hover:bg-slate-50'">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            {{ isUploading ? 'Uploading...' : 'Upload Image' }}
-            <input
-              type="file"
-              accept="image/*"
-              @change="handleFeaturedImageUpload"
-              class="hidden"
-              :disabled="isUploading"
-            />
-          </label>
-          
-          <button
-            @click="showImageLibrary = true"
-            class="px-4 py-2 border rounded-lg transition-colors"
-            :class="isDarkMode ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-300 hover:bg-slate-50'"
-          >
-            Choose from Library
-          </button>
-        </div>
+        <!-- Button to open Image Gallery -->
+        <button
+          @click="showImageLibrary = true"
+          class="px-4 py-2 border rounded-lg transition-colors flex items-center space-x-2"
+          :class="isDarkMode 
+            ? 'border-slate-600 hover:bg-slate-700 text-white' 
+            : 'border-slate-300 hover:bg-slate-50 text-slate-700'"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>{{ formData.featured_image ? 'Change Featured Image' : 'Choose Featured Image' }}</span>
+        </button>
       </div>
 
       <!-- Content Editor -->
@@ -633,317 +655,15 @@ const previewPost = () => {
           </span>
         </label>
         
+        <!-- TinyMCE Editor -->
         <div class="border-2 rounded-xl overflow-hidden shadow-lg" :class="isDarkMode ? 'border-slate-600' : 'border-gray-300'">
-          <!-- Custom Toolbar -->
-          <div class="flex flex-wrap items-center gap-1 p-3 border-b" :class="isDarkMode ? 'bg-slate-800 border-slate-600' : 'bg-gray-50 border-gray-200'">
-            <!-- Text Formatting -->
-            <div class="flex items-center gap-1 mr-4">
-              <button
-                type="button"
-                @click="toggleBold"
-                :class="editor?.isActive('bold') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Bold"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M11 3a3 3 0 110 6H9v2h2a3 3 0 110 6H6V3h5zM9 5v4h2a1 1 0 100-2H9V5zm0 6v4h2a1 1 0 100-2H9v-2z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="toggleItalic"
-                :class="editor?.isActive('italic') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Italic"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M8 3h6v2h-2l-2 10h2v2H6v-2h2l2-10H8V3z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="toggleUnderline"
-                :class="editor?.isActive('underline') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Underline"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 2a5 5 0 015 5v4a5 5 0 01-10 0V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v4a3 3 0 006 0V7a3 3 0 00-3-3zM3 18h14v2H3v-2z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="toggleStrike"
-                :class="editor?.isActive('strike') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Strikethrough"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M7.5 10h5a.5.5 0 000-1h-5a.5.5 0 000 1zM3 9h14v2H3V9zM7 6a2 2 0 012-2h2a2 2 0 110 4H9a2 2 0 01-2-2zm2 0a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zM7 14a2 2 0 012-2h2a2 2 0 110 4H9a2 2 0 01-2-2zm2 0a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Headings -->
-            <div class="flex items-center gap-1 mr-4">
-              <button
-                type="button"
-                @click="setParagraph"
-                :class="editor?.isActive('paragraph') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="px-3 py-2 rounded transition-colors text-sm font-medium"
-                title="Paragraph"
-              >
-                P
-              </button>
-              
-              <button
-                type="button"
-                @click="setHeading(1)"
-                :class="editor?.isActive('heading', { level: 1 }) ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="px-3 py-2 rounded transition-colors text-sm font-bold"
-                title="Heading 1"
-              >
-                H1
-              </button>
-              
-              <button
-                type="button"
-                @click="setHeading(2)"
-                :class="editor?.isActive('heading', { level: 2 }) ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="px-3 py-2 rounded transition-colors text-sm font-bold"
-                title="Heading 2"
-              >
-                H2
-              </button>
-              
-              <button
-                type="button"
-                @click="setHeading(3)"
-                :class="editor?.isActive('heading', { level: 3 }) ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="px-3 py-2 rounded transition-colors text-sm font-bold"
-                title="Heading 3"
-              >
-                H3
-              </button>
-            </div>
-
-            <!-- Lists -->
-            <div class="flex items-center gap-1 mr-4">
-              <button
-                type="button"
-                @click="toggleBulletList"
-                :class="editor?.isActive('bulletList') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Bullet List"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4 6a2 2 0 110-4 2 2 0 010 4zM4 12a2 2 0 110-4 2 2 0 010 4zM4 18a2 2 0 110-4 2 2 0 010 4zM8 5h10v2H8V5zM8 11h10v2H8v-2zM8 17h10v2H8v-2z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="toggleOrderedList"
-                :class="editor?.isActive('orderedList') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Numbered List"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4h1v1H3V4zM3 8h1v1H3V8zM3 12h1v1H3v-1zM6 4h12v2H6V4zM6 10h12v2H6v-2zM6 16h12v2H6v-2z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="toggleBlockquote"
-                :class="editor?.isActive('blockquote') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Quote"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M8 13V7h3l-2-3H6l2 3h1v6h1zM14 13V7h3l-2-3h-3l2 3h1v6h1z"/>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Links and Images -->
-            <div class="flex items-center gap-1 mr-4">
-              <button
-                type="button"
-                @click="addLink"
-                :class="editor?.isActive('link') ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Add Link"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5z"/>
-                  <path d="M7.414 15.414a2 2 0 01-2.828-2.828l3-3a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="uploadImageFromComputer"
-                class="p-2 rounded transition-colors relative"
-                :class="isUploading ? 'text-green-500' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                :title="isUploading ? 'Uploading...' : 'Upload Image from Computer (Auto-compressed)'"
-                :disabled="isUploading"
-              >
-                <svg v-if="!isUploading" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"/>
-                </svg>
-                <svg v-else class="w-4 h-4 animate-spin" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="addImage"
-                class="p-2 rounded transition-colors"
-                :class="isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200'"
-                title="Add Image by URL"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                </svg>
-              </button>
-              
-              <!-- Image Size Buttons -->
-              <div class="border-l pl-2 ml-2 flex gap-1" :class="isDarkMode ? 'border-slate-600' : 'border-slate-300'">
-                <button
-                  type="button"
-                  @click="addImageSize('small')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-green-400 hover:bg-slate-700' : 'text-green-600 hover:bg-green-50'"
-                  title="Add Small Image (300px)"
-                >
-                  S
-                </button>
-                <button
-                  type="button"
-                  @click="addImageSize('medium')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-green-400 hover:bg-slate-700' : 'text-green-600 hover:bg-green-50'"
-                  title="Add Medium Image (500px)"
-                >
-                  M
-                </button>
-                <button
-                  type="button"
-                  @click="addImageSize('large')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-green-400 hover:bg-slate-700' : 'text-green-600 hover:bg-green-50'"
-                  title="Add Large Image (700px)"
-                >
-                  L
-                </button>
-                <button
-                  type="button"
-                  @click="addImageSize('xl')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-green-400 hover:bg-slate-700' : 'text-green-600 hover:bg-green-50'"
-                  title="Add Extra Large Image (900px)"
-                >
-                  XL
-                </button>
-                <button
-                  type="button"
-                  @click="addImageSize('full')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-green-400 hover:bg-slate-700' : 'text-green-600 hover:bg-green-50'"
-                  title="Add Full Width Image"
-                >
-                  100%
-                </button>
-              </div>
-              
-              <!-- Image Alignment -->
-              <div class="border-l pl-2 ml-2 flex gap-1" :class="isDarkMode ? 'border-slate-600' : 'border-slate-300'">
-                <button
-                  type="button"
-                  @click="addQuickImage('medium', 'left')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-blue-400 hover:bg-slate-700' : 'text-blue-600 hover:bg-blue-50'"
-                  title="Add Left-Aligned Image"
-                >
-                  ← Left
-                </button>
-                <button
-                  type="button"
-                  @click="addQuickImage('medium', 'center')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-blue-400 hover:bg-slate-700' : 'text-blue-600 hover:bg-blue-50'"
-                  title="Add Center-Aligned Image"
-                >
-                  ↕ Center
-                </button>
-                <button
-                  type="button"
-                  @click="addQuickImage('medium', 'right')"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                  :class="isDarkMode ? 'text-blue-400 hover:bg-slate-700' : 'text-blue-600 hover:bg-blue-50'"
-                  title="Add Right-Aligned Image"
-                >
-                  Right →
-                </button>
-              </div>
-
-            </div>
-
-
-
-            <!-- Alignment -->
-            <div class="flex items-center gap-1">
-              <button
-                type="button"
-                @click="setTextAlign('left')"
-                :class="editor?.isActive({ textAlign: 'left' }) ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Align Left"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4h14v2H3V4zM3 8h8v2H3V8zM3 12h14v2H3v-2zM3 16h8v2H3v-2z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="setTextAlign('center')"
-                :class="editor?.isActive({ textAlign: 'center' }) ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Align Center"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4h14v2H3V4zM6 8h8v2H6V8zM3 12h14v2H3v-2zM6 16h8v2H6v-2z"/>
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                @click="setTextAlign('right')"
-                :class="editor?.isActive({ textAlign: 'right' }) ? 'bg-green-500 text-white' : (isDarkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200')"
-                class="p-2 rounded transition-colors"
-                title="Align Right"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4h14v2H3V4zM9 8h8v2H9V8zM3 12h14v2H3v-2zM9 16h8v2H9v-2z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Quill Editor -->
-          <textarea
-            v-model="formData.content"
-            rows="15"
-            class="w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            :class="isDarkMode ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'"
-            placeholder="Write your blog post content here..."
-          ></textarea>
+          <Editor
+            v-model="editorContent"
+            :init="editorConfig"
+            :key="`editor-${isDarkMode ? 'dark' : 'light'}-${activeTab}`"
+            :disabled="false"
+            :api-key="tinymceApiKey"
+          />
         </div>
       </div>
 
@@ -1270,18 +990,19 @@ const previewPost = () => {
       </div>
     </div>
 
+
     <!-- Image Library Modal -->
-    <div v-if="showImageLibrary" class="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div class="rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto shadow-2xl border transform hover:scale-[1.01] transition-all duration-300" 
-           :class="isDarkMode ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'">
+    <div v-if="showImageLibrary" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="rounded-xl max-w-5xl w-full max-h-[85vh] overflow-y-auto shadow-2xl border transform transition-all duration-300" 
+           :class="isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'">
         <div class="p-6">
           <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-              Image Library
+              Select Featured Image
             </h3>
             <button
               @click="showImageLibrary = false"
-              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1289,14 +1010,14 @@ const previewPost = () => {
             </button>
           </div>
 
-          <!-- Use the existing ImageGallery component -->
+          <!-- Image Gallery Component -->
           <ImageGallery
-            title="Select Featured Image"
+            title="Select or Upload Featured Image"
             :current-image="formData.featured_image"
+            folder="cms"
             @image-selected="handleImageSelected"
-            @close="showImageLibrary = false"
           />
-              </div>
+        </div>
       </div>
     </div>
 
@@ -1313,179 +1034,29 @@ const previewPost = () => {
 </template>
 
 <style scoped>
-/* Tiptap editor styling */
-:deep(.ProseMirror) {
-  outline: none;
-  padding: 1rem;
-  min-height: 350px;
+/* TinyMCE editor styling */
+:deep(.tox-tinymce) {
+  border-radius: 0.5rem;
 }
 
-:deep(.ProseMirror p.is-editor-empty:first-child::before) {
-  content: attr(data-placeholder);
-  float: left;
-  color: #adb5bd;
-  pointer-events: none;
-  height: 0;
+:deep(.tox .tox-edit-area__iframe) {
+  background-color: transparent !important;
 }
 
-:deep(.ProseMirror h1) {
-  font-size: 2em;
-  font-weight: bold;
-  margin: 1rem 0 0.5rem 0;
+/* Dark mode support for TinyMCE */
+.dark :deep(.tox-tinymce) {
+  border-color: #475569;
 }
 
-:deep(.ProseMirror h2) {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin: 1rem 0 0.5rem 0;
+.dark :deep(.tox .tox-toolbar),
+.dark :deep(.tox .tox-toolbar__overflow),
+.dark :deep(.tox .tox-toolbar__primary) {
+  background-color: #1e293b;
+  border-color: #475569;
 }
 
-:deep(.ProseMirror h3) {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin: 1rem 0 0.5rem 0;
-}
-
-:deep(.ProseMirror ul, .ProseMirror ol) {
-  padding-left: 1.5rem;
-  margin: 0.5rem 0;
-}
-
-:deep(.ProseMirror li) {
-  margin: 0.25rem 0;
-}
-
-:deep(.ProseMirror blockquote) {
-  border-left: 4px solid #d1d5db;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  font-style: italic;
-}
-
-:deep(.ProseMirror pre) {
-  background-color: #f3f4f6;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  margin: 1rem 0;
-  overflow-x: auto;
-  border-left: 4px solid #10b981;
-}
-
-:deep(.ProseMirror code) {
-  background-color: #f3f4f6;
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 0.875em;
-}
-
-/* Code highlighting */
-:deep(.ProseMirror pre code.language-html) {
-  color: #e11d48;
-}
-
-:deep(.ProseMirror pre code.language-css) {
-  color: #0ea5e9;
-}
-
-:deep(.ProseMirror pre code.language-javascript) {
-  color: #f59e0b;
-}
-
-:deep(.ProseMirror a) {
-  color: #059669;
-  text-decoration: underline;
-}
-
-/* Modern image handling with text wrapping */
-:deep(.ProseMirror img) {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  margin: 16px 0;
-  display: block;
-  transition: transform 0.2s ease-in-out;
-}
-
-:deep(.ProseMirror img:hover) {
-  transform: scale(1.02);
-}
-
-/* Image alignment classes */
-:deep(.ProseMirror img[style*="float: left"]) {
-  float: left;
-  margin: 0 16px 16px 0;
-  max-width: 50%;
-}
-
-:deep(.ProseMirror img[style*="float: right"]) {
-  float: right;
-  margin: 0 0 16px 16px;
-  max-width: 50%;
-}
-
-:deep(.ProseMirror img[style*="text-align: center"]) {
-  display: block;
-  margin: 16px auto;
-}
-
-/* Text wrapping around images */
-:deep(.ProseMirror p) {
-  text-align: justify;
-  line-height: 1.7;
-  margin-bottom: 16px;
-}
-
-/* Image container for better control */
-:deep(.ProseMirror .image-container) {
-  text-align: center;
-  margin: 20px 0;
-  position: relative;
-}
-
-:deep(.ProseMirror .image-container img) {
-  margin: 0;
-  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Responsive image handling */
-:deep(.ProseMirror img[width]) {
-  width: auto !important;
-  max-width: 100%;
-}
-
-/* Image resize handles */
-:deep(.ProseMirror img[data-resize-handles]) {
-  cursor: grab;
-}
-
-:deep(.ProseMirror img[data-resize-handles]:active) {
-  cursor: grabbing;
-}
-
-/* Dark mode styles */
-.dark :deep(.ProseMirror) {
-  color: #f1f5f9;
-}
-
-.dark :deep(.ProseMirror blockquote) {
-  border-left-color: #475569;
-}
-
-.dark :deep(.ProseMirror pre) {
-  background-color: #374151;
-  color: #f1f5f9;
-}
-
-.dark :deep(.ProseMirror code) {
-  background-color: #374151;
-  color: #f1f5f9;
-}
-
-.dark :deep(.ProseMirror a) {
-  color: #10b981;
+.dark :deep(.tox .tox-edit-area__iframe) {
+  background-color: #1e293b;
 }
 
 /* Custom animations */
@@ -1534,13 +1105,4 @@ input:focus, textarea:focus, select:focus {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Image container styles */
-:deep(.ProseMirror img) {
-  transition: all 0.2s ease;
-}
-
-:deep(.ProseMirror img:hover) {
-  transform: scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
-}
 </style>

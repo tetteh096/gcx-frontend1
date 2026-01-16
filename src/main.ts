@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import router from './router'
 import './style.css'
 import 'primeicons/primeicons.css'
+// TinyMCE will be loaded from CDN via the Vue wrapper when API key is provided
 import App from './App.vue'
 import './plugins/axios'
 import { useAuthStore } from './stores/auth'

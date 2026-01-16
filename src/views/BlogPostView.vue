@@ -6,6 +6,7 @@ import { isDarkMode } from '../utils/darkMode'
 import { useBlog } from '../composables/useBlog'
 import { getImageUrl } from '../utils/imageUrl'
 import Footer from '../components/Footer.vue'
+import BlogHeroSlider from '../components/Blog/BlogHeroSlider.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -98,6 +99,17 @@ const recentPosts = computed(() => {
   return allPosts.value.slice(0, 5)
 })
 
+// Get posts with featured images for slider (last 5, excluding current)
+const sliderPosts = computed(() => {
+  return allPosts.value
+    .filter(post => {
+      const hasImage = post.image && post.image !== '/trading.jpg'
+      const isNotCurrent = post.id !== currentPost.value?.id
+      return hasImage && isNotCurrent
+    })
+    .slice(0, 5)
+})
+
 const categories = computed(() => {
   const allTags = allPosts.value.flatMap(post => post.tags)
   return [...new Set(allTags)]
@@ -135,19 +147,21 @@ const sharePost = () => {
 
 <template>
   <div v-if="currentPost" class="min-h-screen transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-slate-50'">
-    <!-- Hero Section -->
-    <section class="relative py-14 lg:py-20 overflow-hidden">
-      <div class="absolute inset-0">
-        <img :src="currentPost.image" :alt="currentPost.title" class="w-full h-full object-cover" />
-        <div class="absolute inset-0" :class="isDarkMode ? 'bg-slate-900/70' : 'bg-white/80'"></div>
-      </div>
-      <div class="relative max-w-[1600px] mx-auto px-4">
+    <!-- Hero Slider Section -->
+    <BlogHeroSlider 
+      :posts="sliderPosts" 
+      :current-post-id="currentPost.id"
+    />
+
+    <!-- Post Header Section -->
+    <section class="relative py-12 transition-colors duration-300" :class="isDarkMode ? 'bg-slate-900' : 'bg-white'">
+      <div class="max-w-[1600px] mx-auto px-4">
         <div class="max-w-4xl mx-auto">
           <!-- Back Button -->
           <button
             @click="goBack"
             class="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-lg transition-all duration-200"
-            :class="isDarkMode ? 'bg-slate-800/80 text-white hover:bg-slate-700' : 'bg-white/90 text-slate-900 hover:bg-white'"
+            :class="isDarkMode ? 'bg-slate-800/80 text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -218,6 +232,18 @@ const sharePost = () => {
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-12">
           <!-- Main Content -->
           <div class="lg:col-span-3">
+            <!-- Featured Image (if exists) -->
+            <div v-if="currentPost.image && currentPost.image !== '/trading.jpg'" class="mb-12">
+              <div class="relative rounded-2xl overflow-hidden shadow-2xl border-4" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
+                <img 
+                  :src="currentPost.image" 
+                  :alt="currentPost.title" 
+                  class="w-full h-auto object-cover"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+              </div>
+            </div>
+
             <!-- Article Content -->
             <article class="prose prose-lg max-w-none" :class="isDarkMode ? 'prose-invert' : ''">
               <div v-html="currentPost.content" class="text-lg leading-relaxed"></div>

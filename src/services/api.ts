@@ -39,9 +39,10 @@ export const authAPI = {
 // Blog API
 export const blogAPI = {
   // Public blog posts (for website)
-  getPublicPosts: () => {
+  getPublicPosts: (skipCache = false) => {
     console.log('🌐 Making API call to: GET /api/posts')
-    return api.get<BlogPost[]>('/api/posts')
+    const params = skipCache ? { _t: Date.now() } : {}
+    return api.get<BlogPost[]>('/api/posts', { params })
   },
     
   getPublicPost: (slug: string) =>

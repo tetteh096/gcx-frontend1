@@ -334,7 +334,7 @@ onMounted(() => {
 }
 
 .news-ticker-scroll {
-  animation: news-ticker-scroll 250s linear infinite;
+  animation: news-ticker-scroll 60s linear infinite;
   width: max-content;
 }
 
@@ -388,7 +388,7 @@ onMounted(() => {
   }
   
   .news-ticker-scroll {
-    animation-duration: 180s;
+    animation-duration: 45s;
   }
 }
 

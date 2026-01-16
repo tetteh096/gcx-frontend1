@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { isDarkMode } from '../../utils/darkMode'
 
@@ -29,22 +29,86 @@ const props = defineProps<Props>()
 const { t } = useI18n()
 const emit = defineEmits<Emits>()
 
-// Get paginated posts (excluding featured)
+// Get paginated posts
 const paginatedPosts = computed(() => {
   const startIndex = (props.currentPage - 1) * props.postsPerPage
-  return props.posts.filter(post => !post.featured).slice(startIndex, startIndex + props.postsPerPage)
+  return props.posts.slice(startIndex, startIndex + props.postsPerPage)
 })
 
 // Calculate total pages
 const totalPages = computed(() => {
-  const nonFeaturedPosts = props.posts.filter(post => !post.featured)
-  return Math.ceil(nonFeaturedPosts.length / props.postsPerPage)
+  return Math.ceil(props.posts.length / props.postsPerPage)
+})
+
+// Get page numbers to display (professional pagination for many pages)
+const pageNumbers = computed(() => {
+  const total = totalPages.value
+  const current = props.currentPage
+  const pages: (number | string)[] = []
+  
+  if (total <= 9) {
+    // Show all pages if 9 or fewer
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Always show first page
+    pages.push(1)
+    
+    // Calculate range around current page
+    let start = Math.max(2, current - 2)
+    let end = Math.min(total - 1, current + 2)
+    
+    // Adjust if we're near the start
+    if (current <= 4) {
+      end = Math.min(6, total - 1)
+      start = 2
+    }
+    
+    // Adjust if we're near the end
+    if (current >= total - 3) {
+      start = Math.max(2, total - 5)
+      end = total - 1
+    }
+    
+    // Add ellipsis after first page if needed
+    if (start > 2) {
+      pages.push('...')
+    }
+    
+    // Add pages in range
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+    
+    // Add ellipsis before last page if needed
+    if (end < total - 1) {
+      pages.push('...')
+    }
+    
+    // Always show last page
+    pages.push(total)
+  }
+  
+  return pages
 })
 
 // Pagination functions
 const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
     emit('update:currentPage', page)
+    // Scroll to top of posts grid smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+// Page input for direct navigation
+const pageInput = ref('')
+const jumpToPage = () => {
+  const page = parseInt(pageInput.value)
+  if (page >= 1 && page <= totalPages.value) {
+    goToPage(page)
+    pageInput.value = ''
   }
 }
 </script>
@@ -146,45 +210,144 @@ const goToPage = (page: number) => {
           </router-link>
         </div>
 
-    <!-- Pagination -->
-    <div v-if="totalPages > 1" class="flex justify-between items-center py-8 border-t" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
-      <button
-        @click="goToPage(currentPage - 1)"
-        :disabled="currentPage === 1"
-        class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        :class="isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-700'"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Previous
-      </button>
-      
-      <div class="flex gap-1">
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          @click="goToPage(page)"
-          class="w-10 h-10 rounded-lg transition-all duration-200 font-medium"
-          :class="page === currentPage 
-            ? 'bg-yellow-500 text-white' 
-            : (isDarkMode ? 'text-slate-400 hover:bg-slate-700' : 'text-slate-500 hover:bg-slate-200')"
-        >
-          {{ page }}
-        </button>
+    <!-- Enhanced Pagination -->
+    <div v-if="totalPages > 0" class="mt-12 pt-8 border-t" :class="isDarkMode ? 'border-slate-700' : 'border-slate-200'">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <!-- Posts Info -->
+        <div class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+          Showing 
+          <span class="font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            {{ ((currentPage - 1) * postsPerPage) + 1 }}
+          </span>
+          to 
+          <span class="font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            {{ Math.min(currentPage * postsPerPage, posts.length) }}
+          </span>
+          of 
+          <span class="font-semibold" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
+            {{ posts.length }}
+          </span>
+          posts
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div v-if="totalPages > 1" class="flex items-center gap-2 flex-wrap justify-center">
+          <!-- First Page Button (show if not on first few pages) -->
+          <button
+            v-if="currentPage > 3 && totalPages > 7"
+            @click="goToPage(1)"
+            class="flex items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 font-medium"
+            :class="isDarkMode 
+              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700' 
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+            title="First page"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+            <span class="hidden sm:inline">First</span>
+          </button>
+          
+          <!-- Previous Button -->
+          <button
+            @click="goToPage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            :class="isDarkMode 
+              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700' 
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span class="hidden sm:inline">Previous</span>
+            <span class="sm:hidden">Prev</span>
+          </button>
+          
+          <!-- Page Numbers -->
+          <div class="flex items-center gap-1 flex-wrap justify-center">
+            <button
+              v-for="(page, index) in pageNumbers"
+              :key="`page-${index}`"
+              @click="typeof page === 'number' ? goToPage(page) : null"
+              :disabled="typeof page === 'string'"
+              class="min-w-[40px] h-10 px-3 rounded-lg transition-all duration-200 font-medium disabled:cursor-default"
+              :class="typeof page === 'number' && page === currentPage
+                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg scale-105' 
+                : typeof page === 'number'
+                  ? (isDarkMode 
+                      ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 hover:scale-105' 
+                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 hover:scale-105')
+                  : (isDarkMode ? 'text-slate-500 cursor-default' : 'text-slate-400 cursor-default')"
+            >
+              {{ page }}
+            </button>
+          </div>
+          
+          <!-- Page Jump Input (show for 10+ pages) -->
+          <div v-if="totalPages >= 10" class="flex items-center gap-2">
+            <span class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">Go to:</span>
+            <input
+              v-model="pageInput"
+              @keyup.enter="jumpToPage"
+              type="number"
+              :min="1"
+              :max="totalPages"
+              :placeholder="currentPage.toString()"
+              class="w-16 h-10 px-2 text-center rounded-lg border transition-all duration-200 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              :class="isDarkMode 
+                ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' 
+                : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'"
+            />
+            <button
+              @click="jumpToPage"
+              class="px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm"
+              :class="isDarkMode 
+                ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                : 'bg-slate-200 text-slate-700 hover:bg-slate-300'"
+            >
+              Go
+            </button>
+          </div>
+          
+          <!-- Next Button -->
+          <button
+            @click="goToPage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            :class="isDarkMode 
+              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700' 
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+          >
+            <span class="hidden sm:inline">Next</span>
+            <span class="sm:hidden">Next</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          
+          <!-- Last Page Button (show if not on last few pages) -->
+          <button
+            v-if="currentPage < totalPages - 2 && totalPages > 7"
+            @click="goToPage(totalPages)"
+            class="flex items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 font-medium"
+            :class="isDarkMode 
+              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700' 
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+            title="Last page"
+          >
+            <span class="hidden sm:inline">Last</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Single Page Indicator -->
+        <div v-else class="text-sm" :class="isDarkMode ? 'text-slate-400' : 'text-slate-600'">
+          Page 1 of 1
+        </div>
       </div>
-      
-      <button
-        @click="goToPage(currentPage + 1)"
-        :disabled="currentPage === totalPages"
-        class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        :class="isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-700'"
-      >
-        Next
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
     </div>
   </div>
 </template>

@@ -25,7 +25,7 @@ const route = useRoute()
 const activeSection = computed(() => route.meta.section || 'dashboard')
 
 // Track which dropdowns are open
-const openDropdowns = ref<Set<string>>(new Set(['content'])) // Open content by default
+const openDropdowns = ref<Set<string>>(new Set()) // All dropdowns closed by default
 
 // Navigation items with PrimeIcons - Organized with dropdowns
 const navigationItems = computed<NavigationItem[]>(() => [
@@ -148,7 +148,7 @@ const navigationItems = computed<NavigationItem[]>(() => [
   {
     id: 'news-manager',
     label: 'News Ticker',
-    icon: 'pi pi-newspaper',
+    icon: 'pi pi-bell',
     permissions: ['admin', 'editor']
   },
   {

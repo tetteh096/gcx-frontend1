@@ -11,6 +11,9 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
+  optimizeDeps: {
+    include: ['tinymce', '@tinymce/tinymce-vue']
+  },
   server: {
     host: true, // Allow external connections (required for ngrok)
     port: 5173,
