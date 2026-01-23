@@ -131,10 +131,7 @@
           <thead class="transition-colors duration-300" :class="isDarkMode ? 'bg-slate-700' : 'bg-green-50'">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Commodity</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Code</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Category</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Current Price</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Change</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Image</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300" :class="isDarkMode ? 'text-slate-300' : 'text-green-700'">Actions</th>
@@ -146,28 +143,11 @@
                 <div class="text-sm font-medium transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">{{ commodity.name }}</div>
                 <div class="text-sm transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">{{ commodity.origin_country }}</div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-mono transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                {{ commodity.code }}
-              </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                       :class="getCategoryBadgeClass(commodity.category)">
                   {{ commodity.category }}
                 </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm transition-colors duration-300" :class="isDarkMode ? 'text-white' : 'text-slate-900'">
-                <div class="font-medium">{{ commodity.price_unit }} {{ commodity.current_price.toLocaleString() }}</div>
-                <div class="text-xs transition-colors duration-300" :class="isDarkMode ? 'text-slate-400' : 'text-slate-500'">{{ commodity.contract_size }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <div class="flex items-center">
-                  <span :class="commodity.price_change >= 0 ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')">
-                    {{ commodity.price_change >= 0 ? '+' : '' }}{{ commodity.price_change.toFixed(2) }}
-                  </span>
-                  <span class="ml-1 text-xs" :class="commodity.price_change_percent >= 0 ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')">
-                    ({{ commodity.price_change_percent >= 0 ? '+' : '' }}{{ commodity.price_change_percent.toFixed(2) }}%)
-                  </span>
-                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -313,43 +293,64 @@
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sort Order</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contract Type</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Order</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <tr v-for="contractType in contractTypes" :key="contractType.id">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                      <img v-if="contractType.image_path" :src="contractType.image_path" :alt="contractType.name" class="h-10 w-10 rounded-lg object-cover">
-                      <div v-else class="h-10 w-10 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                        <i class="pi pi-image text-gray-400"></i>
+              <tr v-for="contractType in contractTypes" :key="contractType.id" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-4 py-4">
+                  <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 h-12 w-12">
+                      <img v-if="contractType.image_path" :src="contractType.image_path" :alt="contractType.name" class="h-12 w-12 rounded-lg object-cover border border-gray-200 dark:border-gray-600">
+                      <div v-else class="h-12 w-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                        <i class="pi pi-image text-gray-400 text-lg"></i>
                       </div>
                     </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900 dark:text-white">{{ contractType.name }}</div>
-                      <div class="text-sm text-gray-500 dark:text-gray-400">{{ contractType.description }}</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white mb-1">{{ contractType.name }}</div>
+                      <div 
+                        class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2"
+                        :title="contractType.description || ''"
+                      >
+                        {{ truncateText(contractType.description || '', 80) }}
+                      </div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ contractType.code }}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="contractType.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                <td class="px-4 py-4">
+                  <span class="text-sm font-mono text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                    {{ contractType.code }}
+                  </span>
+                </td>
+                <td class="px-4 py-4">
+                  <span :class="contractType.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'" class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
                     {{ contractType.is_active ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ contractType.sort_order }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button @click="editContractType(contractType)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
-                    Edit
-                  </button>
-                  <button @click="deleteContractType(contractType.id)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                    Delete
-                  </button>
+                <td class="px-4 py-4">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ contractType.sort_order }}</span>
+                </td>
+                <td class="px-4 py-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <button 
+                      @click="editContractType(contractType)" 
+                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 px-2 py-1 rounded text-sm font-medium transition-colors"
+                      title="Edit contract type"
+                    >
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    <button 
+                      @click="deleteContractType(contractType.id)" 
+                      class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 px-2 py-1 rounded text-sm font-medium transition-colors"
+                      title="Delete contract type"
+                    >
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -1373,6 +1374,13 @@ const loadContractTypes = async () => {
 const getSelectedCommodityName = () => {
   const commodity = commodities.value.find(c => c.id === selectedCommodityForContractTypes.value);
   return commodity?.name || 'Unknown';
+};
+
+// Helper function to truncate text
+const truncateText = (text: string, maxLength: number): string => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
 };
 
 const openAddContractTypeModal = () => {

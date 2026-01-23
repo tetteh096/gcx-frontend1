@@ -784,7 +784,12 @@ const openAddModal = () => {
 
 const editEvent = (event: Event) => {
   isEditing.value = true
-  formData.value = { ...event }
+  formData.value = { 
+    ...event,
+    // Convert ISO date string to yyyy-MM-dd format for date input
+    date: event.date ? (event.date.includes('T') ? event.date.split('T')[0] : event.date) : '',
+    registration_deadline: event.registration_deadline ? (event.registration_deadline.includes('T') ? event.registration_deadline.split('T')[0] : event.registration_deadline) : ''
+  }
   
   // Parse JSON fields
   try {

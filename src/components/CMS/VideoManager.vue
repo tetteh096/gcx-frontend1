@@ -669,7 +669,11 @@ const openAddLibraryModal = () => {
 
 // Edit library
 const editLibrary = (library: VideoLibrary) => {
-  currentLibrary.value = { ...library }
+  currentLibrary.value = { 
+    ...library,
+    // Convert ISO date string to yyyy-MM-dd format for date input
+    date: library.date ? (library.date.includes('T') ? library.date.split('T')[0] : library.date) : ''
+  }
   tagsInput.value = library.tags ? library.tags.join(', ') : ''
   isEditingLibrary.value = true
   showLibraryModal.value = true

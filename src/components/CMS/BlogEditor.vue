@@ -86,8 +86,15 @@ const handleEditorImageUpload = async (event: Event) => {
 }
 
 // Smart compression function that maintains quality while reducing size
+// FIXED: Increased quality settings to prevent blurry images
 const smartCompress = (file: File): Promise<File> => {
   return new Promise((resolve) => {
+    // Skip compression for very small files (< 500KB) to preserve quality
+    if (file.size < 500 * 1024) {
+      resolve(file)
+      return
+    }
+
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
     const img = new Image()
@@ -95,20 +102,23 @@ const smartCompress = (file: File): Promise<File> => {
     img.onload = () => {
       let { width, height } = img
       
-      // Smart sizing based on image dimensions
-      let maxWidth = 1200 // Higher quality baseline
-      let quality = 0.85 // Start with high quality
+      // FIXED: Higher quality baseline and larger max dimensions
+      // This prevents blur by maintaining higher resolution
+      let maxWidth = 1920 // Increased from 1200 for better quality
+      let quality = 0.92 // Increased from 0.85 for sharper images
       
+      // FIXED: Less aggressive compression - only compress very large images
       // Adjust based on original size
-      if (width > 2000 || height > 2000) {
-        maxWidth = 1000
-        quality = 0.8
-      } else if (width > 1500 || height > 1500) {
-        maxWidth = 800
-        quality = 0.8
-      } else if (width <= 800 && height <= 600) {
-        maxWidth = width // Don't upscale small images
-        quality = 0.9 // Higher quality for small images
+      if (width > 3000 || height > 3000) {
+        maxWidth = 2400 // Increased from 1000
+        quality = 0.90 // Increased from 0.8
+      } else if (width > 2500 || height > 2500) {
+        maxWidth = 2000 // Increased from 800
+        quality = 0.91 // Increased from 0.8
+      } else if (width <= 1200 && height <= 1200) {
+        // Don't compress small images at all - preserve original quality
+        resolve(file)
+        return
       }
       
       // Calculate new dimensions maintaining aspect ratio
@@ -120,14 +130,15 @@ const smartCompress = (file: File): Promise<File> => {
       canvas.width = width
       canvas.height = height
       
-      // Use high-quality rendering
+      // Use high-quality rendering with better settings
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = 'high'
       
-      // Draw image
+      // FIXED: Use better interpolation for sharper results
+      // Draw image with better quality
       ctx.drawImage(img, 0, 0, width, height)
       
-      // Try different quality levels until size is acceptable
+      // FIXED: Higher size threshold and quality floor to prevent over-compression
       const tryCompress = (currentQuality: number) => {
         canvas.toBlob((blob) => {
           if (blob) {
@@ -136,9 +147,10 @@ const smartCompress = (file: File): Promise<File> => {
               lastModified: Date.now()
             })
             
-            // If still too large and quality can be reduced, try again
-            if (blob.size > 800 * 1024 && currentQuality > 0.3) { // 800KB threshold
-              tryCompress(currentQuality - 0.1)
+            // FIXED: Only compress if file is very large (> 1.5MB) and never go below 0.85 quality
+            // This prevents blurry images
+            if (blob.size > 1500 * 1024 && currentQuality > 0.85) { // Increased threshold from 800KB
+              tryCompress(currentQuality - 0.05) // Smaller quality steps
             } else {
               resolve(compressedFile)
             }
@@ -149,6 +161,11 @@ const smartCompress = (file: File): Promise<File> => {
       }
       
       tryCompress(quality)
+    }
+    
+    img.onerror = () => {
+      // If image fails to load, return original file
+      resolve(file)
     }
     
     img.src = URL.createObjectURL(file)

@@ -579,7 +579,11 @@ const openAddGalleryModal = () => {
 
 // Edit gallery
 const editGallery = (gallery: PhotoGallery) => {
-  currentGallery.value = { ...gallery }
+  currentGallery.value = { 
+    ...gallery,
+    // Convert ISO date string to yyyy-MM-dd format for date input
+    date: gallery.date ? (gallery.date.includes('T') ? gallery.date.split('T')[0] : gallery.date) : ''
+  }
   tagsInput.value = gallery.tags ? gallery.tags.join(', ') : ''
   isEditingGallery.value = true
   showGalleryModal.value = true
